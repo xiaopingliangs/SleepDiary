@@ -1,0 +1,83 @@
+{
+  "specVersion": "SPEC-0.1.0",
+  "targetAppVersion": "0.1.0",
+  "evidenceReviewDate": "2026-09-08",
+  "cbtiProtocolVersion": "NONE",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "83c34f99ae0e1707013080afbd3d60e29a843e37dda34043d38e9eda89c2746e",
+      "bytes": 5645
+    },
+    {
+      "path": "ARCHITECTURE.md",
+      "sha256": "10e1b6de442aa26be40fcef52e0fdd81e67e20fc27269cdfa105eb2abb0dcc06",
+      "bytes": 5012
+    },
+    {
+      "path": "CLINICAL_BOUNDARIES.md",
+      "sha256": "563b8775b242a8019b07a2fa1028b5eff058fcf7366eb012ab8106ce249ae6a1",
+      "bytes": 12376
+    },
+    {
+      "path": "DATA_SCHEMA.md",
+      "sha256": "0821980bdf49898a6fd138df9ac79e037881c8a1724b4197b08e72931fb8ab5c",
+      "bytes": 9139
+    },
+    {
+      "path": "EVIDENCE.md",
+      "sha256": "0aa0e31c3e9ebf9f85adbcc482a0e803a641bb8b3cfc1fa29910c40f4a9f0519",
+      "bytes": 7918
+    },
+    {
+      "path": "IMPORT_EXPORT_SPEC.md",
+      "sha256": "dda2473c40e4382b089513c6ae0987aebe2192cd1fd612b78740e0741a203dbd",
+      "bytes": 5217
+    },
+    {
+      "path": "PRODUCT_SPEC.md",
+      "sha256": "d16f8a89725ae24a14d4003d1c09f22964a8d9ef5d83bd9d8a4eb7c78fc83eef",
+      "bytes": 6860
+    },
+    {
+      "path": "README.md",
+      "sha256": "f17ce0be9ffe2475a5d332938ec4e696aedc1c2f5761984e28948568343d153c",
+      "bytes": 4408
+    },
+    {
+      "path": "SELF_CHECK.json",
+      "sha256": "1d762a677699940567109ba31003ece6ccf2ecc4e6b4863a7cc5273447725b47",
+      "bytes": 1384
+    },
+    {
+      "path": "TEST_PLAN.md",
+      "sha256": "9ca47081ce9744e577fd5d5b5b1245602e52d2e26e7125959d35200da3050a0c",
+      "bytes": 11226
+    },
+    {
+      "path": "UX_SPEC.md",
+      "sha256": "b60aa7fc68be1a9e85cdaf9b033759fa63e034974e45e6058750167f26eafbb1",
+      "bytes": 6923
+    },
+    {
+      "path": "VERSIONING_AND_TRACEABILITY.md",
+      "sha256": "bcc537257388c88d2353e6e68d17a7090faa93eefabca35a4f6f711dbc97a497",
+      "bytes": 3787
+    },
+    {
+      "path": "samples/backup-v1.example.json",
+      "sha256": "6834bcd21e8fcc918bb26a0071818f0db10ef013ecb181db65ed590a0c3e6211",
+      "bytes": 2301
+    },
+    {
+      "path": "samples/diary-v1.example.csv",
+      "sha256": "5fcd2aa5da0cea76b51830060604ab4fcfadcbb56033c4d711ff35df510f6b49",
+      "bytes": 504
+    },
+    {
+      "path": "schemas/backup-v1.schema.json",
+      "sha256": "b7ea81a5276f1a6d245805a4b31bf9a98181bb210f24b273743e0f60dd47dcaa",
+      "bytes": 24937
+    }
+  ]
+}

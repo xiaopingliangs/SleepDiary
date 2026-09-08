@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "checkedAt": "2026-09-09",
+  "specVersion": "SPEC-0.1.0",
+  "checks": {
+    "requiredFilesPresent": true,
+    "jsonSyntaxValid": true,
+    "draft202012SchemaValid": true,
+    "backupExampleSchemaValid": true,
+    "inlineEmptyBackupSchemaValid": true,
+    "schemaPositiveAndNegativeCasesPassed": 66,
+    "localDateTimePatternFixedWithoutSemanticChange": true,
+    "sampleTimeOrderAndTrackingReferencesValid": true,
+    "csvBomAndColumnsValid": true,
+    "safetyStatusAndVersionFieldsUpdated": true,
+    "roomOnlyRestoreSpecified": true,
+    "mergeTestsReplacedWithRestoreTests": true,
+    "trackingFreezeAndCrossPeriodRulesSpecified": true,
+    "s09SerializationResolved": true,
+    "cbtiProtocolValue": "NONE",
+    "androidProjectCreated": false,
+    "androidTestsRun": false,
+    "s09SchemaCasesPassed": true,
+    "s09CanonicalOrderingSpecificationChecks": 64,
+    "localDevelopmentFirstSpecified": true,
+    "fullSpecificationReviewCompleted": true
+  },
+  "blockingItems": [],
+  "note": "规格基线复核通过，未发现阻塞开发的规格冲突或未知项。校验覆盖 JSON Schema、示例及 S09 规范化规则；不是 Android 实现、UI 或分流代码测试。Android 工程未创建、Android 测试未执行、外部医学证据未重新审查。清单不包含自身，生成后独立核对全部哈希。"
+}

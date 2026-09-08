@@ -1,0 +1,77 @@
+{
+  "exportFormatVersion": "BACKUP_1.0",
+  "appVersion": "0.1.0",
+  "exportedAtUtc": "2026-09-08T10:30:00Z",
+  "diarySchemaVersion": "DIARY_1.0",
+  "safetySchemaVersion": "SAFETY_1.0",
+  "safetyRuleVersion": "SAFETY_RULE_1.0",
+  "weeklySummaryRuleVersion": "WEEKLY_1.0",
+  "cbtiProtocolVersion": "NONE",
+  "diaryEntries": [
+    {
+      "id": "5e2f4cf8-2a34-4ae8-8af7-6642abc9f101",
+      "sleepDate": "2026-09-08",
+      "bedEnteredAtLocal": "2026-09-07T23:05:00",
+      "trySleepAtLocal": "2026-09-07T23:25:00",
+      "sleepOnsetLatencyMin": 30,
+      "awakeningCount": 3,
+      "wakeAfterSleepOnsetMin": 55,
+      "finalAwakeningAtLocal": "2026-09-08T06:10:00",
+      "outOfBedAtLocal": "2026-09-08T07:00:00",
+      "sleepQuality": 2,
+      "comment": null,
+      "timeZoneIdAtEntry": "Asia/Shanghai",
+      "createdAtUtc": "2026-09-08T00:05:00Z",
+      "updatedAtUtc": "2026-09-08T00:05:00Z",
+      "diarySchemaVersion": "DIARY_1.0",
+      "consistencyWarning": false
+    }
+  ],
+  "safetyAssessments": [
+    {
+      "id": "9353cf81-5e4a-4b3a-9a87-1c5c4dcad871",
+      "answeredAtUtc": "2026-09-08T00:00:00Z",
+      "safetySchemaVersion": "SAFETY_1.0",
+      "safetyRuleVersion": "SAFETY_RULE_1.0",
+      "status": "DRAFT",
+      "derivedGate": "DELAY_AUTOMATED_TREATMENT",
+      "isCurrent": true,
+      "answers": [
+        {
+          "questionId": "S01",
+          "answerCode": "YES",
+          "safetySchemaVersion": "SAFETY_1.0"
+        },
+        {
+          "questionId": "S02",
+          "answerCode": "NO",
+          "safetySchemaVersion": "SAFETY_1.0"
+        },
+        {
+          "questionId": "S03",
+          "answerCode": "YES",
+          "safetySchemaVersion": "SAFETY_1.0"
+        },
+        {
+          "questionId": "S09",
+          "answerCode": "FLAGS_PRESENT",
+          "detailJson": {
+            "selectedCodes": [
+              "LOUD_SNORING",
+              "DIAGNOSED_OSA"
+            ]
+          },
+          "safetySchemaVersion": "SAFETY_1.0"
+        }
+      ]
+    }
+  ],
+  "weeklySummaries": [],
+  "trackingState": {
+    "trackingStartDate": "2026-09-08",
+    "hasSeenMinimalInteractionExplanation": true,
+    "lastDisplayedWeeklyPeriodIndex": 0,
+    "hasSeenSharePrivacyNotice": false,
+    "currentSafetyAssessmentId": "9353cf81-5e4a-4b3a-9a87-1c5c4dcad871"
+  }
+}
