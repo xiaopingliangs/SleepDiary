@@ -1,0 +1,15 @@
+package app.sleepdiary.offline.domain.model
+import app.sleepdiary.offline.BuildConfig
+
+/** Generated from the single version.properties source; independent of Room's technical version. */
+object Versions {
+    const val APP = BuildConfig.VERSION_NAME
+    const val DIARY_SCHEMA = BuildConfig.DIARY_SCHEMA
+    const val SAFETY_SCHEMA = BuildConfig.SAFETY_SCHEMA
+    const val SAFETY_RULE = BuildConfig.SAFETY_RULE
+    const val WEEKLY_RULE = BuildConfig.WEEKLY_RULE
+    const val BACKUP_FORMAT = BuildConfig.BACKUP_FORMAT
+    const val CBTI_PROTOCOL = BuildConfig.CBTI_PROTOCOL
+}
+enum class SafetyGate { NO_MAJOR_FLAG, CLINICIAN_REVIEW, DELAY_AUTOMATED_TREATMENT }
+enum class AssessmentStatus { DRAFT, COMPLETED }
