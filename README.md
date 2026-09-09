@@ -1,6 +1,6 @@
 # 睡眠日记 V0.1 — 开发规格总览
 
-规格版本：`SPEC-0.1.1`\
+规格版本：`SPEC-0.1.2`\
 目标应用版本：`0.1.0`  
 工作名称：**睡眠日记 / SleepDiary**  
 默认 Android applicationId：`app.sleepdiary.offline`
@@ -84,7 +84,7 @@ Codex 开工前必须：
 5. 先完成数据层与测试，再完成 UI；
 6. 先让单元测试通过，再构建 APK；
 7. 不得为了通过测试而删测试、放宽医学/数据规则或跳过失败分支。
-8. 当前 SPEC-0.1.1 修订仅更新 UX 及相关规格、测试计划、自检和哈希；不写 Android UI 代码，完成后停止。既有工程和核心领域逻辑已验收，UI 实现须等待下一阶段授权。
+8. 当前已获授权完成 SPEC-0.1.2 修订并直接实现完整 V0.1；先提交规格，再分阶段提交代码，执行测试和 APK 构建。
 
 ## 6. V0.1 明确不做
 
@@ -123,3 +123,7 @@ V0.1 必须把上述能力保持为不存在，而不是“隐藏但已实现”
 
 采用时间选择器初始定位、15 分钟快捷步进、SOL/WASO quick choices、明确整数夜醒次数及无默认选项的睡眠质量输入，详见 UX_SPEC 第 1、5、12 节。未填写是 UI 状态，不扩展 SleepDiaryEntry。
 本次只改变交互设计：App 仍为 0.1.0；DIARY_1.0、SAFETY_1.0、SAFETY_RULE_1.0、WEEKLY_1.0、BACKUP_1.0 全部不变；CBT-I Protocol = NONE。医学规则、数据语义及治疗边界不变。新增 UI 测试为后续实现验收要求，本轮不宣称已执行。
+
+## 9. SPEC-0.1.2 当前授权
+
+完整功能及交互以 UX_SPEC 第 13 节为准。App 仍 0.1.0；医学和日记/安全/周规则版本不变，CBT-I Protocol NONE。BACKUP_1.1 为当前导出格式，BACKUP_1.0 保留兼容导入；新 schema 和示例分别为 schemas/backup-v1.1.schema.json、samples/backup-v1.1.example.json。AppState 独立持久化首次说明完成，Room 1→2 无损迁移。本轮完成完整 APK 后停止，不自动进入治疗或公开发布阶段。

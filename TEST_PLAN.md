@@ -288,3 +288,23 @@ A→B：A 有 summary 则修订；B 已结束且有 summary 则修订；B 未结
 | T-UX-011 | 确认一个字段后导航；纵向滚动表单及横向 quick choices | 可轻微滚动到下个未填写字段，不自动弹出下一 picker；时间滚轮置于 sheet/dialog，不与主页面纵向滚动冲突 |
 | T-UX-012 | 回到已回答/已有数据库记录的字段，打开并取消 picker | 保留原值；只有明确选择或确认才修改表单，不因 anchor 覆盖已保存值 |
 | T-UX-013 | 检查填写完成和数据展示效果 | 无连续打卡、完成动画奖励、睡眠评分、红绿评价或“今天比昨天好/差” |
+
+## 17. P0 — SPEC-0.1.2 完整功能
+
+保留既有 154 个自动测试覆盖，交互预期按新批准规格同步。新增：完整安全流程、DRAFT 与 S03 立即帮助、S09 多选互斥；日期 anchor 和前值参考、取消不写入、直接 DatePicker；结构化时间冲突与定位/即时清除；历史日期选择与当天保护/继续查看；周总结展示状态；证据元数据与官方链接 Intent；JSON 两版本完整 schema/语义校验、替换确认、故障回滚、AppState round-trip；CSV BOM/转义；分享 PNG 隐私、content URI/FileProvider；所有禁止权限不存在。
+
+### 首次说明与迁移
+
+1. 新安装 hasCompletedOnboarding=false。
+2. 完成三页立即持久化 true。
+3. 重启 true 保持。
+4. 无 DiaryEntry 也不重复说明。
+5. SafetyAssessment 为 DRAFT 也不重复说明。
+6. Room 1→2 保留全部五张表数据，新增非空列默认 false，不推断 true。
+7. BACKUP_1.1 导出包含该字段。
+8. BACKUP_1.1 true/false 均 round-trip 保留。
+9. BACKUP_1.0 正常导入，该字段 false。
+10. 两版本损坏均不修改现有数据库。
+11. BACKUP_1.1 替换恢复仍为单 Room transaction，全量回读校验。
+
+运行 testDebugUnitTest 和 assembleDebug。设备依赖测试如未执行须明确列出，不以单元测试替代真机验收。

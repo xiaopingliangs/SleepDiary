@@ -1,5 +1,5 @@
 {
-  "specVersion": "SPEC-0.1.1",
+  "specVersion": "SPEC-0.1.2",
   "targetAppVersion": "0.1.0",
   "evidenceReviewDate": "2026-09-08",
   "cbtiProtocolVersion": "NONE",
@@ -21,8 +21,8 @@
     },
     {
       "path": "DATA_SCHEMA.md",
-      "sha256": "0821980bdf49898a6fd138df9ac79e037881c8a1724b4197b08e72931fb8ab5c",
-      "bytes": 9139
+      "sha256": "9dc84d0539e4ba0811ec3b9d3d0e063b66cd00cd95d1198c7f3443d16cdefa4e",
+      "bytes": 9879
     },
     {
       "path": "EVIDENCE.md",
@@ -31,38 +31,38 @@
     },
     {
       "path": "IMPORT_EXPORT_SPEC.md",
-      "sha256": "dda2473c40e4382b089513c6ae0987aebe2192cd1fd612b78740e0741a203dbd",
-      "bytes": 5217
+      "sha256": "996f017ad7ca40ad0901429fffddb7b845afd34edade5927e5ece69a1f723bab",
+      "bytes": 5812
     },
     {
       "path": "PRODUCT_SPEC.md",
-      "sha256": "d16f8a89725ae24a14d4003d1c09f22964a8d9ef5d83bd9d8a4eb7c78fc83eef",
-      "bytes": 6860
+      "sha256": "9adce3e91377dfd65193a70d5cf78d9a8f4f55b6603c56b67549b67991302934",
+      "bytes": 7576
     },
     {
       "path": "README.md",
-      "sha256": "25d72eb5b6029d174551cde74c07cf1acc405c764595ccb967fe28f3ae81c703",
-      "bytes": 5253
+      "sha256": "85b9996d4dcb508d17944be326ed44d078588e6ddade42db9568f850dbf5aaee",
+      "bytes": 5668
     },
     {
       "path": "SELF_CHECK.json",
-      "sha256": "858cab166400685c2a540b99eb0161cd5174c0e1fa22160a2e970a36df38b745",
-      "bytes": 1544
+      "sha256": "21ff44cb514439b3f416817561b856185d1eaeea37180936659261005ac63e5a",
+      "bytes": 767
     },
     {
       "path": "TEST_PLAN.md",
-      "sha256": "2fcca2c897f1cb6144e2fea0734fbdcc851ee08121a18a349e4bcd82d1b0bf40",
-      "bytes": 14156
+      "sha256": "6c0c24fa0a352c29b6ff3206bb5fff3102d407f528d1794bc914b5bf1b74f153",
+      "bytes": 15493
     },
     {
       "path": "UX_SPEC.md",
-      "sha256": "1e02b0cb5dab7f51e0852f6dd982cee30835b8493895b6f2a33272ec49628773",
-      "bytes": 11596
+      "sha256": "7f527c4ed602bd8941a7b3fc394d4ef986bc8016cd22573dbf5519bf67c8bc6b",
+      "bytes": 31195
     },
     {
       "path": "VERSIONING_AND_TRACEABILITY.md",
-      "sha256": "9e3ee303e560042d8bfff47ae35e7a501bf1f3840977e97b5b1baf6d7ac90ed2",
-      "bytes": 4893
+      "sha256": "deef143db2802459d64acd71fccee762da4f34773bd352f87e5c2809339c170e",
+      "bytes": 5402
     },
     {
       "path": "samples/backup-v1.example.json",
@@ -78,6 +78,16 @@
       "path": "schemas/backup-v1.schema.json",
       "sha256": "b7ea81a5276f1a6d245805a4b31bf9a98181bb210f24b273743e0f60dd47dcaa",
       "bytes": 24937
+    },
+    {
+      "path": "schemas/backup-v1.1.schema.json",
+      "bytes": 24994,
+      "sha256": "1f3c522a5b2b2c76544f8e3bba75ccc249cfeafc1490cc47ab7669153a9285f3"
+    },
+    {
+      "path": "samples/backup-v1.1.example.json",
+      "bytes": 2337,
+      "sha256": "17ad564e06e743b4b13d0fba3015d066b78be321cb086d0cbee6d4ec1d00555b"
     }
   ]
 }

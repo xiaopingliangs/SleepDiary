@@ -1,33 +1,23 @@
 {
   "status": "PASS",
-  "checkedAt": "2026-09-09",
-  "specVersion": "SPEC-0.1.1",
-  "scope": "UX specification revision only",
+  "specVersion": "SPEC-0.1.2",
+  "scope": "Approved product UX and onboarding backup specification revision",
   "checks": {
     "previousBaselineHashesVerified": 15,
-    "requiredFilesPresent": true,
-    "jsonSyntaxValid": true,
-    "medicalSpecificationsByteIdentical": true,
-    "dataSchemaByteIdentical": true,
-    "backupJsonSchemaAndSamplesByteIdentical": true,
-    "appAndDomainVersionsUnchanged": true,
-    "cbtiProtocolValue": "NONE",
-    "defaultPositionIsNotAnswerSpecified": true,
-    "unansweredIsUiStateOnly": true,
-    "explicitConfirmationRequired": true,
-    "quickChoicesAndIntegerRangesReviewed": true,
-    "dateAdjustmentAndFineInputRetained": true,
-    "noNewSleepFieldsOrTreatmentRules": true,
-    "accessibilityAndGestureRulesSpecified": true,
-    "uiAcceptanceCasesAdded": 13,
-    "specificationConflictReviewCompleted": true
+    "legacySchemaAndSamplePreserved": true,
+    "medicalRulesUnchanged": true,
+    "cbtiProtocolVersion": "NONE",
+    "backupFormatVersion": "BACKUP_1.1",
+    "legacyImportVersion": "BACKUP_1.0",
+    "onboardingIndependent": true,
+    "roomMigrationSpecified": "1 to 2",
+    "jsonSyntaxValid": true
   },
   "blockingItems": [],
   "execution": {
-    "androidCodeChanged": false,
-    "androidBuildRunThisRevision": false,
-    "uiTestsRunThisRevision": false,
-    "jsonSchemaValidationRerunThisRevision": false
+    "androidTestsRun": false,
+    "androidBuildRun": false,
+    "jsonSchemaValidatorRun": false
   },
-  "note": "本轮实际完成规格差异、版本、JSON 语法及原基线字节/SHA-256 核对；新增 UI 测试仅为后续验收计划，未实现或执行。不沿用旧 SELF_CHECK 的测试数量作为本轮结果。医学规格、DATA_SCHEMA、JSON Schema、示例和 Android 代码保持不变；未重新审查外部医学证据。SPEC_MANIFEST 排除自身，生成后独立核对所有条目的哈希与字节数。"
+  "note": "规格校验声明，不代表 Android 实现或测试完成；新旧示例的完整 Schema 校验将随实现验证。"
 }

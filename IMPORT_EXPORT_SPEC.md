@@ -22,7 +22,7 @@ SleepDiary_backup_YYYYMMDD_HHmmss.json
 
 ```json
 {
-  "exportFormatVersion": "BACKUP_1.0",
+  "exportFormatVersion": "BACKUP_1.1",
   "appVersion": "0.1.0",
   "exportedAtUtc": "2026-09-08T10:30:00Z",
   "diarySchemaVersion": "DIARY_1.0",
@@ -34,6 +34,7 @@ SleepDiary_backup_YYYYMMDD_HHmmss.json
   "safetyAssessments": [],
   "weeklySummaries": [],
   "trackingState": {
+    "hasCompletedOnboarding": false,
     "trackingStartDate": null,
     "hasSeenMinimalInteractionExplanation": false,
     "hasSeenSharePrivacyNotice": false,
@@ -43,7 +44,7 @@ SleepDiary_backup_YYYYMMDD_HHmmss.json
 }
 ```
 
-规范 JSON Schema：`schemas/backup-v1.schema.json`
+规范 JSON Schema：`schemas/backup-v1.1.schema.json`。保留 `schemas/backup-v1.schema.json` 为 BACKUP_1.0 历史定义，禁止覆盖。
 
 JSON 备份中的 `safetyAssessments` 使用嵌套结构：每个 assessment 内含 `answers[]`；数据库内部仍可使用两张关系表。assessment 包含 safetySchemaVersion、safetyRuleVersion、status；每条 answer 包含 safetySchemaVersion；S09=FLAGS_PRESENT 的 detailJson 在 JSON 中为 selectedCodes 对象，NONE / UNSURE 必须为 null；保存/导出按 CLINICAL_BOUNDARIES 的固定枚举顺序规范化 selectedCodes。S10 detailJson 在 JSON 中为对象，在数据库中序列化为 JSON string。所有需完整恢复的状态在 Room AppState 中，备份仍使用 trackingState 对象。`weeklySummaries` 直接导出 snapshot 字段和 `sourceEntryIds[]`。
 
@@ -152,3 +153,7 @@ V0.1 分享图：
 - 不包含设备 ID；
 - 不包含用户姓名/手机号；
 - 不包含任何诊断。
+
+## 8. 备份版本兼容
+
+新导出仅 BACKUP_1.1。导入按 exportFormatVersion 选择对应 schema；BACKUP_1.0 完整使用历史定义，hasCompletedOnboarding 恢复为 false，其余语义不变；BACKUP_1.1 必须包含 Boolean hasCompletedOnboarding 并原样恢复。不支持的版本或损坏的任一格式均不修改本地数据。Room AppState 的 backupFormatVersion 表示当前存储格式 BACKUP_1.1，不保留旧格式作为当前技术状态。

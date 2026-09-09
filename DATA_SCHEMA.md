@@ -17,7 +17,7 @@ diary_schema_version        = "DIARY_1.0"
 safety_schema_version       = "SAFETY_1.0"
 safety_rule_version         = "SAFETY_RULE_1.0"
 weekly_summary_rule_version = "WEEKLY_1.0"
-backup_format_version       = "BACKUP_1.0"
+backup_format_version       = "BACKUP_1.1"
 cbti_protocol_version       = "NONE"
 ```
 
@@ -53,7 +53,7 @@ cbti_protocol_version       = "NONE"
 
 内部必须保存完整 local datetime，而不只保存 `HH:mm`。
 
-普通夜间睡眠 UI 可以只让用户滑动时间，并自动推断跨午夜日期；但必须提供一个低干扰的“日期不对？调整”入口，以支持白天睡眠、跨午夜、倒班或异常作息。
+普通夜间睡眠 UI 可以只让用户滑动时间，并自动推断跨午夜日期；但必须提供一个低干扰的“调整日期和时间”入口，以支持白天睡眠、跨午夜、倒班或异常作息。
 
 ## 4. 输入范围与逻辑校验
 
@@ -188,12 +188,13 @@ S09 的 detailJson：NONE / UNSURE 必须为 null；FLAGS_PRESENT 必须是含�
 
 ## 8. TrackingState
 
-使用 Room 单例/键值 AppState 表保存，随完整备份在同一 Room 事务中恢复。表本身保存对应 backupFormatVersion（BACKUP_1.0）；JSON 根 exportFormatVersion 表示其备份格式版本。JSON 对外仍使用 trackingState 对象名；下列五个键在完整备份中均必填。尚无日记时 trackingStartDate 为 null，尚无当前问询时 currentSafetyAssessmentId 为 null。
+使用 Room 单例/键值 AppState 表保存，随完整备份在同一 Room 事务中恢复。表本身保存对应 backupFormatVersion（BACKUP_1.1）；JSON 根 exportFormatVersion 表示其备份格式版本。JSON 对外仍使用 trackingState 对象名；下列六个键在完整备份中均必填。尚无日记时 trackingStartDate 为 null，尚无当前问询时 currentSafetyAssessmentId 为 null。
 
 保存：
 
 | 键 | 含义 |
 |---|---|
+| `hasCompletedOnboarding` | Boolean，默认 false；仅表示首次三页说明完成，与日记、问询及首次保存说明独立；完成说明立即持久化 true |
 | `trackingStartDate` | 第一次成功保存有效日记时设置；冻结规则见下文 |
 | `hasSeenMinimalInteractionExplanation` | 首次保存说明是否看过 |
 | `hasSeenSharePrivacyNotice` | 可选的一次性分享隐私提示 |
@@ -223,3 +224,8 @@ V0.1：
 - 不因少一天给负面提醒；
 - 不把缺失日自动复制、插值或估算；
 - 不自动生成虚假数据。
+
+## 11. SPEC-0.1.2 AppState 无损扩展
+
+Room 技术版本由 1 升为 2，新增 hasCompletedOnboarding NOT NULL DEFAULT 0。迁移保留全部五张表的数据；旧安装默认 false，不从日记或问询推断 true。禁止 destructive migration。
+新导出使用 BACKUP_1.1，trackingState.hasCompletedOnboarding 必填。导入 BACKUP_1.0 时采用原 schema，缺少该字段正常兼容为 false；导入 BACKUP_1.1 完整保留 true/false。两者均经完整校验、用户确认、单事务替换和回读验证。其他医学字段和规则不变。
