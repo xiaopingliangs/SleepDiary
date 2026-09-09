@@ -8,6 +8,10 @@ import androidx.test.core.app.ApplicationProvider
 import app.sleepdiary.offline.data.db.SleepDiaryDatabase
 import app.sleepdiary.offline.data.entity.*
 import app.sleepdiary.offline.data.repository.DiaryRepository
+import app.sleepdiary.offline.data.repository.SaveResult
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
 import app.sleepdiary.offline.domain.model.*
 import kotlinx.coroutines.runBlocking
 import org.junit.*
@@ -25,6 +29,7 @@ class DatabaseTest {
  @Before fun setUp() { db = Room.inMemoryDatabaseBuilder(context, SleepDiaryDatabase::class.java).build() }
  @After fun tearDown() { db.close() }
 
+ private val clock = Clock.fixed(Instant.parse("2026-09-09T00:10:00Z"), ZoneId.of("Asia/Shanghai"))
  private fun entry() = SleepDiaryEntry(
   id = UUID.randomUUID().toString(), sleepDate = "2026-09-09",
   bedEnteredAtLocal = "2026-09-08T23:00:00", trySleepAtLocal = "2026-09-08T23:30:00",
@@ -43,7 +48,7 @@ class DatabaseTest {
  }
  @Test fun diaryWritesAndReadsAllRawFieldsByUuid() = runBlocking {
   val original = entry()
-  assertEquals(original, DiaryRepository(db).insertAndVerify(original))
+  assertEquals(original, (DiaryRepository(db, clock).save(original) as SaveResult.Success).entry)
   assertEquals(original, db.diaryDao().byId(original.id))
  }
  @Test fun safetyDraftAndAnswersReadAsRelation() = runBlocking {
@@ -99,7 +104,7 @@ class DatabaseTest {
   val name = "persistence-" + UUID.randomUUID() + ".db"
   val original = entry()
   val first = Room.databaseBuilder(context, SleepDiaryDatabase::class.java, name).build()
-  try { DiaryRepository(first).insertAndVerify(original) } finally { first.close() }
+  try { assertTrue(DiaryRepository(first, clock).save(original) is SaveResult.Success) } finally { first.close() }
   val reopened = Room.databaseBuilder(context, SleepDiaryDatabase::class.java, name).build()
   try { assertEquals(original, reopened.diaryDao().byId(original.id)) }
   finally { reopened.close(); context.deleteDatabase(name) }
