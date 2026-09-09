@@ -12,5 +12,6 @@ data class AppState(
  val hasSeenMinimalInteractionExplanation: Boolean = false,
  val hasSeenSharePrivacyNotice: Boolean = false,
  val lastDisplayedWeeklyPeriodIndex: Int = 0,
- val currentSafetyAssessmentId: String? = null
+ val currentSafetyAssessmentId: String? = null,
+ @ColumnInfo(defaultValue = "0") val hasCompletedOnboarding: Boolean = false
 ) { init { require(singletonId == 0) { "AppState has a single row" } } }

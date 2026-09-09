@@ -3,6 +3,8 @@ import app.sleepdiary.offline.BuildConfig
 
 /** Generated from the single version.properties source; independent of Room's technical version. */
 object Versions {
+    const val SPEC = BuildConfig.SPEC_VERSION
+    const val LEGACY_BACKUP_FORMAT = "BACKUP_1.0"
     const val APP = BuildConfig.VERSION_NAME
     const val DIARY_SCHEMA = BuildConfig.DIARY_SCHEMA
     const val SAFETY_SCHEMA = BuildConfig.SAFETY_SCHEMA

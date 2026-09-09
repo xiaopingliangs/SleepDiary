@@ -15,11 +15,13 @@ android {
     buildToolsVersion = "36.0.0"
     defaultConfig {
         applicationId = "app.sleepdiary.offline"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         minSdk = 26
         targetSdk = 37
         versionCode = 1
         versionName = domainVersions.getProperty("appVersion")
         mapOf(
+            "SPEC_VERSION" to "specVersion",
             "DIARY_SCHEMA" to "diarySchemaVersion",
             "SAFETY_SCHEMA" to "safetySchemaVersion",
             "SAFETY_RULE" to "safetyRuleVersion",
@@ -35,11 +37,15 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures { compose = true; buildConfig = true }
+    sourceSets.getByName("main").assets.srcDir(rootProject.file("schemas"))
     testOptions { unitTests.isIncludeAndroidResources = true }
 }
 kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
 room { schemaDirectory("$projectDir/schemas") }
 dependencies {
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.core)
     implementation(libs.navigation.compose)
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.viewmodel.savedstate)

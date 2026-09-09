@@ -14,7 +14,12 @@ testCore = "1.7.0"
 navigation = "2.9.3"
 lifecycle = "2.9.2"
 
+testRunner = "1.5.0"
+testExtJunit = "1.1.5"
+
 [libraries]
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "testRunner" }
+androidx-test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "testExtJunit" }
 androidx-core = { module = "androidx.core:core-ktx", version.ref = "core" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }

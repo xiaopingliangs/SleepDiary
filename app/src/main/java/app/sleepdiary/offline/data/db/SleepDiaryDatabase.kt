@@ -13,7 +13,7 @@ class DatabaseConverters {
 }
 @Database(
  entities = [SleepDiaryEntry::class, SafetyAssessment::class, SafetyAnswer::class, WeeklySummarySnapshot::class, AppState::class],
- version = 1, exportSchema = true
+ version = 2, exportSchema = true
 )
 @TypeConverters(DatabaseConverters::class)
 abstract class SleepDiaryDatabase : RoomDatabase() {
@@ -21,7 +21,13 @@ abstract class SleepDiaryDatabase : RoomDatabase() {
  abstract fun safetyDao(): SafetyDao
  abstract fun stateAndSummaryDao(): StateAndSummaryDao
  companion object {
+  val MIGRATION_1_2 = object : androidx.room.migration.Migration(1, 2) {
+   override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+    db.execSQL("ALTER TABLE app_state ADD COLUMN hasCompletedOnboarding INTEGER NOT NULL DEFAULT 0")
+    db.execSQL("UPDATE app_state SET backupFormatVersion = '" + Versions.BACKUP_FORMAT + "'")
+   }
+  }
   fun open(context: Context): SleepDiaryDatabase =
-   Room.databaseBuilder(context.applicationContext, SleepDiaryDatabase::class.java, "sleepdiary.db").build()
+   Room.databaseBuilder(context.applicationContext, SleepDiaryDatabase::class.java, "sleepdiary.db").addMigrations(MIGRATION_1_2).build()
  }
 }
