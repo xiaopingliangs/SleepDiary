@@ -47,7 +47,7 @@ class NavigationComposeTest {
         compose.onNodeWithText("下一页").performClick();compose.onNodeWithText("先回答一次安全问题").assertIsDisplayed()
         compose.onNodeWithText("开始").performClick();compose.onNodeWithText("设置").performClick()
         compose.onNodeWithText("导出完整备份 JSON").assertIsEnabled()
-        compose.onNodeWithText("历史记录").performClick();compose.onNodeWithText("这一天没有睡眠记录").assertIsDisplayed()
+        compose.onNodeWithText("历史记录").performClick();compose.onNodeWithText(HISTORY_EMPTY_TEXT).assertIsDisplayed()
         compose.onNodeWithText("返回").performClick();compose.onNodeWithText("返回").performClick()
         compose.onNodeWithTag("time_BED").assertExists()
     }

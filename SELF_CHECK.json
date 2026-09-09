@@ -24,7 +24,7 @@
   "blockingItems": [],
   "execution": {
     "unitTests": {
-      "total": 194,
+      "total": 204,
       "failures": 0,
       "errors": 0,
       "skipped": 0
@@ -35,5 +35,11 @@
     "connectedDebugAndroidTest": "NOT_RUN_NO_DEVICE",
     "physicalDeviceValidation": "NOT_RUN"
   },
-  "note": "规格、代码与本机测试检查通过，不代表已完成真机稳定性验收。FileProvider 原生 URI 读写测试保留为设备测试；Windows Robolectric 路径不兼容，未伪造通过。"
+  "note": "规格、代码与本机测试检查通过，不代表已完成真机稳定性验收。FileProvider 原生 URI 读写测试保留为设备测试；Windows Robolectric 路径不兼容，未伪造通过。",
+  "feedbackRound1": {
+    "report": "docs/V0.1_FEEDBACK_1_REPORT.md",
+    "addedUnitTests": 10,
+    "physicalDeviceRetest": "NOT_RUN_NO_DEVICE",
+    "apkSha256": "597fea2e8eeb36efcee84f59bcc19e727e87dc35fd873d01370163b00c4eedab"
+  }
 }

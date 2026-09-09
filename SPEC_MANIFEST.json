@@ -46,8 +46,8 @@
     },
     {
       "path": "SELF_CHECK.json",
-      "sha256": "313ad1c9c1b7c179b9654a0536e2058921e10fa9750145016d3073dd9a248c15",
-      "bytes": 1333
+      "sha256": "e45dc58a1fa708448b4a449a1307644c102d5e443de183b2a707b79b40a504cd",
+      "bytes": 1567
     },
     {
       "path": "TEST_PLAN.md",

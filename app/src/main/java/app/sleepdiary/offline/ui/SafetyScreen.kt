@@ -32,7 +32,7 @@ val S10_CHOICES=listOf("RLS" to "不宁腿综合征（Restless legs syndrome, RL
  SimplePage("安全问询 · ${index+1} / 15") {
   Text(if(sub)"最近是否仍有发作，或医生认为控制不稳定？" else q.text,style=MaterialTheme.typography.titleMedium)
   TextButton(onClick={explain=!explain},modifier=Modifier.heightIn(min=48.dp)){Text("为什么问这个？")}
-  if(explain)Text(q.help)
+  if(explain)Text(if(sub) S07B_HELP else q.help)
   state.message?.let{Text(it,color=MaterialTheme.colorScheme.error)}
   when {
    q.id=="S09" -> {

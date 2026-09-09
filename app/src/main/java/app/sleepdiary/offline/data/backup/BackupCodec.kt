@@ -18,9 +18,14 @@ internal fun obj(vararg pairs:Pair<String,Any?>)=JSONObject().apply{pairs.forEac
 data class BackupData(val entries:List<SleepDiaryEntry>,val assessments:List<AssessmentWithAnswers>,val summaries:List<WeeklySummarySnapshot>,val state:AppState)
 
 object BackupCodec {
- fun entryJson(e:SleepDiaryEntry)=obj("id" to e.id,"sleepDate" to e.sleepDate,"bedEnteredAtLocal" to e.bedEnteredAtLocal,"trySleepAtLocal" to e.trySleepAtLocal,
+ private fun backupLocalTime(value:String):String {
+  val time=java.time.LocalDateTime.parse(value)
+  require(time.nano==0){"备份时间不支持小数秒"}
+  return time.format(java.time.format.DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss"))
+ }
+ fun entryJson(e:SleepDiaryEntry)=obj("id" to e.id,"sleepDate" to e.sleepDate,"bedEnteredAtLocal" to backupLocalTime(e.bedEnteredAtLocal),"trySleepAtLocal" to backupLocalTime(e.trySleepAtLocal),
   "sleepOnsetLatencyMin" to e.sleepOnsetLatencyMin,"awakeningCount" to e.awakeningCount,"wakeAfterSleepOnsetMin" to e.wakeAfterSleepOnsetMin,
-  "finalAwakeningAtLocal" to e.finalAwakeningAtLocal,"outOfBedAtLocal" to e.outOfBedAtLocal,"sleepQuality" to e.sleepQuality,"comment" to e.comment,
+  "finalAwakeningAtLocal" to backupLocalTime(e.finalAwakeningAtLocal),"outOfBedAtLocal" to backupLocalTime(e.outOfBedAtLocal),"sleepQuality" to e.sleepQuality,"comment" to e.comment,
   "timeZoneIdAtEntry" to e.timeZoneIdAtEntry,"createdAtUtc" to e.createdAtUtc,"updatedAtUtc" to e.updatedAtUtc,"diarySchemaVersion" to e.diarySchemaVersion,"consistencyWarning" to e.consistencyWarning)
  fun entry(o:JSONObject)=SleepDiaryEntry(o.getString("id"),o.getString("sleepDate"),o.getString("bedEnteredAtLocal"),o.getString("trySleepAtLocal"),o.getInt("sleepOnsetLatencyMin"),o.getInt("awakeningCount"),o.getInt("wakeAfterSleepOnsetMin"),o.getString("finalAwakeningAtLocal"),o.getString("outOfBedAtLocal"),o.getInt("sleepQuality"),o.textOrNull("comment"),o.getString("timeZoneIdAtEntry"),o.getString("createdAtUtc"),o.getString("updatedAtUtc"),o.getString("diarySchemaVersion"),o.getBoolean("consistencyWarning"))
  fun encode(data:BackupData,now:Instant=Instant.now()):JSONObject {

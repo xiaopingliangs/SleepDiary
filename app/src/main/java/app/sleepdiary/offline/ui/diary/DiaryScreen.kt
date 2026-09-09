@@ -16,7 +16,7 @@ import app.sleepdiary.offline.domain.validation.DiaryValidator
 import java.time.*
 import java.time.format.DateTimeFormatter
 
-const val DIARY_HINT="大致估计即可，不需要为了记录查看时钟或手环。"
+const val DIARY_HINT="按记忆大致估计即可。尤其不要为了记录，在夜间特意查看时间、手表、手环或睡眠设备。"
 const val CONSISTENCY_TITLE="这些数字可能有一项选错了。"
 const val CONSISTENCY_BODY="你填写的入睡耗时和夜间清醒时长，加起来已经超过了从“开始尝试入睡”到“最后醒来”的总时间。因为这些本来就是估计值，可以有误差。你可以返回检查，也可以确认按当前估计保存。"
 val QUALITY_LABELS=listOf("很差","较差","一般","较好","很好")
@@ -51,7 +51,7 @@ fun DiaryScreen(state:DiaryUiState,onTime:(DiaryField,LocalDateTime)->Unit,onNum
  LaunchedEffect(state.message,firstError){if(state.message!=null)firstError?.let{list.animateScrollToItem(it.ordinal)}}
  Column(Modifier.fillMaxSize().testTag("diary_screen")) {
   Row(Modifier.fillMaxWidth().padding(horizontal=16.dp),horizontalArrangement=Arrangement.SpaceBetween){Text("睡眠日记",Modifier.weight(1f).padding(top=12.dp),style=MaterialTheme.typography.titleLarge);TextButton(onClick=onSettings,enabled=!state.busy,modifier=Modifier.heightIn(min=48.dp)){Text("设置")}}
-  Row(Modifier.padding(horizontal=16.dp)){Text(DIARY_HINT,Modifier.weight(1f).padding(vertical=8.dp),style=MaterialTheme.typography.bodySmall);TextButton(onClick={help=DIARY_HINT},modifier=Modifier.sizeIn(minWidth=48.dp,minHeight=48.dp).semantics{contentDescription="记录说明"}){Text("ⓘ")}}
+  Row(Modifier.padding(horizontal=16.dp)){Text(DIARY_HINT,Modifier.weight(1f).padding(vertical=8.dp).testTag("diary_estimate_hint"),style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurface);TextButton(onClick={help=DIARY_HINT},modifier=Modifier.sizeIn(minWidth=48.dp,minHeight=48.dp).semantics{contentDescription="记录说明"}){Text("ⓘ")}}
   LazyColumn(state=list,modifier=Modifier.weight(1f).fillMaxWidth().testTag("diary_fields"),contentPadding=PaddingValues(horizontal=16.dp)) {
    items(DiaryField.entries,key={it.name}){field->
     val errors=conflicts.filter{it.first==field||it.second==field}

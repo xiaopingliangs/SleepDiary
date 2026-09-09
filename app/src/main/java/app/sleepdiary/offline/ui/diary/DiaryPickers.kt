@@ -104,7 +104,7 @@ fun FormTextInput(value:String,onChange:(String)->Unit,label:String,tag:String,e
     Column(Modifier.fillMaxWidth(),verticalArrangement=Arrangement.spacedBy(6.dp)) {
         Text(label,style=MaterialTheme.typography.bodyMedium)
         AndroidView(factory={context ->
-            EditText(context).apply {
+            ModelBoundEditText(context).apply {
                 holder[0]=this
                 inputType=if(keyboardType==KeyboardType.Number) InputType.TYPE_CLASS_NUMBER else InputType.TYPE_CLASS_TEXT or (if(multiline) InputType.TYPE_TEXT_FLAG_MULTI_LINE else 0)
                 setSingleLine(!multiline)
@@ -113,7 +113,7 @@ fun FormTextInput(value:String,onChange:(String)->Unit,label:String,tag:String,e
                 onFocusChangeListener=android.view.View.OnFocusChangeListener {_,hasFocus -> inputFocused=hasFocus}
                 addTextChangedListener(object:TextWatcher {
                     override fun beforeTextChanged(s:CharSequence?,start:Int,count:Int,after:Int) {}
-                    override fun onTextChanged(s:CharSequence?,start:Int,before:Int,count:Int) {latestChange(s?.toString() ?: "")}
+                    override fun onTextChanged(s:CharSequence?,start:Int,before:Int,count:Int) {if(!syncingModel) latestChange(s?.toString() ?: "")}
                     override fun afterTextChanged(s:Editable?) {}
                 })
             }
@@ -122,7 +122,7 @@ fun FormTextInput(value:String,onChange:(String)->Unit,label:String,tag:String,e
             editor.contentDescription=label
             editor.setTextColor(textColor)
             editor.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX,textSize)
-            if(editor.text.toString()!=value) {editor.setText(value);editor.setSelection(editor.text.length)}
+            editor.syncValue(value)
         },modifier=Modifier.fillMaxWidth().heightIn(min=56.dp).border(1.dp,MaterialTheme.colorScheme.outline,MaterialTheme.shapes.medium)
             .testTag(tag).semantics {
                 contentDescription=label

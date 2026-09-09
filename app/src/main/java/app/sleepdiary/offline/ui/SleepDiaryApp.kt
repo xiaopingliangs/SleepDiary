@@ -26,6 +26,7 @@ import java.time.DayOfWeek
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+const val HISTORY_EMPTY_TEXT="这一天没有睡眠记录，不需要补写。睡眠日记关注的是一段时间内的大致模式，不要求精确到分钟，也不建议为了补记反复回想或查看设备数据。"
 const val FIRST_SAVE_EXPLANATION="为了让记录尽量简单，也减少对单个夜晚数据的反复关注，日常记录完成后应用会结束本次使用。每完成一个 7 天记录周期，再集中查看一次整体记录。"
 class AppServices(context:Context,db:SleepDiaryDatabase) {
  val backup=BackupRepository(db,context.applicationContext)
@@ -40,7 +41,7 @@ class AppServices(context:Context,db:SleepDiaryDatabase) {
  val exportJson=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")){uri->if(uri!=null)operation{val data=withContext(Dispatchers.IO){checkNotNull(services).backup.export()};withContext(Dispatchers.IO){checkNotNull(context.contentResolver.openOutputStream(uri,"wt")).use{it.write(data.toByteArray(Charsets.UTF_8))}};message="完整备份已导出"}}
  val exportCsv=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")){uri->if(uri!=null)operation{withContext(Dispatchers.IO){val data=checkNotNull(services).backup.csv();checkNotNull(context.contentResolver.openOutputStream(uri,"wt")).use{it.write(data)}};message="CSV 已导出"}}
  val importJson=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->if(uri!=null)operation{val text=withContext(Dispatchers.IO){checkNotNull(context.contentResolver.openInputStream(uri)).bufferedReader(Charsets.UTF_8).use{it.readText()}};val preview=withContext(Dispatchers.IO){checkNotNull(services).backup.preview(text)};restoreSummary="睡眠记录 ${preview.entries.size} 条\n安全问询 ${preview.assessments.size} 份\n周总结（含历史修订）${preview.summaries.size} 份\n首次说明已完成：${if(preview.state.hasCompletedOnboarding)"是" else "否"}";pendingRestore=text}}
- fun share(){val entry=state.today?:return;operation{val intent=withContext(Dispatchers.IO){checkNotNull(services).share.prepare(entry)};model.exitAfterSuccess {context.startActivity(intent);onExit()}}}
+ fun share(){val entry=state.today?:return;operation{val intent=withContext(Dispatchers.IO){checkNotNull(services).share.prepare(entry)};model.exitAfterSuccess {DiaryShare.handOff(intent,{context.startActivity(it)},onExit)}}}
  Surface(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing),color=MaterialTheme.colorScheme.background){
   NavHost(navController=nav,startDestination="home") {
    composable("home") {when(state.page){
@@ -68,15 +69,16 @@ class AppServices(context:Context,db:SleepDiaryDatabase) {
     Text("安全与说明");Action("查看当前安全问询",{model.viewSafety();nav.popBackStack("home",false)})
     Action("重新完成安全问询",{model.openSafety(true);nav.popBackStack("home",false)})
     if(state.safety?.assessment?.status==AssessmentStatus.DRAFT)Action("安全问询尚未完成 · 继续",{model.openSafety();nav.popBackStack("home",false)})
-    Action("隐私说明",{nav.navigate("privacy")});Text("方法");Action("方法与依据",{nav.navigate("methods")});Action("术语表",{nav.navigate("terms")});Action("版本信息",{nav.navigate("methods")})
+    Action("隐私说明",{nav.navigate("privacy")});Text("方法");Action("方法与依据",{nav.navigate("methods")});Action("术语表",{nav.navigate("terms")});Action("版本信息",{nav.navigate("versions")})
    }}
    composable("history") {var selected by rememberSaveable{mutableStateOf(LocalDate.now().toString())};val day=LocalDate.parse(selected);val start=day.minusDays((day.dayOfWeek.value%7).toLong())
     SimplePage("历史记录") {Action("返回",{nav.popBackStack()});Text(start.toString()+" — "+start.plusDays(6));Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){TextButton(onClick={selected=day.minusWeeks(1).toString()},modifier=Modifier.heightIn(min=48.dp)){Text("上一周")};TextButton(onClick={selected=day.plusWeeks(1).toString()},modifier=Modifier.heightIn(min=48.dp)){Text("下一周")}}
      Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())){(0..6).forEach{i->val d=start.plusDays(i.toLong());TextButton(onClick={selected=d.toString()},modifier=Modifier.widthIn(min=48.dp).heightIn(min=64.dp),contentPadding=PaddingValues(0.dp)){Text(listOf("日","一","二","三","四","五","六")[i]+"\n"+d.dayOfMonth+(if(d==day)"•" else ""))}}}
-     val entry=state.entries.firstOrNull{it.sleepDate==selected};Text(selected);if(entry==null)Text("这一天没有睡眠记录")else{val form=DiaryForm.from(entry);DiaryField.entries.forEach{Text(it.label+"："+fieldValue(form,it))};Action("修改这条记录",{model.edit(entry);nav.popBackStack("home",false)})}
+     val entry=state.entries.firstOrNull{it.sleepDate==selected};Text(selected);if(entry==null)Text(HISTORY_EMPTY_TEXT)else{val form=DiaryForm.from(entry);DiaryField.entries.forEach{Text(it.label+"："+fieldValue(form,it))};Action("修改这条记录",{model.edit(entry);nav.popBackStack("home",false)})}
     }
    }
    composable("methods"){MethodsScreen({nav.popBackStack()},{nav.navigate("terms")}){url->runCatching{context.startActivity(officialLinkIntent(url))}.onFailure{message="无法打开系统浏览器"}}}
+   composable("versions"){VersionsScreen{nav.popBackStack()}}
    composable("terms"){SimplePage("术语表"){Action("返回",{nav.popBackStack()});TERMS.forEach{(title,body)->Text(title);Text(body)}}}
    composable("privacy"){SimplePage("隐私说明"){Action("返回",{nav.popBackStack()});Text("数据仅保存在应用私有存储。无账号、广告、分析或后台联网。只有你主动导出或分享时，记录才离开应用。备份和 CSV 是明文，请保存到可信位置。官方来源链接交给系统浏览器打开。")}}
   }

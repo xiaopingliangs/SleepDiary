@@ -36,4 +36,16 @@ class RoomUiStoreTest {
         val result=store.save(input,true) as SaveResult.Success
         assertTrue(result.entry.consistencyWarning);assertEquals(400,result.entry.sleepOnsetLatencyMin)
     }
+
+    @Test fun commentPersistsAndLoadsForEditingWithSameUuid()=runBlocking {
+        val store=RoomDiaryUiStore(db)
+        val input=diary().copy(comment="中文 English 123")
+        val saved=store.save(input,false) as SaveResult.Success
+        val loaded=store.entries().single()
+        assertEquals(input.comment,app.sleepdiary.offline.ui.diary.DiaryForm.from(loaded).comment)
+        val updated=store.save(loaded.copy(comment="修改后 中文 abc456"),false) as SaveResult.Success
+        assertEquals(saved.entry.id,updated.entry.id)
+        assertEquals("修改后 中文 abc456",db.diaryDao().byId(input.id)!!.comment)
+        assertEquals(saved.entry.createdAtUtc,updated.entry.createdAtUtc)
+    }
 }

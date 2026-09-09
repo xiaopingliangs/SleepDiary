@@ -41,5 +41,12 @@ class BackupTest {
  @Test fun csvBomAndEscaping()=runBlocking{db.diaryDao().insert(diary().copy(comment="中文,\"备注\"\n第二行"));val b=repo.csv();assertArrayEquals(byteArrayOf(-17,-69,-65),b.take(3).toByteArray());val text=b.toString(Charsets.UTF_8);assertTrue(text.contains("\"中文,\"\"备注\"\"\n第二行\""));assertFalse(text.contains("TST"));assertFalse(text.contains("Safety"))}
  @Test fun draftAndOnboardingIndependent()=runBlocking{db.stateAndSummaryDao().putState(AppState(hasCompletedOnboarding=true));val id=UUID.randomUUID().toString();SafetyRepository(db).save(id,listOf(SafetyAnswer(id,"S03","YES",detailJson=null)),false);assertTrue(repo.snapshot().state.hasCompletedOnboarding);assertTrue(repo.snapshot().entries.isEmpty())}
  @Test fun acuteSignalPreserved()=runBlocking{val id=UUID.randomUUID().toString();val r=SafetyRepository(db);r.save(id,listOf(SafetyAnswer(id,"S03","UNSURE",detailJson=null)),false);assertTrue(runCatching{r.save(id,listOf(SafetyAnswer(id,"S03","NO",detailJson=null)),false)}.isFailure);assertEquals("UNSURE",db.safetyDao().byId(id)!!.answers.single().answerCode)}
+
+ @Test fun actualPickerMinuteValuesCanExportWithoutChangingStoredEntry()=runBlocking {
+  val raw=diary().copy(bedEnteredAtLocal="2026-09-08T23:00",trySleepAtLocal="2026-09-08T23:30",finalAwakeningAtLocal="2026-09-09T06:00",outOfBedAtLocal="2026-09-09T07:00")
+  db.diaryDao().insert(raw);db.stateAndSummaryDao().putState(AppState(trackingStartDate="2026-09-09",hasCompletedOnboarding=true))
+  val text=repo.export();val exported=JSONObject(text).getJSONArray("diaryEntries").getJSONObject(0)
+  assertEquals("2026-09-08T23:00:00",exported.getString("bedEnteredAtLocal"));assertEquals(raw,db.diaryDao().byId(raw.id));assertEquals(java.time.LocalDateTime.parse(raw.bedEnteredAtLocal),java.time.LocalDateTime.parse(repo.preview(text).entries.single().bedEnteredAtLocal))
+ }
 }
 

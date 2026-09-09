@@ -6,10 +6,10 @@ import java.time.*
 import java.util.UUID
 
 enum class DiaryField(val label: String, val unit: String = "") {
-    BED("进入睡觉位置"), TRY("开始尝试入睡"),
-    SOL("估计入睡耗时", "分钟"), COUNT("夜间醒来次数", "次"),
-    WASO("夜间清醒总时长", "分钟"), FINAL("最后一次醒来"),
-    OUT("真正离开睡觉位置"), QUALITY("主观睡眠质量")
+    BED("大约进入睡觉位置"), TRY("大约开始尝试入睡"),
+    SOL("估计入睡耗时", "分钟"), COUNT("估计夜间醒来次数", "次"),
+    WASO("估计夜间清醒总时长", "分钟"), FINAL("大约最后一次醒来"),
+    OUT("大约离开睡觉位置"), QUALITY("主观睡眠质量")
 }
 
 data class DiaryForm(
