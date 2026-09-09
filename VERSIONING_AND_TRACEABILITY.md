@@ -8,6 +8,9 @@ App 版本、数据字段、计算规则、医学安全规则、未来治疗协�
 
 ## 2. 版本对象
 
+### 规格基线
+当前：`SPEC-0.1.1`。规格文档版本独立于 App、数据库及领域版本；仅交互设计修订不改变已有数据/规则版本。
+
 ### App
 `0.1.0`
 
@@ -117,10 +120,16 @@ V0.1 `evidence_review_date = 2026-09-08`
 4. 写 migration + test；
 5. 不直接修改历史数据。
 
-## 9. 本轮开发前修正
+## 9. SPEC-0.1.0 开发前修正记录
 
-本轮是用户批准的 SPEC-0.1.0 开发前规格修正：修复日期正则、补齐安全编码与 DRAFT、版本字段，采用 Room AppState 和 RESTORE，明确周期起点与修订。
+此前用户批准的 SPEC-0.1.0 开发前规格修正：修复日期正则、补齐安全编码与 DRAFT、版本字段，采用 Room AppState 和 RESTORE，明确周期起点与修订。
 保留 App 0.1.0、DIARY_1.0、SAFETY_1.0、SAFETY_RULE_1.0、WEEKLY_1.0、BACKUP_1.0；CBT-I Protocol 仍为 NONE。不是已发布数据的迁移，也不是医学协议升级。
 SELF_CHECK 只报告实际执行的规格检查；存在待确认项不得标为无条件 PASS。SPEC_MANIFEST 对除自身外的规格与示例逐一记录字节数及 SHA-256。
 
 2026-09-09：用户批准补齐 S09 的 NONE / UNSURE / FLAGS_PRESENT 及 selectedCodes 固定编码、顺序和测试，写入本地开发优先规则。仍属 SPEC-0.1.0 开发前修正，全部领域版本保持不变，CBT-I Protocol 仍为 NONE。
+
+## 10. SPEC-0.1.1 UX 修订记录
+
+2026-09-09：用户批准在 UI 编码前修订交互设计，规格从 SPEC-0.1.0 升为 SPEC-0.1.1。核心原则为“默认定位，不默认作答”；时间 anchor、picker position 仅为 UI 状态。明确确认后才更新答案，新增快捷输入、精细日期调整、滚动与无障碍要求及对应 UI 测试计划。
+App 仍为 0.1.0；DIARY_1.0、SAFETY_1.0、SAFETY_RULE_1.0、WEEKLY_1.0、BACKUP_1.0 不变；CBT-I Protocol = NONE。未改变医学字段、数据语义、安全分流、周总结算法或治疗规则，不需要数据迁移。
+SELF_CHECK 只声明本轮实际执行的规格与完整性检查，不沿用历史测试数量作为本轮结果。SPEC_MANIFEST 更新版本，并重新计算除自身外全部规格与示例的字节数、SHA-256。历史修订记录和未改动 JSON Schema 的历史注释可保留 SPEC-0.1.0，不能当作当前基线版本。

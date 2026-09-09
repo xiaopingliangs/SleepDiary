@@ -1,5 +1,5 @@
 {
-  "specVersion": "SPEC-0.1.0",
+  "specVersion": "SPEC-0.1.1",
   "targetAppVersion": "0.1.0",
   "evidenceReviewDate": "2026-09-08",
   "cbtiProtocolVersion": "NONE",
@@ -41,28 +41,28 @@
     },
     {
       "path": "README.md",
-      "sha256": "f17ce0be9ffe2475a5d332938ec4e696aedc1c2f5761984e28948568343d153c",
-      "bytes": 4408
+      "sha256": "25d72eb5b6029d174551cde74c07cf1acc405c764595ccb967fe28f3ae81c703",
+      "bytes": 5253
     },
     {
       "path": "SELF_CHECK.json",
-      "sha256": "1d762a677699940567109ba31003ece6ccf2ecc4e6b4863a7cc5273447725b47",
-      "bytes": 1384
+      "sha256": "858cab166400685c2a540b99eb0161cd5174c0e1fa22160a2e970a36df38b745",
+      "bytes": 1544
     },
     {
       "path": "TEST_PLAN.md",
-      "sha256": "9ca47081ce9744e577fd5d5b5b1245602e52d2e26e7125959d35200da3050a0c",
-      "bytes": 11226
+      "sha256": "2fcca2c897f1cb6144e2fea0734fbdcc851ee08121a18a349e4bcd82d1b0bf40",
+      "bytes": 14156
     },
     {
       "path": "UX_SPEC.md",
-      "sha256": "b60aa7fc68be1a9e85cdaf9b033759fa63e034974e45e6058750167f26eafbb1",
-      "bytes": 6923
+      "sha256": "1e02b0cb5dab7f51e0852f6dd982cee30835b8493895b6f2a33272ec49628773",
+      "bytes": 11596
     },
     {
       "path": "VERSIONING_AND_TRACEABILITY.md",
-      "sha256": "bcc537257388c88d2353e6e68d17a7090faa93eefabca35a4f6f711dbc97a497",
-      "bytes": 3787
+      "sha256": "9e3ee303e560042d8bfff47ae35e7a501bf1f3840977e97b5b1baf6d7ac90ed2",
+      "bytes": 4893
     },
     {
       "path": "samples/backup-v1.example.json",
