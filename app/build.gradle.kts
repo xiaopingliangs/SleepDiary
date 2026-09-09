@@ -40,6 +40,9 @@ android {
 kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
 room { schemaDirectory("$projectDir/schemas") }
 dependencies {
+    implementation(libs.navigation.compose)
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.viewmodel.savedstate)
     implementation(libs.androidx.core)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.compose.bom))
@@ -48,6 +51,9 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.coroutines.core)
     ksp(libs.room.compiler)
+    testImplementation(libs.compose.ui.test)
+    debugImplementation(libs.compose.ui.test.manifest)
+    testImplementation(libs.coroutines.test)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
