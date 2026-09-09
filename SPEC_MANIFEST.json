@@ -11,7 +11,7 @@
     },
     {
       "path": "ARCHITECTURE.md",
-      "sha256": "10e1b6de442aa26be40fcef52e0fdd81e67e20fc27269cdfa105eb2abb0dcc06",
+      "sha256": "2de05ad8a4e52200bd87b09cf6f2f89eb9172c16e1e08ed39e6fd73c3c6892b8",
       "bytes": 5012
     },
     {
@@ -46,8 +46,8 @@
     },
     {
       "path": "SELF_CHECK.json",
-      "sha256": "21ff44cb514439b3f416817561b856185d1eaeea37180936659261005ac63e5a",
-      "bytes": 767
+      "sha256": "313ad1c9c1b7c179b9654a0536e2058921e10fa9750145016d3073dd9a248c15",
+      "bytes": 1333
     },
     {
       "path": "TEST_PLAN.md",

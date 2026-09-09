@@ -1,4 +1,7 @@
 package app.sleepdiary.offline.ui
+import app.sleepdiary.offline.data.dao.AssessmentWithAnswers
+import app.sleepdiary.offline.domain.model.SafetyGate
+import app.sleepdiary.offline.domain.model.AssessmentStatus
 
 import androidx.lifecycle.SavedStateHandle
 import app.sleepdiary.offline.clockOn
@@ -17,16 +20,21 @@ class DiaryViewModelTest {
     @Before fun main(){Dispatchers.setMain(dispatcher)}
     @After fun reset(){Dispatchers.resetMain()}
     class Store:DiaryUiStore {
-        var rows=listOf<SleepDiaryEntry>();var app=AppState();var calls=0;var confirmed=false;var input:SleepDiaryEntry?=null
+        var rows=listOf<SleepDiaryEntry>();var app=AppState(hasCompletedOnboarding=true);var calls=0;var confirmed=false;var input:SleepDiaryEntry?=null
+        var pending:WeeklySummarySnapshot?=null;var displayed:Int?=null
+        override suspend fun acknowledgeWeekly(index:Int){displayed=index}
         var fail=false;var throwSave=false;var throwRead=false;var acknowledged=false
         override suspend fun entries():List<SleepDiaryEntry> {if(throwRead) error("private detail");return rows}
+        var safety:AssessmentWithAnswers?=AssessmentWithAnswers(SafetyAssessment("existing","2026-09-09T00:00:00Z",derivedGate=SafetyGate.NO_MAJOR_FLAG,status=AssessmentStatus.DRAFT,isCurrent=true),emptyList())
+        override suspend fun currentSafety()=safety
+        override suspend fun completeOnboarding(){app=app.copy(hasCompletedOnboarding=true)}
         override suspend fun state()=app
         override suspend fun save(entry:SleepDiaryEntry,confirmed:Boolean):SaveResult {
             calls++;this.confirmed=confirmed;input=entry;delay(10)
             if(throwSave) error("private database detail")
             if(fail) return SaveResult.Failure(SaveFailure.WRITE_FAILED,entry)
             rows=rows.filterNot {it.id==entry.id}+entry
-            return SaveResult.Success(entry,null)
+            return SaveResult.Success(entry,pending)
         }
         override suspend fun acknowledgeExplanation(){acknowledged=true;app=app.copy(hasSeenMinimalInteractionExplanation=true)}
     }
@@ -45,9 +53,16 @@ class DiaryViewModelTest {
     @Test fun rapidSaveIsSerialized()=runTest(dispatcher) {val s=Store();val m=vm(s);advanceUntilIdle();fill(m);m.save();m.save();advanceUntilIdle();assertEquals(1,s.calls)}
     @Test fun existingTodayLoadsAndEditsSameUuid()=runTest(dispatcher) {val e=diary();val s=Store().also {it.rows=listOf(e)};val m=vm(s);advanceUntilIdle();assertEquals(HomePage.TODAY,m.state.value.page);m.editToday();m.comment("changed");m.save();advanceUntilIdle();assertEquals(e.id,s.input!!.id);assertEquals(e.createdAtUtc,s.input!!.createdAtUtc)}
     @Test fun invalidTimeOrderNeverReachesRepository()=runTest(dispatcher) {val s=Store();val m=vm(s);advanceUntilIdle();fill(m);m.answerTime(DiaryField.OUT,java.time.LocalDateTime.parse("2026-09-09T05:00"));m.save();advanceUntilIdle();assertEquals(0,s.calls);assertEquals(HomePage.FORM,m.state.value.page)}
-    @Test fun onboardingHasThreePagesAndTemporaryDiaryDestination()=runTest(dispatcher) {val m=vm(handle=SavedStateHandle());advanceUntilIdle();assertEquals(HomePage.INTRO,m.state.value.page);m.nextIntro();m.nextIntro();assertEquals(2,m.state.value.introPage);m.nextIntro();assertEquals(HomePage.FORM,m.state.value.page)}
+    @Test fun onboardingHasThreePagesAndPersistsBeforeSafety()=runTest(dispatcher) {val store=Store().also{it.app=AppState();it.safety=null};val m=vm(store,handle=SavedStateHandle());advanceUntilIdle();assertEquals(HomePage.INTRO,m.state.value.page);m.nextIntro();m.nextIntro();assertEquals(2,m.state.value.introPage);m.nextIntro();advanceUntilIdle();assertEquals(HomePage.SAFETY,m.state.value.page);assertTrue(store.app.hasCompletedOnboarding)}
     @Test fun restoredDraftRetainsNullsAndIdentity()=runTest(dispatcher) {val handle=SavedStateHandle(mapOf("introDone" to true));val m=vm(handle=handle);advanceUntilIdle();m.answerNumber(DiaryField.SOL,15);val recreated=vm(handle=handle);advanceUntilIdle();assertEquals(m.state.value.form,recreated.state.value.form);assertNull(recreated.state.value.form.bed)}
     @Test fun exitAcknowledgesFirstExplanationWithoutChangingDiary()=runTest(dispatcher) {val s=Store();val m=vm(s);advanceUntilIdle();fill(m);m.save();advanceUntilIdle();var exit=false;m.exitAfterSuccess{exit=true};advanceUntilIdle();assertTrue(exit);assertTrue(s.acknowledged);assertEquals(1,s.calls)}
-    @Test fun subsequentSuccessOmitsFirstExplanation()=runTest(dispatcher) {val s=Store().also {it.app=AppState(hasSeenMinimalInteractionExplanation=true)};val m=vm(s);advanceUntilIdle();fill(m);m.save();advanceUntilIdle();assertFalse(m.state.value.firstSuccess)}
+    @Test fun subsequentSuccessOmitsFirstExplanation()=runTest(dispatcher) {val s=Store().also {it.app=AppState(hasSeenMinimalInteractionExplanation=true,hasCompletedOnboarding=true)};val m=vm(s);advanceUntilIdle();fill(m);m.save();advanceUntilIdle();assertFalse(m.state.value.firstSuccess)}
     @Test fun startupReadFailureDoesNotPretendDatabaseIsEmpty()=runTest(dispatcher) {val s=Store().also {it.throwRead=true};val m=vm(s);advanceUntilIdle();assertEquals(HomePage.LOADING,m.state.value.page);assertEquals("读取记录失败，请重试",m.state.value.message);s.throwRead=false;m.start();advanceUntilIdle();assertEquals(HomePage.FORM,m.state.value.page)}
+
+    @Test fun pendingWeeklySummaryIsShownAndAcknowledgedOnlyOnExit()=runTest(dispatcher) {
+        val s=Store();s.pending=WeeklySummarySnapshot("summary",1,"2026-09-03","2026-09-09",1,20.0,2.0,30.0,60.0,480.0,3.0,"[]",generatedAtUtc="2026-09-09T00:00:00Z",revision=1,isCurrent=true,supersedesSummaryId=null)
+        val m=vm(s);advanceUntilIdle();fill(m);m.save();advanceUntilIdle();assertEquals(HomePage.WEEKLY,m.state.value.page);assertEquals(s.pending,m.state.value.weekly);assertNull(s.displayed)
+        m.exitAfterSuccess{};advanceUntilIdle();assertEquals(1,s.displayed)
+    }
+    @Test fun restoreDiscardsStaleUnsavedForm()=runTest(dispatcher) {val s=Store();val m=vm(s);advanceUntilIdle();m.answerNumber(DiaryField.SOL,90);val id=m.state.value.form.id;m.afterRestore();advanceUntilIdle();assertNull(m.state.value.form.sol);assertNotEquals(id,m.state.value.form.id)}
 }

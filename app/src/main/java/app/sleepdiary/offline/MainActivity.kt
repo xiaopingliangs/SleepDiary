@@ -22,7 +22,9 @@ class MainActivity:ComponentActivity() {
                 DiaryViewModel(RoomDiaryUiStore(database()),extras.createSavedStateHandle()) as T
         }
         val model=ViewModelProvider(this,factory)[DiaryViewModel::class.java]
-        setContent {SleepDiaryTheme {SleepDiaryApp(model,{finishAndRemoveTask()})}}
+        val services=app.sleepdiary.offline.ui.AppServices(this,database())
+        services.share.cleanupExpired()
+        setContent {SleepDiaryTheme {SleepDiaryApp(model,{finishAndRemoveTask()},services)}}
     }
     private fun database():SleepDiaryDatabase = synchronized(MainActivity::class.java) {
         sharedDatabase ?: SleepDiaryDatabase.open(applicationContext).also {sharedDatabase=it}

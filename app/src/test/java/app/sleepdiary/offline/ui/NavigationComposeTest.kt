@@ -1,4 +1,7 @@
 package app.sleepdiary.offline.ui
+import app.sleepdiary.offline.data.dao.AssessmentWithAnswers
+import app.sleepdiary.offline.domain.model.SafetyGate
+import app.sleepdiary.offline.domain.model.AssessmentStatus
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.*
@@ -22,13 +25,18 @@ class NavigationComposeTest {
     private class Store:DiaryUiStore {
         var rows=listOf<SleepDiaryEntry>();var fail=false;var acknowledged=false
         override suspend fun entries()=rows
-        override suspend fun state()=AppState()
+        var app=AppState(hasCompletedOnboarding=true)
+        var safety:AssessmentWithAnswers?=AssessmentWithAnswers(SafetyAssessment("existing","2026-09-09T00:00:00Z",derivedGate=SafetyGate.NO_MAJOR_FLAG,status=AssessmentStatus.DRAFT,isCurrent=true),emptyList())
+        override suspend fun state()=app
+        override suspend fun completeOnboarding(){app=app.copy(hasCompletedOnboarding=true)}
+        override suspend fun currentSafety()=safety
         override suspend fun save(entry:SleepDiaryEntry,confirmed:Boolean):SaveResult =
             if(fail) SaveResult.Failure(SaveFailure.WRITE_FAILED,entry) else SaveResult.Success(entry,null)
         override suspend fun acknowledgeExplanation(){acknowledged=true}
     }
     private lateinit var model:DiaryViewModel
     private fun start(store:Store,intro:Boolean=false,onExit:()->Unit={}) {
+        if(intro)store.app=store.app.copy(hasCompletedOnboarding=false)
         compose.runOnUiThread {model=DiaryViewModel(store,SavedStateHandle(mapOf("introDone" to !intro)),clockOn("2026-09-09"))}
         compose.setContent {SleepDiaryTheme {SleepDiaryApp(model,onExit)}}
         compose.waitUntil(5_000) {model.state.value.page!=HomePage.LOADING}
@@ -36,10 +44,10 @@ class NavigationComposeTest {
     @Test fun threeIntroPagesThenSettingsAndHistoryAreNavigable() {
         start(Store(),intro=true)
         compose.onNodeWithText("下一页").performClick();compose.onNodeWithText("数据留在本机").assertIsDisplayed()
-        compose.onNodeWithText("下一页").performClick();compose.onNodeWithText("记录不用追求精确").assertIsDisplayed()
-        compose.onNodeWithText("开始记录").performClick();compose.onNodeWithText("设置").performClick()
-        compose.onNodeWithText("导出完整备份 · 尚未实现").assertIsNotEnabled()
-        compose.onNodeWithText("历史记录").performClick();compose.onNodeWithText("暂无记录").assertIsDisplayed()
+        compose.onNodeWithText("下一页").performClick();compose.onNodeWithText("先回答一次安全问题").assertIsDisplayed()
+        compose.onNodeWithText("开始").performClick();compose.onNodeWithText("设置").performClick()
+        compose.onNodeWithText("导出完整备份 JSON").assertIsEnabled()
+        compose.onNodeWithText("历史记录").performClick();compose.onNodeWithText("这一天没有睡眠记录").assertIsDisplayed()
         compose.onNodeWithText("返回").performClick();compose.onNodeWithText("返回").performClick()
         compose.onNodeWithTag("time_BED").assertExists()
     }
@@ -59,8 +67,8 @@ class NavigationComposeTest {
     }
     @Test fun todayEntryCanBeLoadedForEditingWithoutAnotherUuid() {
         val entry=diary();start(Store().also {it.rows=listOf(entry)})
-        compose.onNodeWithText("今天的记录已保存").assertIsDisplayed()
-        compose.onNodeWithText("查看 / 修改今天记录").performClick()
+        compose.onNodeWithText("今天的睡眠记录已经完成").assertIsDisplayed()
+        compose.onNodeWithText("继续查看").performClick()
         compose.onNodeWithTag("time_BED").assertTextContains("09-08 23:00")
         compose.runOnIdle {assertEquals(entry.id,model.state.value.form.id);assertEquals(entry.createdAtUtc,model.state.value.form.createdAtUtc)}
     }

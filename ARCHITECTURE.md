@@ -72,7 +72,7 @@ app.sleepdiary.offline
 - SafetyAssessment
 - SafetyAnswer
 - WeeklySummarySnapshot
-- AppState（单例/键值，含自身 BACKUP_1.0 格式版本；全部 backup-critical 状态）
+- AppState（单例/键值，含自身 BACKUP_1.1 格式版本；全部 backup-critical 状态）
 
 要求：
 - foreign keys 明确；

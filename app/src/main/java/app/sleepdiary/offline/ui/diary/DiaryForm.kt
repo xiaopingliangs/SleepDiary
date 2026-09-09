@@ -6,10 +6,10 @@ import java.time.*
 import java.util.UUID
 
 enum class DiaryField(val label: String, val unit: String = "") {
-    BED("大约几点进入平时睡觉的位置？"), TRY("大约几点开始真正尝试入睡？"),
-    SOL("估计用了多久才睡着？", "分钟"), COUNT("估计在最后一次醒来之前，夜里醒了几次？", "次"),
-    WASO("估计这些夜间醒来加起来清醒了多久？", "分钟"), FINAL("大约几点是最后一次醒来？"),
-    OUT("大约几点真正离开睡觉的位置、开始一天？"), QUALITY("主观感觉这次睡眠质量如何？")
+    BED("进入睡觉位置"), TRY("开始尝试入睡"),
+    SOL("估计入睡耗时", "分钟"), COUNT("夜间醒来次数", "次"),
+    WASO("夜间清醒总时长", "分钟"), FINAL("最后一次醒来"),
+    OUT("真正离开睡觉位置"), QUALITY("主观睡眠质量")
 }
 
 data class DiaryForm(
@@ -36,24 +36,19 @@ data class DiaryForm(
     /** A candidate viewport, never an answer. The full candidate date is shown before confirmation. */
     fun pickerPosition(field: DiaryField): LocalDateTime = time(field) ?: when(field) {
         DiaryField.BED -> referenceDate.minusDays(1).atTime(22,0)
-        DiaryField.TRY -> (bed?.toLocalDate() ?: referenceDate.minusDays(1)).atTime(22,30)
+        DiaryField.TRY -> bed?.plusMinutes(30) ?: referenceDate.minusDays(1).atTime(22,30)
         DiaryField.FINAL -> referenceDate.atTime(6,0)
-        DiaryField.OUT -> (final?.toLocalDate() ?: referenceDate).atTime(6,30)
+        DiaryField.OUT -> final?.plusMinutes(30) ?: referenceDate.atTime(6,30)
         else -> error("Not a time field")
     }
     /** Calendar positioning only: no definition of normal sleep and no changes to other answers. */
     fun positionAt(field:DiaryField,time:LocalTime):LocalDateTime {
         val existing=this.time(field)
         if(existing!=null) return existing.with(time)
-        val sequence=listOf(DiaryField.BED,DiaryField.TRY,DiaryField.FINAL,DiaryField.OUT)
-        val index=sequence.indexOf(field)
-        require(index>=0)
-        val next=sequence.drop(index+1).firstNotNullOfOrNull {this.time(it)}
-        if(next!=null) return next.toLocalDate().minusDays(if(time>next.toLocalTime()) 1 else 0).atTime(time)
-        val previous=sequence.take(index).asReversed().firstNotNullOfOrNull {this.time(it)}
-        if(previous!=null) return previous.toLocalDate().plusDays(if(time<previous.toLocalTime()) 1 else 0).atTime(time)
-        return pickerPosition(field).toLocalDate().atTime(time)
+        // The dialog owns a stable full date. A clock change must not invent another day.
+        return pickerPosition(field).with(time)
     }
+
     fun answerTime(field: DiaryField, value: LocalDateTime): DiaryForm = when(field) {
         DiaryField.BED -> copy(bed=value); DiaryField.TRY -> copy(attempt=value)
         DiaryField.FINAL -> copy(final=value); DiaryField.OUT -> copy(out=value)

@@ -1,23 +1,39 @@
 {
   "status": "PASS",
   "specVersion": "SPEC-0.1.2",
-  "scope": "Approved product UX and onboarding backup specification revision",
+  "scope": "Approved V0.1 product UX and BACKUP_1.1 implementation baseline",
   "checks": {
-    "previousBaselineHashesVerified": 15,
-    "legacySchemaAndSamplePreserved": true,
-    "medicalRulesUnchanged": true,
-    "cbtiProtocolVersion": "NONE",
-    "backupFormatVersion": "BACKUP_1.1",
-    "legacyImportVersion": "BACKUP_1.0",
+    "medicalSpecificationsByteIdentical": true,
+    "legacyBackupSchemaAndExampleByteIdentical": true,
+    "coreDiaryFieldsAndRulesUnchanged": true,
+    "roomTechnicalVersion": 2,
+    "roomMigrationTestPassed": true,
+    "roomSchemaExported": true,
+    "backupExportVersion": "BACKUP_1.1",
+    "backupImportVersions": [
+      "BACKUP_1.0",
+      "BACKUP_1.1"
+    ],
+    "legacyOnboardingDefault": false,
     "onboardingIndependent": true,
-    "roomMigrationSpecified": "1 to 2",
-    "jsonSyntaxValid": true
+    "cbtiProtocolVersion": "NONE",
+    "bothSchemaExamplesValidatedByApplication": true,
+    "manifestForbiddenPermissionsAbsent": true,
+    "specificationReviewCompleted": true
   },
   "blockingItems": [],
   "execution": {
-    "androidTestsRun": false,
-    "androidBuildRun": false,
-    "jsonSchemaValidatorRun": false
+    "unitTests": {
+      "total": 194,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "testDebugUnitTest": "PASS",
+    "assembleDebug": "PASS",
+    "assembleDebugAndroidTest": "PASS",
+    "connectedDebugAndroidTest": "NOT_RUN_NO_DEVICE",
+    "physicalDeviceValidation": "NOT_RUN"
   },
-  "note": "规格校验声明，不代表 Android 实现或测试完成；新旧示例的完整 Schema 校验将随实现验证。"
+  "note": "规格、代码与本机测试检查通过，不代表已完成真机稳定性验收。FileProvider 原生 URI 读写测试保留为设备测试；Windows Robolectric 路径不兼容，未伪造通过。"
 }

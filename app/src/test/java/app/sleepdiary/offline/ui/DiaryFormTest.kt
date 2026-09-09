@@ -52,9 +52,9 @@ class DiaryFormTest {
         assertEquals(LocalDateTime.parse("2026-09-09T00:15"),f.positionAt(DiaryField.TRY,LocalTime.of(0,15)))
         assertNull(f.attempt)
     }
-    @Test fun daytimePositionUsesConfirmedFollowingDateWithoutNightAssumption() {
+    @Test fun laterAnswerDoesNotSilentlyRepositionEarlierDate() {
         val f=blank().answerTime(DiaryField.OUT,LocalDateTime.parse("2026-09-09T14:30"))
-        assertEquals(LocalDateTime.parse("2026-09-09T08:00"),f.positionAt(DiaryField.BED,LocalTime.of(8,0)))
+        assertEquals(LocalDateTime.parse("2026-09-08T08:00"),f.positionAt(DiaryField.BED,LocalTime.of(8,0)))
         assertNull(f.bed)
     }
     @Test fun editingExistingTimeDoesNotMoveItsExplicitDate() {

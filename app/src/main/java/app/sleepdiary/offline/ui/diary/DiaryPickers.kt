@@ -32,53 +32,50 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun TimePickerDialog(field:DiaryField,initial:LocalDateTime,advancedInitially:Boolean=false,onDismiss:()->Unit,onConfirm:(LocalDateTime)->Unit,onPosition:(LocalDateTime)->LocalDateTime={it}) {
-    // These are dialog-only candidate values. Dismissal never invokes onConfirm.
-    var valueText by rememberSaveable(field.name,initial.toString()) { mutableStateOf(initial.toString()) }
+    var valueText by rememberSaveable(field.name,initial.toString()) {mutableStateOf(initial.toString())}
     val candidate=LocalDateTime.parse(valueText)
-    var advanced by rememberSaveable { mutableStateOf(advancedInitially) }
-    var dateText by rememberSaveable { mutableStateOf(initial.toLocalDate().toString()) }
-    var timeText by rememberSaveable { mutableStateOf(initial.format(DateTimeFormatter.ofPattern("HH:mm"))) }
-    val precise=runCatching { LocalDateTime.of(LocalDate.parse(dateText),LocalTime.parse(timeText)) }.getOrNull()
+    var advanced by rememberSaveable {mutableStateOf(advancedInitially)}
     Dialog(onDismissRequest=onDismiss) {
-        Surface(shape=MaterialTheme.shapes.large,color=MaterialTheme.colorScheme.surface) {
-            Column(Modifier.fillMaxWidth().heightIn(max=(LocalConfiguration.current.screenHeightDp*0.85).dp).verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+        Surface(shape=MaterialTheme.shapes.large) {
+            Column(Modifier.fillMaxWidth().heightIn(max=(LocalConfiguration.current.screenHeightDp*0.9).dp).verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
                 Text(field.label,style=MaterialTheme.typography.titleMedium)
-                Text(candidate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),Modifier.testTag("picker_candidate"),style=MaterialTheme.typography.titleLarge)
-                if(!advanced) {
-                    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(16.dp)) {
-                        NumberColumn("小时",(0..23).toList(),candidate.hour,Modifier.weight(1f),"hour") { valueText=onPosition(candidate.withHour(it)).toString() }
-                        val minutes=(listOf(0,15,30,45)+candidate.minute).distinct().sorted()
-                        NumberColumn("分钟",minutes,candidate.minute,Modifier.weight(1f),"minute") { valueText=onPosition(candidate.withMinute(it)).toString() }
-                    }
-                    TextButton(onClick={dateText=candidate.toLocalDate().toString();timeText=candidate.format(DateTimeFormatter.ofPattern("HH:mm"));advanced=true},modifier=Modifier.heightIn(min=48.dp)) { Text("日期不对？调整 / 精细输入") }
-                } else {
-                    FormTextInput(dateText,{dateText=it},"日期（YYYY-MM-DD）","picker_date")
-                    FormTextInput(timeText,{timeText=it},"时间（24 小时制 HH:mm）","picker_time")
-                    if(precise==null) Text("请填写有效日期和时间，例如 2026-09-09、08:15")
+                Text(candidate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),Modifier.testTag("picker_candidate"))
+                if(advanced) AndroidView(factory={context->android.widget.DatePicker(context,null,0,app.sleepdiary.offline.R.style.SleepDiaryDatePicker).apply {
+                    calendarViewShown=false;spinnersShown=true;descendantFocusability=android.view.ViewGroup.FOCUS_BLOCK_DESCENDANTS
+                    init(candidate.year,candidate.monthValue-1,candidate.dayOfMonth){_,year,month,day->valueText=LocalDate.of(year,month+1,day).atTime(LocalDateTime.parse(valueText).toLocalTime()).toString()}
+                }},modifier=Modifier.fillMaxWidth().testTag("picker_date").semantics{contentDescription="调整日期"})
+                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                    NumberWheel("小时",(0..23).toList(),candidate.hour,Modifier.weight(1f),"hour"){valueText=candidate.withHour(it).toString()}
+                    val minutes=if(advanced)(0..59).toList()else (listOf(0,15,30,45)+initial.minute).distinct().sorted()
+                    NumberWheel("分钟",minutes,candidate.minute,Modifier.weight(1f),"minute"){valueText=candidate.withMinute(it).toString()}
                 }
+                if(!advanced)OutlinedButton(onClick={advanced=true},modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("adjust_datetime")){Text("调整日期和时间")}
                 Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End) {
-                    TextButton(onClick=onDismiss,modifier=Modifier.heightIn(min=48.dp).testTag("picker_cancel")) { Text("取消") }
-                    Button(onClick={onConfirm(if(advanced) checkNotNull(precise) else candidate)},enabled=!advanced||precise!=null,
-                        modifier=Modifier.heightIn(min=48.dp).testTag("picker_confirm")) { Text("确认") }
+                    TextButton(onClick=onDismiss,modifier=Modifier.heightIn(min=48.dp).testTag("picker_cancel")){Text("取消")}
+                    Button(onClick={onConfirm(candidate)},modifier=Modifier.heightIn(min=48.dp).testTag("picker_confirm")){Text("确认")}
                 }
             }
         }
     }
 }
-
 @Composable
-private fun NumberColumn(label:String,values:List<Int>,selected:Int,modifier:Modifier,tag:String,onSelect:(Int)->Unit) {
+private fun NumberWheel(label:String,values:List<Int>,selected:Int,modifier:Modifier,tag:String,onSelect:(Int)->Unit) {
+    val latest by rememberUpdatedState(onSelect)
+    val latestValues by rememberUpdatedState(values)
+    val wheelTextColor=MaterialTheme.colorScheme.onSurface.toArgb()
+    val index=values.indexOf(selected).coerceAtLeast(0)
     Column(modifier) {
         Text(label)
-        val list=rememberLazyListState(initialFirstVisibleItemIndex=(values.indexOf(selected)-1).coerceAtLeast(0))
-        LazyColumn(Modifier.height(168.dp).fillMaxWidth().semantics { contentDescription=label+"选择" },state=list) {
-            items(values) { number ->
-                OutlinedButton(onClick={onSelect(number)},modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag(tag+"_"+number).semantics { this.selected=number==selected;contentDescription=number.toString()+label },
-                    colors=ButtonDefaults.outlinedButtonColors(containerColor=if(number==selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface)) {
-                    Text(number.toString().padStart(2,'0'))
-                }
-            }
-        }
+        AndroidView(factory={context->android.widget.NumberPicker(context).apply {
+            descendantFocusability=android.view.ViewGroup.FOCUS_BLOCK_DESCENDANTS
+            minValue=0;maxValue=values.lastIndex;displayedValues=values.map{it.toString().padStart(2,'0')}.toTypedArray();value=index;wrapSelectorWheel=true
+            setOnValueChangedListener{_,_,next->latest(latestValues[next])}
+        }},update={view->view.displayedValues=null;view.maxValue=values.lastIndex;view.displayedValues=values.map{it.toString().padStart(2,'0')}.toTypedArray();view.value=index;view.contentDescription=label+"选择";if(android.os.Build.VERSION.SDK_INT>=29)view.textColor=wheelTextColor;for(i in 0 until view.childCount)(view.getChildAt(i) as? android.widget.EditText)?.setTextColor(wheelTextColor)},
+            modifier=Modifier.fillMaxWidth().height(168.dp).testTag(tag+"_wheel").semantics {
+                contentDescription=label+"选择";stateDescription=selected.toString()
+                progressBarRangeInfo=ProgressBarRangeInfo(index.toFloat(),0f..values.lastIndex.toFloat(),values.size-2)
+                setProgress {next->latest(values[next.toInt().coerceIn(0,values.lastIndex)]);true}
+            })
     }
 }
 

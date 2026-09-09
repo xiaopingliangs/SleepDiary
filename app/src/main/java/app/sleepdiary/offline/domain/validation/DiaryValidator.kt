@@ -6,7 +6,8 @@ import app.sleepdiary.offline.domain.model.LocalTimeMath
 import java.time.*
 import java.util.UUID
 
-data class DiaryValidation(val errors: List<String>, val consistencyWarning: Boolean) {
+data class TimeConflict(val fields:List<String>,val message:String)
+data class DiaryValidation(val errors: List<String>, val consistencyWarning: Boolean, val conflicts:List<TimeConflict> = emptyList()) {
     val canSave: Boolean get() = errors.isEmpty()
 }
 
@@ -14,6 +15,7 @@ data class DiaryValidation(val errors: List<String>, val consistencyWarning: Boo
 object DiaryValidator {
     fun validate(entry: SleepDiaryEntry): DiaryValidation {
         val errors = mutableListOf<String>()
+        val conflicts=mutableListOf<TimeConflict>()
         fun checkField(valid: Boolean, field: String) { if (!valid) errors += field }
         checkField(runCatching { UUID.fromString(entry.id).toString() == entry.id.lowercase() }.getOrDefault(false), "id")
         checkField(entry.diarySchemaVersion == Versions.DIARY_SCHEMA, "diarySchemaVersion")
@@ -31,11 +33,17 @@ object DiaryValidator {
         val out = dateTime(entry.outOfBedAtLocal, "outOfBedAtLocal")
         val date = try { LocalDate.parse(entry.sleepDate) } catch (_: DateTimeException) { errors += "sleepDate"; null }
         if (date != null && out != null) checkField(date == out.toLocalDate(), "sleepDate")
+        fun relation(a:LocalDateTime?,b:LocalDateTime?,first:String,second:String,labelA:String,labelB:String) {
+            if(a!=null&&b!=null&&a>b)conflicts+=TimeConflict(listOf(first,second),"‘"+labelB+"’不能早于‘"+labelA+"’。")
+        }
+        relation(bed,attempt,"bedEnteredAtLocal","trySleepAtLocal","进入睡觉位置","开始尝试入睡")
+        relation(attempt,final,"trySleepAtLocal","finalAwakeningAtLocal","开始尝试入睡","最后一次醒来")
+        relation(final,out,"finalAwakeningAtLocal","outOfBedAtLocal","最后一次醒来","真正离开睡觉位置")
         if (bed != null && attempt != null && final != null && out != null) {
             checkField(bed <= attempt && attempt <= final && final <= out, "timeOrder")
         }
         val warning = errors.isEmpty() && attempt != null && final != null &&
             entry.sleepOnsetLatencyMin.toLong() + entry.wakeAfterSleepOnsetMin > LocalTimeMath.minutesBetween(attempt, final)
-        return DiaryValidation(errors, warning)
+        return DiaryValidation(errors, warning, conflicts)
     }
 }

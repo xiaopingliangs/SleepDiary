@@ -13,12 +13,14 @@ import kotlinx.coroutines.launch
 import java.time.Clock
 import java.time.LocalDate
 
-enum class HomePage { LOADING, INTRO, TODAY, FORM, SUCCESS }
+enum class HomePage { LOADING, INTRO, SAFETY, HELP, SAFETY_RESULT, TODAY, FORM, SUCCESS, WEEKLY }
 data class DiaryUiState(
     val form:DiaryForm, val page:HomePage=HomePage.LOADING, val introPage:Int=0,
     val busy:Boolean=false, val message:String?=null, val missing:DiaryField?=null,
     val warning:Boolean=false, val entries:List<SleepDiaryEntry> = emptyList(),
-    val today:SleepDiaryEntry?=null, val firstSuccess:Boolean=false
+    val today:SleepDiaryEntry?=null, val firstSuccess:Boolean=false,
+    val safety:app.sleepdiary.offline.data.dao.AssessmentWithAnswers?=null,
+    val weekly:app.sleepdiary.offline.data.entity.WeeklySummarySnapshot?=null
 )
 
 class DiaryViewModel(
@@ -29,23 +31,43 @@ class DiaryViewModel(
     private val mutable=MutableStateFlow(DiaryUiState(saved.get<DiaryForm>("form") ?: DiaryForm(referenceDate=LocalDate.now(clock),zoneId=clock.zone.id),introPage=saved["introPage"] ?: 0))
     val state=mutable.asStateFlow()
     init { start() }
+    fun afterRestore() { saved.remove<Boolean>("editing");saved.remove<DiaryForm>("form");saved.remove<Int>("introPage");mutable.value=DiaryUiState(DiaryForm(referenceDate=LocalDate.now(clock),zoneId=clock.zone.id));start() }
     fun start() { viewModelScope.launch {
         try {
             val entries=store.entries();val appState=store.state()
+            val safety=store.currentSafety()
             val today=entries.firstOrNull { it.sleepDate==LocalDate.now(clock).toString() }
             val page=when {
+                !appState.hasCompletedOnboarding -> HomePage.INTRO
                 saved.get<Boolean>("editing")==true -> HomePage.FORM
                 today!=null -> HomePage.TODAY
-                entries.isEmpty() && !appState.hasSeenMinimalInteractionExplanation && saved.get<Boolean>("introDone")!=true -> HomePage.INTRO
+                safety==null -> HomePage.SAFETY
                 else -> HomePage.FORM
             }
-            mutable.value=mutable.value.copy(page=page,entries=entries,today=today,message=null)
+            mutable.value=mutable.value.copy(page=page,entries=entries,today=today,safety=safety,message=null)
         } catch(c:CancellationException){throw c} catch(_:Exception){mutable.value=mutable.value.copy(message="读取记录失败，请重试")}
     } }
     fun nextIntro() {
         if(mutable.value.introPage<2) { val page=mutable.value.introPage+1;saved["introPage"]=page;mutable.value=mutable.value.copy(introPage=page) }
-        else { saved["introDone"]=true;mutable.value=mutable.value.copy(page=HomePage.FORM) }
+        else { if(mutable.value.busy)return;mutable.value=mutable.value.copy(busy=true);viewModelScope.launch {
+            try {store.completeOnboarding();saved["introDone"]=true;mutable.value=mutable.value.copy(page=if(mutable.value.safety==null)HomePage.SAFETY else diaryPage(),busy=false)}
+            catch(c:CancellationException){throw c}catch(_:Exception){mutable.value=mutable.value.copy(busy=false,message="说明状态保存失败，请重试")}
+        } }
     }
+    private fun diaryPage()=if(mutable.value.today!=null)HomePage.TODAY else HomePage.FORM
+    fun continueDiary(){mutable.value=mutable.value.copy(page=diaryPage(),message=null)}
+    fun openSafety(newAssessment:Boolean=false){if(newAssessment)mutable.value=mutable.value.copy(safety=null);mutable.value=mutable.value.copy(page=HomePage.SAFETY,message=null)}
+    fun viewSafety(){mutable.value=mutable.value.copy(page=HomePage.SAFETY_RESULT)}
+    fun saveSafety(id:String,answers:List<app.sleepdiary.offline.data.entity.SafetyAnswer>,completed:Boolean,onSaved:()->Unit) {
+        if(mutable.value.busy)return;mutable.value=mutable.value.copy(busy=true,message=null)
+        viewModelScope.launch {try{
+            val result=store.saveSafety(id,answers,completed)
+            val acute=answers.lastOrNull()?.let {it.questionId=="S03"&&it.answerCode!="NO"}==true
+            mutable.value=mutable.value.copy(safety=result,busy=false,page=if(acute)HomePage.HELP else if(completed)HomePage.SAFETY_RESULT else HomePage.SAFETY)
+            onSaved()
+        }catch(c:CancellationException){throw c}catch(_:Exception){mutable.value=mutable.value.copy(busy=false,message="安全问询保存失败，请重试")}}
+    }
+    fun edit(entry:SleepDiaryEntry){updateForm(DiaryForm.from(entry));mutable.value=mutable.value.copy(page=HomePage.FORM)}
     fun editToday() { mutable.value.today?.let { updateForm(DiaryForm.from(it));mutable.value=mutable.value.copy(page=HomePage.FORM) } }
     private fun updateForm(form:DiaryForm) {
         if(mutable.value.busy) return
@@ -73,7 +95,7 @@ class DiaryViewModel(
                     is SaveResult.Success -> {
                         val entries=(mutable.value.entries.filterNot { it.id==result.entry.id }+result.entry).sortedBy { it.sleepDate }
                         saved["editing"]=false;saved["form"]=DiaryForm.from(result.entry)
-                        mutable.value=mutable.value.copy(form=DiaryForm.from(result.entry),page=HomePage.SUCCESS,busy=false,firstSuccess=first,entries=entries,today=result.entry)
+                        mutable.value=mutable.value.copy(form=DiaryForm.from(result.entry),page=if(result.pendingSummary==null)HomePage.SUCCESS else HomePage.WEEKLY,weekly=result.pendingSummary,busy=false,firstSuccess=first,entries=entries,today=result.entry)
                     }
                     is SaveResult.ValidationWarning -> mutable.value=mutable.value.copy(busy=false,warning=true)
                     is SaveResult.Failure -> mutable.value=mutable.value.copy(busy=false,message=if(result.reason==SaveFailure.BEFORE_TRACKING_START)
@@ -83,10 +105,10 @@ class DiaryViewModel(
         }
     }
     fun exitAfterSuccess(exit:()->Unit) {
-        if(mutable.value.page!=HomePage.SUCCESS || mutable.value.busy) return
+        if(mutable.value.page !in listOf(HomePage.SUCCESS,HomePage.WEEKLY) || mutable.value.busy) return
         mutable.value=mutable.value.copy(busy=true)
         viewModelScope.launch {
-            try { if(mutable.value.firstSuccess) store.acknowledgeExplanation();mutable.value=mutable.value.copy(busy=false);exit() }
+            try { mutable.value.weekly?.let {store.acknowledgeWeekly(it.periodIndex)}; if(mutable.value.firstSuccess) store.acknowledgeExplanation();mutable.value=mutable.value.copy(busy=false);exit() }
             catch(c:CancellationException){throw c} catch(_:Exception){mutable.value=mutable.value.copy(busy=false,message="保存失败，请重试")}
         }
     }

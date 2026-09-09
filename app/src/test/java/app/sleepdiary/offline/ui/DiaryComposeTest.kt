@@ -53,11 +53,28 @@ class DiaryComposeTest {
         compose.setContent {SleepDiaryTheme {TimePickerDialog(DiaryField.BED,LocalDateTime.parse("2026-09-09T08:07"),onDismiss={},onConfirm={})}}
         compose.onNodeWithTag("picker_candidate").assertTextContains("08:07",substring=true)
     }
-    @Test fun advancedPickerSupportsDaytimeFullDate() {
+    @Test fun advancedDatePickerChangesDateWithoutTyping() {
         var answer:LocalDateTime?=null
         compose.setContent {SleepDiaryTheme {TimePickerDialog(DiaryField.BED,form().pickerPosition(DiaryField.BED),true,{}, {answer=it})}}
-        compose.onNodeWithTag("picker_date").performTextReplacement("2026-09-09")
-        compose.onNodeWithTag("picker_time").performTextReplacement("08:07")
+        compose.onNodeWithTag("picker_date").assertExists()
+        compose.runOnIdle {
+            fun find(view:android.view.View):android.widget.DatePicker? {
+                if(view is android.widget.DatePicker)return view
+                if(view is android.view.ViewGroup)for(i in 0 until view.childCount)find(view.getChildAt(i))?.let{return it}
+                return null
+            }
+            val dialog=org.robolectric.shadows.ShadowDialog.getLatestDialog()
+            checkNotNull(find(dialog.window!!.decorView)).updateDate(2026,8,10)
+        }
+        compose.onNodeWithTag("picker_confirm").performScrollTo().performClick()
+        compose.runOnIdle {assertEquals(LocalDate.parse("2026-09-10"),answer!!.toLocalDate())}
+    }
+    @Test fun advancedPickerSupportsDaytimeFullDate() {
+        var answer:LocalDateTime?=null
+        compose.setContent {SleepDiaryTheme {TimePickerDialog(DiaryField.BED,LocalDateTime.parse("2026-09-09T22:00"),true,{}, {answer=it})}}
+        compose.onNodeWithTag("picker_date").assertExists()
+        compose.onNodeWithTag("hour_wheel").performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.SetProgress){it(8f)}
+        compose.onNodeWithTag("minute_wheel").performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.SetProgress){it(7f)}
         compose.onNodeWithTag("picker_confirm").performClick()
         compose.runOnIdle {assertEquals(LocalDateTime.parse("2026-09-09T08:07"),answer)}
     }
@@ -65,8 +82,10 @@ class DiaryComposeTest {
         val answers=mutableListOf<Pair<DiaryField,Int>>()
         screen(onNumber={f,n->answers+=f to n})
         compose.onNodeWithTag("diary_fields").performScrollToIndex(DiaryField.SOL.ordinal)
+        compose.onNodeWithTag("input_SOL").performClick()
         compose.onNodeWithTag("choice_SOL_15").performClick()
         compose.onNodeWithTag("diary_fields").performScrollToIndex(DiaryField.WASO.ordinal)
+        compose.onNodeWithTag("input_WASO").performClick()
         compose.onNodeWithTag("choice_WASO_0").performClick()
         compose.runOnIdle {assertEquals(listOf(DiaryField.SOL to 15,DiaryField.WASO to 0),answers)}
     }
@@ -82,6 +101,7 @@ class DiaryComposeTest {
     }
     @Test fun qualityIsNotPreselectedAndAllFiveChoicesExist() {
         screen();compose.onNodeWithTag("diary_fields").performScrollToIndex(DiaryField.QUALITY.ordinal)
+        compose.onNodeWithTag("input_QUALITY").performClick()
         (1..5).forEach {compose.onNodeWithTag("choice_QUALITY_"+it).assertExists().assertIsNotSelected()}
     }
     @Test fun coreControlsHaveAccessibleLabelsAndMinimumTouchSize() {
@@ -89,6 +109,7 @@ class DiaryComposeTest {
         compose.onNodeWithTag("time_BED").assertContentDescriptionEquals(DiaryField.BED.label).assertHeightIsAtLeast(48.dp)
         compose.onNodeWithTag("save_diary").assertHeightIsAtLeast(48.dp)
         compose.onNodeWithTag("diary_fields").performScrollToIndex(DiaryField.SOL.ordinal)
+        compose.onNodeWithTag("input_SOL").performClick()
         compose.onNodeWithTag("choice_SOL_5").assertWidthIsAtLeast(48.dp).assertHeightIsAtLeast(48.dp)
         compose.onNodeWithTag("choice_SOL_5").assertContentDescriptionEquals(DiaryField.SOL.label+" 5分钟")
     }
@@ -104,6 +125,7 @@ class DiaryComposeTest {
     @Test fun enlargedFontRemainsScrollableAndOperable() {
         screen(fontScale=1.5f);compose.onNodeWithTag("save_diary").assertIsDisplayed()
         compose.onNodeWithTag("diary_fields").performScrollToIndex(DiaryField.QUALITY.ordinal)
+        compose.onNodeWithTag("input_QUALITY").performClick()
         compose.onNodeWithTag("choice_QUALITY_5").performScrollTo().assertIsDisplayed().assertHeightIsAtLeast(48.dp)
         capture("large-font")
     }
