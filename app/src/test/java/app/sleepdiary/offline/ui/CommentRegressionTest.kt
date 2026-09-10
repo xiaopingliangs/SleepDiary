@@ -3,7 +3,6 @@ package app.sleepdiary.offline.ui
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.EditText
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.*
 import androidx.compose.ui.test.*
@@ -21,6 +20,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class) @Config(sdk=[34],qualifiers="w411dp-h891dp-xxhdpi")
+@org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
 class CommentRegressionTest {
  @get:Rule val compose=createAndroidComposeRule<ComponentActivity>()
  @Test fun realImeCompositionSurvivesViewModelRecompositionAndReopen() {
@@ -34,18 +34,19 @@ class CommentRegressionTest {
   compose.runOnUiThread {model=DiaryViewModel(store,SavedStateHandle(mapOf("editing" to true)),clockOn("2026-09-09"))}
   compose.setContent {val s by model.state.collectAsState();SleepDiaryTheme{DiaryScreen(s,model::answerTime,model::answerNumber,model::comment,model::save,model::dismissWarning,{})}}
   compose.onNodeWithText("＋ 昨晚有特殊情况（可选）").performScrollTo().performClick()
-  lateinit var editor:EditText
+  compose.onNodeWithTag("comment").performClick()
+  lateinit var editor:View
   compose.runOnIdle {
-   fun find(v:View):EditText? {if(v is EditText)return v;if(v is ViewGroup)for(i in 0 until v.childCount)find(v.getChildAt(i))?.let{return it};return null}
+   fun find(v:View):View? {if(v.onCheckIsTextEditor())return v;if(v is ViewGroup)for(i in 0 until v.childCount)find(v.getChildAt(i))?.let{return it};return null}
    editor=checkNotNull(find(compose.activity.window.decorView));editor.requestFocus()
    editor.onCreateInputConnection(EditorInfo())!!.setComposingText("中文",1)
   }
   compose.waitForIdle()
-  compose.runOnIdle {assertEquals("中文",model.state.value.form.comment);assertEquals("中文",editor.text.toString());val input=editor.onCreateInputConnection(EditorInfo())!!;input.finishComposingText();input.commitText(" abc123",1)}
+  compose.runOnIdle {assertEquals("中文",model.state.value.form.comment);val input=editor.onCreateInputConnection(EditorInfo())!!;input.finishComposingText();input.commitText(" abc123",1)}
   compose.waitForIdle()
   compose.runOnIdle {assertEquals("中文 abc123",model.state.value.form.comment);editor.clearFocus()}
   compose.onNodeWithText("＋ 昨晚有特殊情况（可选）").performScrollTo().performClick()
   compose.onNodeWithText("＋ 昨晚有特殊情况（可选）").performScrollTo().performClick()
-  compose.onNodeWithTag("comment").assertTextEquals("中文 abc123")
+  compose.onNodeWithTag("comment").assert(SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.EditableText,androidx.compose.ui.text.AnnotatedString("中文 abc123")))
  }
 }

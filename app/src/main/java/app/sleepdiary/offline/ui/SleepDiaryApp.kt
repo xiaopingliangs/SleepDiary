@@ -44,7 +44,13 @@ class AppServices(context:Context,db:SleepDiaryDatabase) {
  fun share(){val entry=state.today?:return;operation{val intent=withContext(Dispatchers.IO){checkNotNull(services).share.prepare(entry)};model.exitAfterSuccess {DiaryShare.handOff(intent,{context.startActivity(it)},onExit)}}}
  Surface(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing),color=MaterialTheme.colorScheme.background){
   NavHost(navController=nav,startDestination="home") {
-   composable("home") {when(state.page){
+   composable("home") {
+    val returnToSettings=state.safetyFromSettings && state.page in listOf(HomePage.SAFETY,HomePage.SAFETY_RESULT,HomePage.HELP)
+    fun backToSettings(){model.returnFromSafety{nav.navigate("settings"){launchSingleTop=true}}}
+    BackHandler(enabled=returnToSettings){if(!state.busy)backToSettings()}
+    Column(Modifier.fillMaxSize()) {
+     if(returnToSettings)TextButton(onClick=::backToSettings,enabled=!state.busy,modifier=Modifier.heightIn(min=48.dp)){Text("← 返回设置")}
+     Box(Modifier.weight(1f)) {when(state.page){
     HomePage.LOADING->SimplePage("睡眠日记"){Text(state.message?:"正在读取记录…");state.message?.let{Action("重试",model::start)}}
     HomePage.INTRO-> {IntroScreen(state.introPage,model::nextIntro,!state.busy);state.message?.let{Text(it)}}
     HomePage.SAFETY->SafetyScreen(model,state)
@@ -62,19 +68,28 @@ class AppServices(context:Context,db:SleepDiaryDatabase) {
     HomePage.WEEKLY->{BackHandler{model.exitAfterSuccess(onExit)};SimplePage("过去 7 天"){
      state.weekly?.let{v->Text("第 ${v.periodIndex} 周 · ${v.periodStartDate} — ${v.periodEndDate}");Text("有效记录 ${v.validEntryCount} / 7");val labels=listOf("平均估计入睡耗时（分钟）","平均夜醒次数","平均夜间清醒总时长（分钟）","平均最后醒来到离床时长（分钟）","平均在睡觉位置总时长 TIB（分钟，不等于睡眠时长）","平均主观睡眠质量（1很差 — 5很好）");val means=listOf(v.avgSolMin,v.avgAwakeningCount,v.avgWasoMin,v.avgTerminalWakefulnessMin,v.avgTibMin,v.avgSleepQuality);labels.zip(means).forEach{(label,value)->Text(label+"："+(value?.let{String.format(Locale.ROOT,"%.1f",it)}?:"无记录"))}}
      Text("这些数据来自每天的主观估计，用于观察一段时间的整体模式，不用于评价某一个夜晚。");state.message?.let{Text(it)};Action("退出",{model.exitAfterSuccess(onExit)},!state.busy)
-    }} }}
+    }} }}}}
    composable("settings"){SimplePage("设置"){
     Action("返回",{nav.popBackStack()});Text("数据")
     Action("导出完整备份 JSON",{exportKind="json"},!busy);Action("导出睡眠日记 CSV",{exportKind="csv"},!busy);Action("导入完整备份",{importJson.launch(arrayOf("application/json","text/plain"))},!busy);Action("历史记录",{nav.navigate("history")})
     Text("安全与说明");Action("查看当前安全问询",{model.viewSafety();nav.popBackStack("home",false)})
-    Action("重新完成安全问询",{model.openSafety(true);nav.popBackStack("home",false)})
-    if(state.safety?.assessment?.status==AssessmentStatus.DRAFT)Action("安全问询尚未完成 · 继续",{model.openSafety();nav.popBackStack("home",false)})
+    Action("重新完成安全问询",{model.openSafety(true,fromSettings=true);nav.popBackStack("home",false)})
+    if(state.safety?.assessment?.status==AssessmentStatus.DRAFT)Action("安全问询尚未完成 · 继续",{model.openSafety(fromSettings=true);nav.popBackStack("home",false)})
     Action("隐私说明",{nav.navigate("privacy")});Text("方法");Action("方法与依据",{nav.navigate("methods")});Action("术语表",{nav.navigate("terms")});Action("版本信息",{nav.navigate("versions")})
    }}
    composable("history") {var selected by rememberSaveable{mutableStateOf(LocalDate.now().toString())};val day=LocalDate.parse(selected);val start=day.minusDays((day.dayOfWeek.value%7).toLong())
     SimplePage("历史记录") {Action("返回",{nav.popBackStack()});Text(start.toString()+" — "+start.plusDays(6));Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){TextButton(onClick={selected=day.minusWeeks(1).toString()},modifier=Modifier.heightIn(min=48.dp)){Text("上一周")};TextButton(onClick={selected=day.plusWeeks(1).toString()},modifier=Modifier.heightIn(min=48.dp)){Text("下一周")}}
      Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())){(0..6).forEach{i->val d=start.plusDays(i.toLong());TextButton(onClick={selected=d.toString()},modifier=Modifier.widthIn(min=48.dp).heightIn(min=64.dp),contentPadding=PaddingValues(0.dp)){Text(listOf("日","一","二","三","四","五","六")[i]+"\n"+d.dayOfMonth+(if(d==day)"•" else ""))}}}
-     val entry=state.entries.firstOrNull{it.sleepDate==selected};Text(selected);if(entry==null)Text(HISTORY_EMPTY_TEXT)else{val form=DiaryForm.from(entry);DiaryField.entries.forEach{Text(it.label+"："+fieldValue(form,it))};Action("修改这条记录",{model.edit(entry);nav.popBackStack("home",false)})}
+     val entry=state.entries.firstOrNull{it.sleepDate==selected};Text(selected);if(entry==null)Text(HISTORY_EMPTY_TEXT)else{val form=DiaryForm.from(entry);DiaryField.entries.forEach{Text(it.label+"："+fieldValue(form,it))};Action("修改这条记录",{model.edit(entry);nav.navigate("historyEdit")})}
+    }
+   }
+   composable("historyEdit") {
+    if(state.page in listOf(HomePage.SUCCESS,HomePage.WEEKLY)) {
+     LaunchedEffect(state.page){nav.popBackStack("home",false)}
+    } else Column(Modifier.fillMaxSize()) {
+     BackHandler(enabled=state.busy){}
+     TextButton(onClick={nav.popBackStack()},enabled=!state.busy,modifier=Modifier.heightIn(min=48.dp)){Text("← 返回历史记录")}
+     Box(Modifier.weight(1f)){DiaryScreen(state,model::answerTime,model::answerNumber,model::comment,model::save,model::dismissWarning,{nav.navigate("settings")})}
     }
    }
    composable("methods"){MethodsScreen({nav.popBackStack()},{nav.navigate("terms")}){url->runCatching{context.startActivity(officialLinkIntent(url))}.onFailure{message="无法打开系统浏览器"}}}

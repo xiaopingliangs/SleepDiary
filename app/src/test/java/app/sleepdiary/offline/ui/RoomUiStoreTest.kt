@@ -8,6 +8,9 @@ import app.sleepdiary.offline.data.db.SleepDiaryDatabase
 import app.sleepdiary.offline.data.entity.AppState
 import app.sleepdiary.offline.data.repository.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.flow.first
 import org.junit.*
 import org.junit.Assert.*
 import org.junit.runner.RunWith
@@ -48,4 +51,29 @@ class RoomUiStoreTest {
         assertEquals("修改后 中文 abc456",db.diaryDao().byId(input.id)!!.comment)
         assertEquals(saved.entry.createdAtUtc,updated.entry.createdAtUtc)
     }
+
+    @Test fun clearingCommentPersistsEmptyAndNullWithoutChangingIdentity()=runBlocking {
+        val store=RoomDiaryUiStore(db);val first=store.save(diary().copy(comment="旧备注"),false) as SaveResult.Success
+        val cleared=store.save(first.entry.copy(comment=""),false) as SaveResult.Success
+        assertEquals("",db.diaryDao().byId(first.entry.id)!!.comment)
+        val absent=store.save(cleared.entry.copy(comment=null),false) as SaveResult.Success
+        assertNull(db.diaryDao().byId(first.entry.id)!!.comment)
+        assertEquals(first.entry.id,absent.entry.id);assertEquals(1,store.entries().size)
+    }
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    @Test fun returningFromSafetyKeepsPersistedDraftAndAnswers()=runBlocking {
+        kotlinx.coroutines.Dispatchers.setMain(kotlinx.coroutines.Dispatchers.Unconfined)
+        try {
+            val store=RoomDiaryUiStore(db);store.completeOnboarding()
+            val id=java.util.UUID.randomUUID().toString()
+            val expected=store.saveSafety(id,listOf(app.sleepdiary.offline.data.entity.SafetyAnswer(id,"S01","YES",detailJson=null)),false)
+            val model=app.sleepdiary.offline.ui.diary.DiaryViewModel(store)
+            model.state.first{it.page!=app.sleepdiary.offline.ui.diary.HomePage.LOADING}
+            model.openSafety(fromSettings=true)
+            val returned=kotlinx.coroutines.CompletableDeferred<Unit>()
+            model.returnFromSafety{returned.complete(Unit)};returned.await()
+            assertEquals(expected,store.currentSafety());assertEquals(expected,db.safetyDao().byId(id))
+        } finally {kotlinx.coroutines.Dispatchers.resetMain()}
+    }
+
 }

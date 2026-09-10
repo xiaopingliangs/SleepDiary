@@ -39,7 +39,7 @@ fun DiaryScreen(state:DiaryUiState,onTime:(DiaryField,LocalDateTime)->Unit,onNum
  var active by rememberSaveable {mutableStateOf<String?>(null)}
  var other by rememberSaveable {mutableStateOf<String?>(null)}
  var help by rememberSaveable {mutableStateOf<String?>(null)}
- var commentExpanded by rememberSaveable {mutableStateOf(!state.form.comment.isNullOrEmpty())}
+ var commentExpanded by rememberSaveable {mutableStateOf(false)}
  val list=rememberLazyListState()
  // Relations can be checked as soon as both values exist; placeholders remain UI-only.
  val f=state.form
@@ -68,7 +68,7 @@ fun DiaryScreen(state:DiaryUiState,onTime:(DiaryField,LocalDateTime)->Unit,onNum
      HorizontalDivider()
     }
    }
-   item{TextButton(onClick={commentExpanded=!commentExpanded},enabled=!state.busy,modifier=Modifier.heightIn(min=48.dp)){Text("＋ 昨晚有特殊情况（可选）")};if(commentExpanded)FormTextInput(f.comment?:"",onComment,"特殊情况备注（可选）","comment",enabled=!state.busy,multiline=true)}
+   item{TextButton(onClick={commentExpanded=!commentExpanded},enabled=!state.busy,modifier=Modifier.heightIn(min=48.dp)){Text("＋ 昨晚有特殊情况（可选）")};if(commentExpanded){Text("如果昨晚有和平时明显不同的情况，可以简单记一句；没有就不用填写。",style=MaterialTheme.typography.bodySmall);CommentTextInput(f.comment?:"",onComment,"特殊情况备注（可选）","comment",enabled=!state.busy)}}
   }
   state.message?.let{Text(if(conflicts.isNotEmpty())conflicts.first().third else it,Modifier.padding(horizontal=16.dp).semantics{liveRegion=LiveRegionMode.Polite})}
   Button(onClick={onSave(false)},enabled=!state.busy,modifier=Modifier.fillMaxWidth().padding(16.dp).heightIn(min=48.dp).testTag("save_diary")){Text(if(state.busy)"正在保存…" else "保存记录")}

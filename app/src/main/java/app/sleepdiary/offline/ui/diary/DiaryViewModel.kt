@@ -20,6 +20,7 @@ data class DiaryUiState(
     val warning:Boolean=false, val entries:List<SleepDiaryEntry> = emptyList(),
     val today:SleepDiaryEntry?=null, val firstSuccess:Boolean=false,
     val safety:app.sleepdiary.offline.data.dao.AssessmentWithAnswers?=null,
+    val safetyFromSettings:Boolean=false,
     val weekly:app.sleepdiary.offline.data.entity.WeeklySummarySnapshot?=null
 )
 
@@ -28,10 +29,10 @@ class DiaryViewModel(
     private val saved:SavedStateHandle=SavedStateHandle(),
     private val clock:Clock=Clock.systemDefaultZone()
 ):ViewModel() {
-    private val mutable=MutableStateFlow(DiaryUiState(saved.get<DiaryForm>("form") ?: DiaryForm(referenceDate=LocalDate.now(clock),zoneId=clock.zone.id),introPage=saved["introPage"] ?: 0))
+    private val mutable=MutableStateFlow(DiaryUiState(saved.get<DiaryForm>("form") ?: DiaryForm(referenceDate=LocalDate.now(clock),zoneId=clock.zone.id),introPage=saved["introPage"] ?: 0,safetyFromSettings=saved["safetyFromSettings"] ?: false))
     val state=mutable.asStateFlow()
     init { start() }
-    fun afterRestore() { saved.remove<Boolean>("editing");saved.remove<DiaryForm>("form");saved.remove<Int>("introPage");mutable.value=DiaryUiState(DiaryForm(referenceDate=LocalDate.now(clock),zoneId=clock.zone.id));start() }
+    fun afterRestore() { saved.remove<Boolean>("editing");saved.remove<DiaryForm>("form");saved.remove<Int>("introPage");saved.remove<Boolean>("safetyFromSettings");saved.remove<String>("safetyPage");mutable.value=DiaryUiState(DiaryForm(referenceDate=LocalDate.now(clock),zoneId=clock.zone.id));start() }
     fun start() { viewModelScope.launch {
         try {
             val entries=store.entries();val appState=store.state()
@@ -39,6 +40,7 @@ class DiaryViewModel(
             val today=entries.firstOrNull { it.sleepDate==LocalDate.now(clock).toString() }
             val page=when {
                 !appState.hasCompletedOnboarding -> HomePage.INTRO
+                saved.get<Boolean>("safetyFromSettings")==true -> HomePage.valueOf(saved["safetyPage"] ?: "SAFETY")
                 saved.get<Boolean>("editing")==true -> HomePage.FORM
                 today!=null -> HomePage.TODAY
                 safety==null -> HomePage.SAFETY
@@ -55,15 +57,31 @@ class DiaryViewModel(
         } }
     }
     private fun diaryPage()=if(mutable.value.today!=null)HomePage.TODAY else HomePage.FORM
-    fun continueDiary(){mutable.value=mutable.value.copy(page=diaryPage(),message=null)}
-    fun openSafety(newAssessment:Boolean=false){if(newAssessment)mutable.value=mutable.value.copy(safety=null);mutable.value=mutable.value.copy(page=HomePage.SAFETY,message=null)}
-    fun viewSafety(){mutable.value=mutable.value.copy(page=HomePage.SAFETY_RESULT)}
+    fun continueDiary(){clearSafetyOrigin();mutable.value=mutable.value.copy(page=diaryPage(),message=null,safetyFromSettings=false)}
+    private fun clearSafetyOrigin(){saved.remove<Boolean>("safetyFromSettings");saved.remove<String>("safetyPage")}
+    fun returnFromSafety(onReturned:()->Unit) {
+        if(mutable.value.busy)return
+        mutable.value=mutable.value.copy(busy=true)
+        viewModelScope.launch {try {
+            val current=store.currentSafety()
+            clearSafetyOrigin()
+            mutable.value=mutable.value.copy(safety=current,page=diaryPage(),safetyFromSettings=false,busy=false,message=null)
+            onReturned()
+        }catch(c:CancellationException){throw c}catch(_:Exception){mutable.value=mutable.value.copy(busy=false,message="读取安全问询失败，请重试")}}
+    }
+    fun openSafety(newAssessment:Boolean=false,fromSettings:Boolean=false){
+        saved["safetyFromSettings"]=fromSettings;saved["safetyPage"]="SAFETY"
+        if(newAssessment)mutable.value=mutable.value.copy(safety=null)
+        mutable.value=mutable.value.copy(page=HomePage.SAFETY,message=null,safetyFromSettings=fromSettings)
+    }
+    fun viewSafety(){saved["safetyFromSettings"]=true;saved["safetyPage"]="SAFETY_RESULT";mutable.value=mutable.value.copy(page=HomePage.SAFETY_RESULT,safetyFromSettings=true)}
     fun saveSafety(id:String,answers:List<app.sleepdiary.offline.data.entity.SafetyAnswer>,completed:Boolean,onSaved:()->Unit) {
         if(mutable.value.busy)return;mutable.value=mutable.value.copy(busy=true,message=null)
         viewModelScope.launch {try{
             val result=store.saveSafety(id,answers,completed)
             val acute=answers.lastOrNull()?.let {it.questionId=="S03"&&it.answerCode!="NO"}==true
             mutable.value=mutable.value.copy(safety=result,busy=false,page=if(acute)HomePage.HELP else if(completed)HomePage.SAFETY_RESULT else HomePage.SAFETY)
+            saved["safetyPage"]=mutable.value.page.name
             onSaved()
         }catch(c:CancellationException){throw c}catch(_:Exception){mutable.value=mutable.value.copy(busy=false,message="安全问询保存失败，请重试")}}
     }

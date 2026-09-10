@@ -65,4 +65,30 @@ class DiaryViewModelTest {
         m.exitAfterSuccess{};advanceUntilIdle();assertEquals(1,s.displayed)
     }
     @Test fun restoreDiscardsStaleUnsavedForm()=runTest(dispatcher) {val s=Store();val m=vm(s);advanceUntilIdle();m.answerNumber(DiaryField.SOL,90);val id=m.state.value.form.id;m.afterRestore();advanceUntilIdle();assertNull(m.state.value.form.sol);assertNotEquals(id,m.state.value.form.id)}
+
+    @Test fun commentStartsEmptyAndUpdatesWithoutLosingOtherFields()=runTest(dispatcher) {
+        val m=vm();advanceUntilIdle();assertNull(m.state.value.form.comment)
+        m.answerNumber(DiaryField.SOL,15)
+        for(text in listOf("中文","中文 English","中文 English 123","")) {
+            m.comment(text);assertEquals(text,m.state.value.form.comment);assertEquals(15,m.state.value.form.sol)
+        }
+    }
+    @Test fun serializedUnsavedCommentRestoresIntoFreshViewModel()=runTest(dispatcher) {
+        val m=vm();advanceUntilIdle();m.comment("未保存 中文 abc123")
+        val bytes=java.io.ByteArrayOutputStream().also{java.io.ObjectOutputStream(it).use{out->out.writeObject(m.state.value.form)}}.toByteArray()
+        val restored=java.io.ObjectInputStream(java.io.ByteArrayInputStream(bytes)).use{it.readObject()} as DiaryForm
+        val next=vm(handle=SavedStateHandle(mapOf("form" to restored,"editing" to true)))
+        advanceUntilIdle();assertEquals(HomePage.FORM,next.state.value.page);assertEquals(m.state.value.form,next.state.value.form)
+    }
+    @Test fun settingsSafetyOriginSurvivesRecreationAndReturnReloadsCurrentAssessment()=runTest(dispatcher) {
+        val s=Store();val handle=SavedStateHandle();val m=vm(s,handle);advanceUntilIdle()
+        m.openSafety(newAssessment=true,fromSettings=true)
+        assertNull(m.state.value.safety)
+        val next=vm(s,handle);advanceUntilIdle()
+        assertTrue(next.state.value.safetyFromSettings);assertEquals(HomePage.SAFETY,next.state.value.page)
+        var returned=false;next.returnFromSafety{returned=true};advanceUntilIdle()
+        assertTrue(returned);assertFalse(next.state.value.safetyFromSettings);assertEquals(s.safety,next.state.value.safety)
+        assertNull(handle.get<Boolean>("safetyFromSettings"))
+    }
+
 }
