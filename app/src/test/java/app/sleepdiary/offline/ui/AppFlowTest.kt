@@ -112,7 +112,12 @@ class AppFlowTest {
   compose.onNodeWithText("设置").performClick()
   compose.onNodeWithText("历史记录").performScrollTo().performClick()
   compose.onNodeWithText("修改这条记录").performScrollTo().performClick()
+  compose.onNodeWithText("＋ 昨晚有特殊情况（可选）").performScrollTo().performClick()
+  compose.onNodeWithTag("comment").assertTextContains("已有备注")
+  compose.onNodeWithTag("comment").performTextReplacement("修改后的备注")
+  compose.runOnIdle{assertEquals("修改后的备注",model.state.value.form.comment)}
   compose.onNodeWithText("← 返回历史记录").performClick()
+  compose.onNodeWithText("已有备注").assertExists()
   compose.onNodeWithText("修改这条记录").assertExists()
  }
 

@@ -80,7 +80,7 @@ class AppServices(context:Context,db:SleepDiaryDatabase) {
    composable("history") {var selected by rememberSaveable{mutableStateOf(LocalDate.now().toString())};val day=LocalDate.parse(selected);val start=day.minusDays((day.dayOfWeek.value%7).toLong())
     SimplePage("历史记录") {Action("返回",{nav.popBackStack()});Text(start.toString()+" — "+start.plusDays(6));Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){TextButton(onClick={selected=day.minusWeeks(1).toString()},modifier=Modifier.heightIn(min=48.dp)){Text("上一周")};TextButton(onClick={selected=day.plusWeeks(1).toString()},modifier=Modifier.heightIn(min=48.dp)){Text("下一周")}}
      Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())){(0..6).forEach{i->val d=start.plusDays(i.toLong());TextButton(onClick={selected=d.toString()},modifier=Modifier.widthIn(min=48.dp).heightIn(min=64.dp),contentPadding=PaddingValues(0.dp)){Text(listOf("日","一","二","三","四","五","六")[i]+"\n"+d.dayOfMonth+(if(d==day)"•" else ""))}}}
-     val entry=state.entries.firstOrNull{it.sleepDate==selected};Text(selected);if(entry==null)Text(HISTORY_EMPTY_TEXT)else{val form=DiaryForm.from(entry);DiaryField.entries.forEach{Text(it.label+"："+fieldValue(form,it))};Action("修改这条记录",{model.edit(entry);nav.navigate("historyEdit")})}
+     val entry=state.entries.firstOrNull{it.sleepDate==selected};Text(selected);if(entry==null)Text(HISTORY_EMPTY_TEXT)else{val form=DiaryForm.from(entry);DiaryField.entries.forEach{Text(it.label+"："+fieldValue(form,it))};entry.comment?.takeIf{it.isNotBlank()}?.let{Text("特殊情况");Text(it)};Action("修改这条记录",{model.edit(entry);nav.navigate("historyEdit")})}
     }
    }
    composable("historyEdit") {
