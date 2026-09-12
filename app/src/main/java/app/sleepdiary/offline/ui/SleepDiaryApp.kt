@@ -1,6 +1,6 @@
 package app.sleepdiary.offline.ui
 
-import android.content.Context
+import app.sleepdiary.offline.application.AppServices
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,8 +16,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.*
 import app.sleepdiary.offline.ui.diary.*
-import app.sleepdiary.offline.data.db.SleepDiaryDatabase
-import app.sleepdiary.offline.data.backup.BackupRepository
 import app.sleepdiary.offline.domain.model.*
 import app.sleepdiary.offline.share.DiaryShare
 import kotlinx.coroutines.*
@@ -28,10 +26,6 @@ import java.util.Locale
 
 const val HISTORY_EMPTY_TEXT="这一天没有睡眠记录，不需要补写。睡眠日记关注的是一段时间内的大致模式，不要求精确到分钟，也不建议为了补记反复回想或查看设备数据。"
 const val FIRST_SAVE_EXPLANATION="为了让记录尽量简单，也减少对单个夜晚数据的反复关注，日常记录完成后应用会结束本次使用。每完成一个 7 天记录周期，再集中查看一次整体记录。"
-class AppServices(context:Context,db:SleepDiaryDatabase) {
- val backup=BackupRepository(db,context.applicationContext)
- val share=DiaryShare(context.applicationContext,db)
-}
 @Composable fun SleepDiaryApp(model:DiaryViewModel,onExit:()->Unit,services:AppServices?=null) {
  val state by model.state.collectAsState();val nav=rememberNavController();val context=LocalContext.current;val scope=rememberCoroutineScope()
  var message by remember{mutableStateOf<String?>(null)};var busy by remember{mutableStateOf(false)}
