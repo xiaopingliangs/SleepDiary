@@ -22,14 +22,16 @@ SleepDiary_backup_YYYYMMDD_HHmmss.json
 
 ```json
 {
-  "exportFormatVersion": "BACKUP_1.1",
-  "appVersion": "0.1.0",
+  "exportFormatVersion": "BACKUP_2.0",
+  "appVersion": "0.2.0",
   "exportedAtUtc": "2026-09-08T10:30:00Z",
   "diarySchemaVersion": "DIARY_1.0",
   "safetySchemaVersion": "SAFETY_1.0",
   "safetyRuleVersion": "SAFETY_RULE_1.0",
   "weeklySummaryRuleVersion": "WEEKLY_1.0",
   "cbtiProtocolVersion": "NONE",
+  "workspaceSchemaVersion": "WORKSPACE_1.0",
+  "workspaceRecords": [],
   "diaryEntries": [],
   "safetyAssessments": [],
   "weeklySummaries": [],
@@ -44,7 +46,7 @@ SleepDiary_backup_YYYYMMDD_HHmmss.json
 }
 ```
 
-规范 JSON Schema：`schemas/backup-v1.1.schema.json`。保留 `schemas/backup-v1.schema.json` 为 BACKUP_1.0 历史定义，禁止覆盖。
+规范 JSON Schema：schemas/backup-v2.schema.json。保留 backup-v1.schema.json 和 backup-v1.1.schema.json 为历史定义，禁止覆盖。
 
 JSON 备份中的 `safetyAssessments` 使用嵌套结构：每个 assessment 内含 `answers[]`；数据库内部仍可使用两张关系表。assessment 包含 safetySchemaVersion、safetyRuleVersion、status；每条 answer 包含 safetySchemaVersion；S09=FLAGS_PRESENT 的 detailJson 在 JSON 中为 selectedCodes 对象，NONE / UNSURE 必须为 null；保存/导出按 CLINICAL_BOUNDARIES 的固定枚举顺序规范化 selectedCodes。S10 detailJson 在 JSON 中为对象，在数据库中序列化为 JSON string。所有需完整恢复的状态在 Room AppState 中，备份仍使用 trackingState 对象。`weeklySummaries` 直接导出 snapshot 字段和 `sourceEntryIds[]`。
 
@@ -97,7 +99,7 @@ V0.1 的 JSON 导入只提供替换式完整恢复，不提供 merge、duplicate
 4. 修改本地数据前显示恢复摘要。
 5. 本机已有数据时明确提示「恢复备份将替换本机现有 SleepDiary 数据。」
 6. 提供「先导出当前数据」「替换并恢复」「取消」；只有确认恢复才可修改。
-7. 在一个 Room transaction 中删除需恢复的表内容，写入备份记录、全部安全问询（含 DRAFT/COMPLETED 及答案）、全部周报 revisions 和 AppState。
+7. 在一个 Room transaction 中删除需恢复的表内容，写入备份记录、全部安全问询（含 DRAFT/COMPLETED 及答案）、全部周报 revisions、全部独立个人记录和 AppState。
 8. 整个 transaction 成功才提交；提交前错误/崩溃回滚，原数据保持不变。
 9. 提交后按 UUID/状态回读验证；提交后崩溃再启动应读到完整新数据，不得出现混合状态。
 
@@ -156,4 +158,8 @@ V0.1 分享图：
 
 ## 8. 备份版本兼容
 
-新导出仅 BACKUP_1.1。导入按 exportFormatVersion 选择对应 schema；BACKUP_1.0 完整使用历史定义，hasCompletedOnboarding 恢复为 false，其余语义不变；BACKUP_1.1 必须包含 Boolean hasCompletedOnboarding 并原样恢复。不支持的版本或损坏的任一格式均不修改本地数据。Room AppState 的 backupFormatVersion 表示当前存储格式 BACKUP_1.1，不保留旧格式作为当前技术状态。
+新导出仅 BACKUP_2.0，必须包含 workspaceSchemaVersion / workspaceRecords，字段定义见 docs/WORKSPACE_DATA_INCREMENT.md。BACKUP_1.0 / 1.1 的个人记录集合按空集合恢复，确认摘要必须告知个人记录数量和旧格式将清空该集合。导入按 exportFormatVersion 选择对应 schema；BACKUP_1.0 完整使用历史定义，hasCompletedOnboarding 恢复为 false，其余语义不变；BACKUP_1.1 必须包含 Boolean hasCompletedOnboarding 并原样恢复。不支持的版本或损坏的任一格式均不修改本地数据。Room AppState 的 backupFormatVersion 表示当前存储格式 BACKUP_2.0，不保留旧格式作为当前技术状态。
+
+## 9. 独立个人记录隐私边界
+
+完整 JSON 包含全部已保存个人记录；CSV 不增列、不导出该集合；日记 PNG 仍排除 comment、Safety 和独立个人记录。就诊摘要不会自动加入个人记录。全部六表恢复在一个 Room transaction 中替换并全量回读，错误回滚；用户选择文件位置的 SAF 流程保持不变。

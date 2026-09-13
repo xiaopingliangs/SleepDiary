@@ -9,4 +9,5 @@ class AppServices(context: Context, database: SleepDiaryDatabase) {
     val backup = BackupRepository(database, context.applicationContext)
     val share = DiaryShare(context.applicationContext, database)
     val clinicianSummary = ClinicianSummaryService(database)
+    val workspace = app.sleepdiary.offline.data.repository.WorkspaceRepository(database)
 }

@@ -207,3 +207,7 @@ V0.1 成功不是“功能多”，而是：
 
 正式接入安全问询、紧凑八字段日记、精确时间冲突提示、当天已记录保护页、横向周日期历史、周总结、方法与依据及术语、系统浏览器官方来源链接、JSON 完整备份恢复、CSV 导出、PNG 分享并退出、设置与本地图标。具体交互见 UX_SPEC 第 13 节。
 首次三页说明完成状态由 AppState.hasCompletedOnboarding 独立持久化；不由日记或 SafetyAssessment 状态推断。Room 无损迁移到 2。导出 BACKUP_1.1，兼容导入 BACKUP_1.0（首次说明状态 false）。医疗来源仅 EVIDENCE.md，不新增医学规则；CBT-I Protocol 保持 NONE。
+
+## SPEC-0.2.0 独立个人记录增量
+
+0.2.0 非治疗增量：设置可进入个人记录，保存用户自行输入的学习笔记、想法、现实情境和就诊沟通。四类仅是记录用途，不新增每日医学字段，不执行治疗。既有日记与分享边界不变。详细合同见 docs/WORKSPACE_DATA_INCREMENT.md。

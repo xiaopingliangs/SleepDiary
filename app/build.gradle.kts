@@ -18,7 +18,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
+        versionCode = 2
         versionName = domainVersions.getProperty("appVersion")
         mapOf(
             "SPEC_VERSION" to "specVersion",
@@ -27,7 +27,8 @@ android {
             "SAFETY_RULE" to "safetyRuleVersion",
             "WEEKLY_RULE" to "weeklySummaryRuleVersion",
             "BACKUP_FORMAT" to "backupFormatVersion",
-            "CBTI_PROTOCOL" to "cbtiProtocolVersion"
+            "CBTI_PROTOCOL" to "cbtiProtocolVersion",
+            "WORKSPACE_SCHEMA" to "workspaceSchemaVersion"
         ).forEach { (field, key) ->
             buildConfigField("String", field, "\"" + domainVersions.getProperty(key) + "\"")
         }

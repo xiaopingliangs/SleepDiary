@@ -196,3 +196,7 @@ app/build/outputs/apk/debug/app-debug.apk
 ## 15. 执行环境
 
 代码、Git、构建、测试和 APK 生成默认在用户本机完成，使用当前项目目录及 AGENTS 第 I 节列出的本地工具；真机验证使用 Android 真机。云端执行须先说明具体优势、原因与上传/使用内容，获得用户确认；不得为方便整体迁移项目。
+
+## SPEC-0.2.0 独立个人记录增量
+
+Room 3 新增 workspace_record / WorkspaceDao / WorkspaceRepository；WorkspaceModel 持有未保存表单。AppContainer/AppServices 提供同一应用数据库实例。BACKUP_2.0 统一读取和恢复六张表，兼容历史 1.0/1.1；无新依赖或网络能力。见 docs/WORKSPACE_DATA_INCREMENT.md。

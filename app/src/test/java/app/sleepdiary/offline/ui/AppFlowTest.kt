@@ -53,12 +53,12 @@ class AppFlowTest {
   compose.onNodeWithTag("diary_estimate_hint").assertTextContains("夜间特意查看时间",substring=true)
   compose.onNodeWithText("设置").performClick()
   compose.onNodeWithText("版本信息").performScrollTo().performClick()
-  compose.onNodeWithText("App: 0.1.0",substring=true).assertExists()
+  compose.onNodeWithText("App: 0.2.0",substring=true).assertExists()
   compose.onAllNodesWithText("本版本如何计算").assertCountEquals(0)
   compose.onNodeWithText("返回").performClick()
   compose.onNodeWithText("方法与依据").performScrollTo().performClick()
   compose.onNodeWithText("本版本如何计算").assertExists()
-  compose.onAllNodesWithText("App: 0.1.0",substring=true).assertCountEquals(0)
+  compose.onAllNodesWithText("App: 0.2.0",substring=true).assertCountEquals(0)
  }
 
  private fun settingsStore():Store=Store().also{it.app=AppState(hasCompletedOnboarding=true)}

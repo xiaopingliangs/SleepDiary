@@ -308,3 +308,7 @@ A→B：A 有 summary 则修订；B 已结束且有 summary 则修订；B 未结
 11. BACKUP_1.1 替换恢复仍为单 Room transaction，全量回读校验。
 
 运行 testDebugUnitTest 和 assembleDebug。设备依赖测试如未执行须明确列出，不以单元测试替代真机验收。
+
+## SPEC-0.2.0 独立个人记录增量
+
+P0：个人记录原文写入/全字段回读、编辑保留 UUID/createdAt、revision 增加、失败回滚、提交确认丢失后重试不重复、并发旧稿与恢复后同 ID/revision 内容冲突拒绝、设备时钟倒退拒绝。Room 1→3 / 2→3 保留旧五表并重开读取。BACKUP_2.0 六表 round-trip；旧 1.0/1.1 恢复记录集合为空；每个替换检查点失败六表回滚；未知字段/版本/重复 ID/超限或空白内容均不改库。UI 中文/英文/数字、保存再编辑、返回放弃确认、SavedState 草稿重建；CSV/PNG 不包含独立记录。自动化状态模拟不等同真实 IME/旋转/进程终止，真机验收单列。

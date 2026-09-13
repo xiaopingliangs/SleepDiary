@@ -31,7 +31,7 @@ class DataReliabilityDeviceTest {
   return SleepDiaryEntry(UUID.randomUUID().toString(),d.toString(),"${d.minusDays(1)}T23:00:00","${d.minusDays(1)}T23:30:00",20,2,30,"${d}T06:00:00","${d}T07:00:00",3,note,"Asia/Shanghai",clock(day).instant().toString(),clock(day).instant().toString(),consistencyWarning=false)
  }
  @Before fun setup(){name="device-test-${UUID.randomUUID()}.db";open()}
- private fun open(){db=Room.databaseBuilder(context,SleepDiaryDatabase::class.java,name).addMigrations(SleepDiaryDatabase.MIGRATION_1_2).build()}
+ private fun open(){db=Room.databaseBuilder(context,SleepDiaryDatabase::class.java,name).addMigrations(SleepDiaryDatabase.MIGRATION_1_2,SleepDiaryDatabase.MIGRATION_2_3).build()}
  @After fun close(){db.close();context.deleteDatabase(name)}
  private suspend fun save(day:Int):SaveResult.Success {
   val result=DiaryRepository(db,clock(day)).save(entry(day));assertTrue(result.toString(),result is SaveResult.Success)
@@ -53,7 +53,7 @@ class DataReliabilityDeviceTest {
   thirtyDays();RoomDiaryUiStore(db).completeOnboarding()
   for(complete in listOf(false,true)){val id=UUID.randomUUID().toString();val answers=if(!complete)listOf(SafetyAnswer(id,"S03","UNSURE",detailJson=null))else (1..15).map{n->SafetyAnswer(id,"S"+n.toString().padStart(2,'0'),when(n){1->"YES";8,9->"NONE";11->"SAFE";else->"NO"},detailJson=null)};SafetyRepository(db).save(id,answers,complete)}
   val original=db.diaryDao().all().first();assertTrue(DiaryRepository(db,clock(30)).save(original.copy(comment=note+" edited")) is SaveResult.Success)
-  val repo=BackupRepository(db,context);val text=repo.export();val before=repo.snapshot();assertEquals("BACKUP_1.1",JSONObject(text).getString("exportFormatVersion"));assertEquals(2,before.assessments.size);assertEquals(5,before.summaries.size)
+  val repo=BackupRepository(db,context);val text=repo.export();val before=repo.snapshot();assertEquals("BACKUP_2.0",JSONObject(text).getString("exportFormatVersion"));assertEquals(2,before.assessments.size);assertEquals(5,before.summaries.size)
   repo.restore(text);assertEquals(before,repo.snapshot())
   val legacy=JSONObject(text).put("exportFormatVersion","BACKUP_1.0");legacy.getJSONObject("trackingState").remove("hasCompletedOnboarding")
   repo.restore(legacy.toString());assertFalse(repo.snapshot().state.hasCompletedOnboarding);assertEquals(before.entries,repo.snapshot().entries);repo.restore(text)

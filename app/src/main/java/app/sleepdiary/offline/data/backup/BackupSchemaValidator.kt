@@ -48,6 +48,7 @@ object BackupSchemaValidator {
    is Number -> {require(value.toDouble().isFinite());if(schema.has("minimum"))require(value.toDouble()>=schema.getDouble("minimum"));if(schema.has("maximum"))require(value.toDouble()<=schema.getDouble("maximum"))}
    is String -> {
     require(value.codePointCount(0,value.length)>=schema.optInt("minLength",0))
+    if(schema.has("maxLength"))require(value.codePointCount(0,value.length)<=schema.getInt("maxLength"))
     if(schema.has("pattern"))require(Regex(schema.getString("pattern")).containsMatchIn(value))
     when(schema.optString("format")){"uuid"->require(UUID.fromString(value).toString()==value.lowercase());"date"->LocalDate.parse(value);"date-time"->OffsetDateTime.parse(value)}
    }

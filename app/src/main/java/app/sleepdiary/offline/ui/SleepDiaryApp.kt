@@ -34,7 +34,7 @@ const val FIRST_SAVE_EXPLANATION="为了让记录尽量简单，也减少对单�
  fun operation(block:suspend ()->Unit){if(busy)return;busy=true;scope.launch{try{block()}catch(c:CancellationException){throw c}catch(_:Exception){message="操作未完成，数据未确认成功。请重试。"}finally{busy=false}}}
  val exportJson=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")){uri->if(uri!=null)operation{val data=withContext(Dispatchers.IO){checkNotNull(services).backup.export()};withContext(Dispatchers.IO){checkNotNull(context.contentResolver.openOutputStream(uri,"wt")).use{it.write(data.toByteArray(Charsets.UTF_8))}};message="完整备份已导出"}}
  val exportCsv=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")){uri->if(uri!=null)operation{withContext(Dispatchers.IO){val data=checkNotNull(services).backup.csv();checkNotNull(context.contentResolver.openOutputStream(uri,"wt")).use{it.write(data)}};message="CSV 已导出"}}
- val importJson=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->if(uri!=null)operation{val text=withContext(Dispatchers.IO){checkNotNull(context.contentResolver.openInputStream(uri)).bufferedReader(Charsets.UTF_8).use{it.readText()}};val preview=withContext(Dispatchers.IO){checkNotNull(services).backup.preview(text)};restoreSummary="睡眠记录 ${preview.entries.size} 条\n安全问询 ${preview.assessments.size} 份\n周总结（含历史修订）${preview.summaries.size} 份\n首次说明已完成：${if(preview.state.hasCompletedOnboarding)"是" else "否"}";pendingRestore=text}}
+ val importJson=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->if(uri!=null)operation{val text=withContext(Dispatchers.IO){checkNotNull(context.contentResolver.openInputStream(uri)).bufferedReader(Charsets.UTF_8).use{it.readText()}};val preview=withContext(Dispatchers.IO){checkNotNull(services).backup.preview(text)};restoreSummary="个人记录 ${preview.workspaceRecords.size} 条\n睡眠记录 ${preview.entries.size} 条\n安全问询 ${preview.assessments.size} 份\n周总结（含历史修订）${preview.summaries.size} 份\n首次说明已完成：${if(preview.state.hasCompletedOnboarding)"是" else "否"}";pendingRestore=text}}
  fun share(){val entry=state.today?:return;operation{val intent=withContext(Dispatchers.IO){checkNotNull(services).share.prepare(entry)};model.exitAfterSuccess {DiaryShare.handOff(intent,{context.startActivity(it)},onExit)}}}
  Surface(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing),color=MaterialTheme.colorScheme.background){
   NavHost(navController=nav,startDestination="home") {
@@ -67,6 +67,7 @@ const val FIRST_SAVE_EXPLANATION="为了让记录尽量简单，也减少对单�
     Action("返回",{nav.popBackStack()});Text("数据")
     Action("导出完整备份 JSON",{exportKind="json"},!busy);Action("导出睡眠日记 CSV",{exportKind="csv"},!busy);Action("导入完整备份",{importJson.launch(arrayOf("application/json","text/plain"))},!busy);Action("历史记录",{nav.navigate("history")})
     Action("就诊摘要",{nav.navigate("clinicianSummary")})
+    Action("个人记录",{nav.navigate("workspace")})
     Text("安全与说明");Action("查看当前安全问询",{model.viewSafety();nav.popBackStack("home",false)})
     Action("重新完成安全问询",{model.openSafety(true,fromSettings=true);nav.popBackStack("home",false)})
     if(state.safety?.assessment?.status==AssessmentStatus.DRAFT)Action("安全问询尚未完成 · 继续",{model.openSafety(fromSettings=true);nav.popBackStack("home",false)})
@@ -88,6 +89,7 @@ const val FIRST_SAVE_EXPLANATION="为了让记录尽量简单，也减少对单�
     }
    }
    composable("clinicianSummary"){app.sleepdiary.offline.ui.clinician.ClinicianSummaryScreen(services?.clinicianSummary){nav.popBackStack()}}
+   composable("workspace"){app.sleepdiary.offline.ui.workspace.WorkspaceScreen(services?.workspace){nav.popBackStack()}}
    composable("methods"){MethodsScreen({nav.popBackStack()},{nav.navigate("terms")}){url->runCatching{context.startActivity(officialLinkIntent(url))}.onFailure{message="无法打开系统浏览器"}}}
    composable("versions"){VersionsScreen{nav.popBackStack()}}
    composable("terms"){SimplePage("术语表"){Action("返回",{nav.popBackStack()});TERMS.forEach{(title,body)->Text(title);Text(body)}}}
@@ -96,7 +98,7 @@ const val FIRST_SAVE_EXPLANATION="为了让记录尽量简单，也减少对单�
  }
  if(busy)AlertDialog(onDismissRequest={},text={Text("正在处理，请稍候…")},confirmButton={})
  if(exportKind!=null)AlertDialog(onDismissRequest={exportKind=null},title={Text("导出明文文件")},text={Text("导出的文件包含你的睡眠记录，是明文文件。请只保存到你信任的位置。完整备份也包含安全问询。")},confirmButton={TextButton(onClick={val kind=exportKind;exportKind=null;val stamp=java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));if(kind=="json")exportJson.launch("SleepDiary_backup_$stamp.json")else exportCsv.launch("SleepDiary_entries_$stamp.csv")}){Text("选择保存位置")}},dismissButton={TextButton(onClick={exportKind=null}){Text("取消")}})
- if(pendingRestore!=null)AlertDialog(onDismissRequest={if(!busy)pendingRestore=null},title={Text("恢复完整备份")},text={Column{Text("恢复备份将替换本机现有 SleepDiary 数据。");Text(restoreSummary);Action("先导出当前数据",{exportKind="json"},!busy)}},confirmButton={TextButton(enabled=!busy,onClick={val text=checkNotNull(pendingRestore);operation{withContext(Dispatchers.IO){checkNotNull(services).backup.restore(text)};pendingRestore=null;model.afterRestore();nav.popBackStack("home",false);message="完整备份已恢复"}}){Text("替换并恢复")}},dismissButton={TextButton(enabled=!busy,onClick={pendingRestore=null}){Text("取消")}})
+ if(pendingRestore!=null)AlertDialog(onDismissRequest={if(!busy)pendingRestore=null},title={Text("恢复完整备份")},text={Column{Text("恢复备份将替换本机现有 SleepDiary 数据，包含个人记录。旧备份没有个人记录，恢复后本机个人记录将为空。");Text(restoreSummary);Action("先导出当前数据",{exportKind="json"},!busy)}},confirmButton={TextButton(enabled=!busy,onClick={val text=checkNotNull(pendingRestore);operation{withContext(Dispatchers.IO){checkNotNull(services).backup.restore(text)};pendingRestore=null;model.afterRestore();nav.popBackStack("home",false);message="完整备份已恢复"}}){Text("替换并恢复")}},dismissButton={TextButton(enabled=!busy,onClick={pendingRestore=null}){Text("取消")}})
  message?.let{AlertDialog(onDismissRequest={message=null},text={Text(it)},confirmButton={TextButton(onClick={message=null}){Text("知道了")}})}
 }
 @Composable fun IntroScreen(page:Int,onNext:()->Unit,enabled:Boolean=true) {

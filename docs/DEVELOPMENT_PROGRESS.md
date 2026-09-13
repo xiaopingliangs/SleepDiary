@@ -2,6 +2,23 @@
 
 更新时间：2026-09-13。本文件记录实际进度，不替代冻结规格。
 
+## 最新完成检查点：SPEC-0.2.0 独立个人记录与 BACKUP_2.0
+
+接续 4f55762；恢复时确认此前额度拦截的补丁未落盘，随后完成本增量。用户已授权继续完整版工程，不等待普通技术细节批准。
+已完成独立 WorkspaceRecord/Dao/Repository、设置记录页面、SavedState 草稿、保存事务及提交前后全字段回读、编辑并发指纹/修订和丢失确认重试。没有新增每日医学字段；就诊记录不是可执行医嘱。
+App 0.2.0 / SPEC-0.2.0 / Room 3 / WORKSPACE_1.0 / BACKUP_2.0。旧 Diary/Safety/Weekly 规则和运行时 CBT-I Protocol NONE 不变。Room 1→2→3、2→3 升级及磁盘重开通过；旧五个 entity 定义完全一致。
+完整备份导出 2.0，导入兼容 1.0/1.1/2.0，六表同事务替换/回读/失败回滚。旧格式恢复个人记录为空，确认页面已提示。CSV/PNG/就诊摘要不自动包含个人记录；PNG 继续排除 comment 和 Safety。
+
+新增 20 项测试（数据 14、UI/状态 5、Room 2 迁移 1），最终完整 307 项，0 failure/error/skipped。testDebugUnitTest / assembleDebug / assembleDebugAndroidTest 均通过；最终日志 work/workspace-release-check-20260913.log，BUILD SUCCESSFUL 33 秒。
+中间补充运行曾有 1 项独立 ViewModel 等待超时，日志 work/workspace-final-20260913.log；修正测试主线程同步后全量通过，未删除数据断言。其他日志 work/workspace-20260913.log、work/workspace-verified-20260913.log 保留。
+APK：D:/Projects/SleepDiary/app/build/outputs/apk/debug/app-debug.apk，10863476 字节。
+SHA-256：4cdeacd78320864c869dfa34dd113491e6f29deafb844bb78668602e29efa3c5。
+没有安装到手机，没有执行本增量 connected 测试；中文 IME、旋转、真实进程终止及系统 SAF 仍在最终真机验收范围。测试 APK 构建不等于设备测试通过。
+AGENTS/CLINICAL_BOUNDARIES/EVIDENCE、两代旧 backup schema/示例保持原字节哈希。原 Room 1/2 schema 不变，新 Room 3 已导出；SELF_CHECK 与清单已同步。独立 meditation/ 未改动/暂存。
+
+本节与实现同次提交，可用 git log -1 -- app/src/main/java/app/sleepdiary/offline/data/entity/WorkspaceRecord.kt 找到精确提交；不把自身 commit hash 写进同一个待提交文件。下一次先 git status/log 和本节验证，不重做本增量。
+下一步：继续按完整版架构落实正式协议适用性、医生确认/暂停/例外的非诊断生命周期合同及相应模块；候选窗口算法仍只有提取测试，没有生产调用。当前不是最终完整 CBT-I App，不要求用户测试中间版。新增治疗规则必须有对应源文和明确规格，不能从注释自行推导。
+
 ## 最新完成检查点：已获批准的就诊摘要 TXT 导出
 
 用户在查看具体范围后明确回复“批准，继续”。此前的 TXT 审批阻塞已获授权，不再等待重复确认。

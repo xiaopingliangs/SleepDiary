@@ -47,6 +47,7 @@ val TERMS=listOf(
 
 @Composable fun VersionsScreen(onBack:()->Unit) {
  SimplePage("版本信息") {
+  Text("Workspace schema: ${Versions.WORKSPACE_SCHEMA}")
   Action("返回",onBack)
   Text("App: ${Versions.APP}\nSPEC: ${Versions.SPEC}\nDiary schema: ${Versions.DIARY_SCHEMA}\nSafety schema: ${Versions.SAFETY_SCHEMA}\nSafety rule: ${Versions.SAFETY_RULE}\nWeekly rule: ${Versions.WEEKLY_RULE}\nBackup format: ${Versions.BACKUP_FORMAT}\nCBT-I Protocol: ${Versions.CBTI_PROTOCOL}\n医学内容最后复核日期：2026-09-08")
  }

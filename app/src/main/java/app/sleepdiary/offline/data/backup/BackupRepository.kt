@@ -11,11 +11,11 @@ import java.time.Instant
 /** Prepared bytes are validated again at confirmation; no database mutation happens during preview. */
 class BackupRepository(private val db:SleepDiaryDatabase,private val context:Context,private val checkpoint:(String)->Unit={}) {
  suspend fun snapshot():BackupData=db.withTransaction {
-  BackupData(db.diaryDao().all(),db.safetyDao().all(),db.stateAndSummaryDao().summaries(),db.stateAndSummaryDao().state()?:AppState())
+  BackupData(db.diaryDao().all(),db.safetyDao().all(),db.stateAndSummaryDao().summaries(),db.stateAndSummaryDao().state()?:AppState(),db.workspaceDao().all())
  }
  fun preview(text:String):BackupData {
   val o=BackupSchemaValidator.parse(text)
-  val file=when(o.getString("exportFormatVersion")){Versions.BACKUP_FORMAT->"backup-v1.1.schema.json";Versions.LEGACY_BACKUP_FORMAT->"backup-v1.schema.json";else->error("不支持的备份版本")}
+  val file=when(o.getString("exportFormatVersion")){Versions.BACKUP_FORMAT->"backup-v2.schema.json";Versions.LEGACY_BACKUP_1_1->"backup-v1.1.schema.json";Versions.LEGACY_BACKUP_FORMAT->"backup-v1.schema.json";else->error("不支持的备份版本")}
   val schema=context.assets.open(file).bufferedReader().use{JSONObject(it.readText())}
   BackupSchemaValidator.validate(o,schema)
   return BackupCodec.decode(o)
@@ -27,6 +27,7 @@ class BackupRepository(private val db:SleepDiaryDatabase,private val context:Con
   val expected=preview(text)
   db.withTransaction {
    val state=db.stateAndSummaryDao();val safety=db.safetyDao()
+   db.workspaceDao().deleteAllForRestore()
    state.deleteState()
    state.summaries().sortedByDescending{it.revision}.forEach{state.deleteSummary(it.id)}
    safety.deleteAllAnswers();safety.deleteAllAssessments();db.diaryDao().deleteAll()
@@ -35,6 +36,7 @@ class BackupRepository(private val db:SleepDiaryDatabase,private val context:Con
    checkpoint("afterEntries")
    expected.assessments.forEach{safety.insertAssessment(it.assessment);safety.insertAnswers(it.answers)}
    expected.summaries.sortedBy{it.revision}.forEach{state.insertSummary(it)}
+   expected.workspaceRecords.forEach{db.workspaceDao().insert(it)};checkpoint("afterWorkspace")
    state.putState(expected.state);checkpoint("afterState")
    check(equivalent(snapshot(),expected)){"恢复回读不一致"}
   }

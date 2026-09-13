@@ -9,10 +9,10 @@ App 版本、数据字段、计算规则、医学安全规则、未来治疗协�
 ## 2. 版本对象
 
 ### 规格基线
-当前：`SPEC-0.1.2`。规格文档版本独立于 App、数据库及领域版本；仅交互设计修订不改变已有数据/规则版本。
+当前：`SPEC-0.2.0`。规格文档版本独立于 App、数据库及领域版本；仅交互设计修订不改变已有数据/规则版本。
 
 ### App
-`0.1.0`
+`0.2.0`
 
 ### Diary schema
 `DIARY_1.0`
@@ -47,7 +47,7 @@ App 版本、数据字段、计算规则、医学安全规则、未来治疗协�
 - 展示派生指标定义改变。
 
 ### Backup format
-`BACKUP_1.1`
+`BACKUP_2.0`
 
 变更条件：
 - JSON 根结构或恢复语义改变。
@@ -137,3 +137,7 @@ SELF_CHECK 只声明本轮实际执行的规格与完整性检查，不沿用历
 ## 11. SPEC-0.1.2 正式产品修订
 
 用户批准渐进披露、日期定位修复、完整 V0.1 功能接入，并独立批准 AppState.hasCompletedOnboarding。App 0.1.0、DIARY_1.0、SAFETY_1.0、SAFETY_RULE_1.0、WEEKLY_1.0 和 CBT-I Protocol NONE 不变；备份结构新增字段故升级 BACKUP_1.1。Room 技术版本 1→2，无损迁移。历史 BACKUP_1.0 schema/示例不变，导入缺少该字段映射 false；新 BACKUP_1.1 必填并完整往返。不是医学规则或治疗协议升级。
+
+## 12. SPEC-0.2.0 非治疗数据增量
+
+2026-09-13：在用户批准继续完整版工程及所需变更后，加入独立 WORKSPACE_1.0 用户个人记录。App 0.2.0 / versionCode 2、Room 3、BACKUP_2.0；原 Diary/Safety/Safety Rule/Weekly 版本及运行时 CBT-I Protocol NONE 不变。Room 2→3 无损增加表；旧 Room 1→2 迁移保留历史 BACKUP_1.1，再继续迁移。历史 1.0/1.1 JSON schema 和示例不改写；旧格式恢复新集合为空，完整替换前告知。合同见 docs/WORKSPACE_DATA_INCREMENT.md，上一基线清单归档 docs/baselines/SPEC-0.1.2.manifest.json。
