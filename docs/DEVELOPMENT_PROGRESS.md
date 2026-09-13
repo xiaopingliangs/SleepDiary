@@ -2,6 +2,15 @@
 
 更新时间：2026-09-13。本文件记录实际进度，不替代冻结规格。
 
+## 最新完成检查点：事务内原始输入捕获
+
+接续 60a8ce2，新增 ProtocolInputCapture / RawInputEncoding，详见 PROTOCOL_INPUT_CAPTURE_20260913.md。同一 Room 事务读取范围内日记、全部 Safety 和实际 AppState；复制全原始字段，固定二进制编码及 SHA-256；不规范化用户字符串，null 与空值区别保留，字节防御性复制。
+本轮只是捕获/编码，不是持久化 InputSnapshot、恢复代次或计划提交；无 UI/生产治疗调用。未修改 Room/Backup/版本/冻结医学规则，Protocol NONE。原 20 项清单哈希和字节数一致，合并 Manifest 无三项禁止权限。
+新增 10 项测试。首次重复 ID 测试意外使用随机不同 ID，导致 1 项失败；修正同 ID 样本，并固定 null/Unicode 对比的其他字段。最终全量 333 项，0 failure/error/skipped；testDebugUnitTest / assembleDebug 均通过，31 秒。日志 work/input-capture-20260913.log 和 work/input-capture-verified-20260913.log。没有真机或 instrumentation 执行。
+APK：D:/Projects/SleepDiary/app/build/outputs/apk/debug/app-debug.apk，10863476 字节；SHA-256：768bd78bf4223c89d0df26f027b68cb30c07a9e2173d67f053cdce39d97b1851。
+代码与本节同次提交，可通过 git log -1 -- app/src/main/java/app/sleepdiary/offline/application/ProtocolInputCapture.kt 定位。独立 meditation/ 未动。
+下一步是持久化 InputSnapshot/技术恢复代次/审计及单事务提交的新数据合同、Room 和备份扩展；先明确版本和恢复对象，不能塞进个人笔记表。已有本轮编码可以复用，不需重写。完整治疗仍未完成，未要求用户测试中间 APK。
+
 ## 最新完成检查点：约束合并与过期方案工程框架
 
 接续 b750e7b，完成 ConstraintIntersection / ProposalFreshnessGuard，说明见 CONSTRAINT_GUARD_IMPLEMENTATION_20260913.md。只落实既有架构的交集、完整来源轨迹、未知/冲突拒绝和旧 proposal 水位失效；没有疾病映射、医学参数、数据库/备份扩展或 UI 接入。不是持久化治疗生命周期，也不是临床发布授权。
