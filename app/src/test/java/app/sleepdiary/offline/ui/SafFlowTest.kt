@@ -63,7 +63,7 @@ class SafFlowTest {
  @Test fun jsonCreateDocumentWritesValidatedBackupWithComment() {
   val output=ByteArrayOutputStream();shadowOf(compose.activity.contentResolver).registerOutputStream(uri,output)
   export("导出完整备份 JSON");assertEquals("application/json",launched.type);assertTrue(launched.getStringExtra(Intent.EXTRA_TITLE)!!.endsWith(".json"));deliver();waitText("完整备份已导出")
-  val text=output.toString("UTF-8");assertTrue(text.contains("BACKUP_2.0"));assertEquals(note,services.backup.preview(text).entries.single().comment)
+  val text=output.toString("UTF-8");assertTrue(text.contains("BACKUP_2.1"));assertEquals(note,services.backup.preview(text).entries.single().comment)
  }
  @Test fun csvCreateDocumentWritesEscapedComment() {
   val output=ByteArrayOutputStream();shadowOf(compose.activity.contentResolver).registerOutputStream(uri,output)

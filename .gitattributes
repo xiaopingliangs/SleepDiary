@@ -3,6 +3,7 @@
 /schemas/** -text
 /samples/** -text
 /docs/WORKSPACE_DATA_INCREMENT.md -text
+/docs/INPUT_SNAPSHOT_STORAGE_INCREMENT.md -text
 /docs/baselines/*.json -text
 *.kt text eol=lf
 *.kts text eol=lf

@@ -9,10 +9,10 @@ App 版本、数据字段、计算规则、医学安全规则、未来治疗协�
 ## 2. 版本对象
 
 ### 规格基线
-当前：`SPEC-0.2.0`。规格文档版本独立于 App、数据库及领域版本；仅交互设计修订不改变已有数据/规则版本。
+当前：`SPEC-0.2.1`。规格文档版本独立于 App、数据库及领域版本；仅交互设计修订不改变已有数据/规则版本。
 
 ### App
-`0.2.0`
+`0.2.1`
 
 ### Diary schema
 `DIARY_1.0`
@@ -47,7 +47,7 @@ App 版本、数据字段、计算规则、医学安全规则、未来治疗协�
 - 展示派生指标定义改变。
 
 ### Backup format
-`BACKUP_2.0`
+`BACKUP_2.1`
 
 变更条件：
 - JSON 根结构或恢复语义改变。
@@ -141,3 +141,7 @@ SELF_CHECK 只声明本轮实际执行的规格与完整性检查，不沿用历
 ## 12. SPEC-0.2.0 非治疗数据增量
 
 2026-09-13：在用户批准继续完整版工程及所需变更后，加入独立 WORKSPACE_1.0 用户个人记录。App 0.2.0 / versionCode 2、Room 3、BACKUP_2.0；原 Diary/Safety/Safety Rule/Weekly 版本及运行时 CBT-I Protocol NONE 不变。Room 2→3 无损增加表；旧 Room 1→2 迁移保留历史 BACKUP_1.1，再继续迁移。历史 1.0/1.1 JSON schema 和示例不改写；旧格式恢复新集合为空，完整替换前告知。合同见 docs/WORKSPACE_DATA_INCREMENT.md，上一基线清单归档 docs/baselines/SPEC-0.1.2.manifest.json。
+
+## 13. SPEC-0.2.1 原始输入快照保存
+
+2026-09-14：App 0.2.1 / versionCode 3、Room 4、BACKUP_2.1；RAW_INPUT_CAPTURE_1 标识历史原始输入编码。新增独立表，旧六表定义不变，旧三代 backup schema/示例不改写；旧格式恢复快照集合为空。其他领域版本及 CBT-I Protocol NONE 保持。原始快照保存不等于医学发布或治疗授权。合同见 docs/INPUT_SNAPSHOT_STORAGE_INCREMENT.md。

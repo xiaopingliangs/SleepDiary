@@ -188,7 +188,7 @@ S09 的 detailJson：NONE / UNSURE 必须为 null；FLAGS_PRESENT 必须是含�
 
 ## 8. TrackingState
 
-使用 Room 单例/键值 AppState 表保存，随完整备份在同一 Room 事务中恢复。表本身保存对应 backupFormatVersion（当前 BACKUP_2.0）；JSON 根 exportFormatVersion 表示其备份格式版本。JSON 对外仍使用 trackingState 对象名；下列六个键在完整备份中均必填。尚无日记时 trackingStartDate 为 null，尚无当前问询时 currentSafetyAssessmentId 为 null。
+使用 Room 单例/键值 AppState 表保存，随完整备份在同一 Room 事务中恢复。表本身保存对应 backupFormatVersion（当前 BACKUP_2.1）；JSON 根 exportFormatVersion 表示其备份格式版本。JSON 对外仍使用 trackingState 对象名；下列六个键在完整备份中均必填。尚无日记时 trackingStartDate 为 null，尚无当前问询时 currentSafetyAssessmentId 为 null。
 
 保存：
 
@@ -233,3 +233,7 @@ Room 技术版本由 1 升为 2，新增 hasCompletedOnboarding NOT NULL DEFAULT
 ## 12. SPEC-0.2.0 独立 WorkspaceRecord
 
 新增独立 workspace_record 表，字段、技术长度、枚举、修订和校验以 docs/WORKSPACE_DATA_INCREMENT.md 的 WorkspaceRecord 合同为准。它不扩展每日八个构念，不分类 comment，不是医疗计划或医生身份凭据。全部已保存记录纳入 BACKUP_2.0；未保存表单草稿不纳入。Room 3 的 2→3 迁移只新增该表并更新 AppState 技术备份版本，保留旧五表业务数据。第 11 节是历史 0.1.2 迁移记录。
+
+## 13. SPEC-0.2.1 InputSnapshot
+
+新增 input_snapshot 独立不可变表，完整字段、编码、校验与命令幂等合同见 docs/INPUT_SNAPSHOT_STORAGE_INCREMENT.md。原六表定义不变，Room 3→4 新增表并更新 AppState 技术备份版本。历史快照保存实际当时值，不从今天的日记反推过去；完整备份包含它们，旧格式恢复该集合为空。尚不包含治疗审核或计划。

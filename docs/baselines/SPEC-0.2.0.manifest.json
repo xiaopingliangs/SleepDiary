@@ -1,0 +1,108 @@
+{
+  "specVersion": "SPEC-0.2.0",
+  "targetAppVersion": "0.2.0",
+  "evidenceReviewDate": "2026-09-08",
+  "cbtiProtocolVersion": "NONE",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "83c34f99ae0e1707013080afbd3d60e29a843e37dda34043d38e9eda89c2746e",
+      "bytes": 5645
+    },
+    {
+      "path": "ARCHITECTURE.md",
+      "sha256": "a19658a72104858b7c174b2be62b0ca5e045acb85f972790d62449f4d9c7de8c",
+      "bytes": 5360
+    },
+    {
+      "path": "CLINICAL_BOUNDARIES.md",
+      "sha256": "563b8775b242a8019b07a2fa1028b5eff058fcf7366eb012ab8106ce249ae6a1",
+      "bytes": 12376
+    },
+    {
+      "path": "DATA_SCHEMA.md",
+      "sha256": "01ab25963043185bb68c024336508502e177a3f0ad8edf1b2ff0eabd8b2822a4",
+      "bytes": 10404
+    },
+    {
+      "path": "EVIDENCE.md",
+      "sha256": "0aa0e31c3e9ebf9f85adbcc482a0e803a641bb8b3cfc1fa29910c40f4a9f0519",
+      "bytes": 7918
+    },
+    {
+      "path": "IMPORT_EXPORT_SPEC.md",
+      "sha256": "e376f8f6fcffd515c6e518481a1afed0f8959df42f5b25e5963adfc6cf0e3213",
+      "bytes": 6525
+    },
+    {
+      "path": "PRODUCT_SPEC.md",
+      "sha256": "00070c47cd3a6851cb397e76a8b7ec03329ca143c91ba6ab54f8ccde5d7d43ad",
+      "bytes": 7915
+    },
+    {
+      "path": "README.md",
+      "sha256": "915b6d382980aa36bf1571c491c4563f679b4e0a9bca0b641c8929f44ca1b578",
+      "bytes": 6350
+    },
+    {
+      "path": "SELF_CHECK.json",
+      "sha256": "c1025fff1152cc872d29550af09b31d2ef795de9e29b8be43b84ce9711f259af",
+      "bytes": 2010
+    },
+    {
+      "path": "TEST_PLAN.md",
+      "sha256": "a06e9c57fef41c87773c7ae3acec523d8d320c4f4149ae7c3ef17956c217c1cb",
+      "bytes": 16210
+    },
+    {
+      "path": "UX_SPEC.md",
+      "sha256": "e20af173a8bcc7947feb98a13c866c7e01166988715834fece3331c1eb7ae686",
+      "bytes": 31690
+    },
+    {
+      "path": "VERSIONING_AND_TRACEABILITY.md",
+      "sha256": "dc3800974e4cb21c4e35d2454a9252186d878f1539905fa798c37fc1417e30b2",
+      "bytes": 6008
+    },
+    {
+      "path": "samples/backup-v1.example.json",
+      "sha256": "6834bcd21e8fcc918bb26a0071818f0db10ef013ecb181db65ed590a0c3e6211",
+      "bytes": 2301
+    },
+    {
+      "path": "samples/diary-v1.example.csv",
+      "sha256": "5fcd2aa5da0cea76b51830060604ab4fcfadcbb56033c4d711ff35df510f6b49",
+      "bytes": 504
+    },
+    {
+      "path": "schemas/backup-v1.schema.json",
+      "sha256": "b7ea81a5276f1a6d245805a4b31bf9a98181bb210f24b273743e0f60dd47dcaa",
+      "bytes": 24937
+    },
+    {
+      "path": "schemas/backup-v1.1.schema.json",
+      "sha256": "1f3c522a5b2b2c76544f8e3bba75ccc249cfeafc1490cc47ab7669153a9285f3",
+      "bytes": 24994
+    },
+    {
+      "path": "samples/backup-v1.1.example.json",
+      "sha256": "17ad564e06e743b4b13d0fba3015d066b78be321cb086d0cbee6d4ec1d00555b",
+      "bytes": 2337
+    },
+    {
+      "path": "docs/WORKSPACE_DATA_INCREMENT.md",
+      "sha256": "5a329b1b9175f211f8302e8125c65668965b88371f22097074bff95b4cfab4be",
+      "bytes": 3288
+    },
+    {
+      "path": "schemas/backup-v2.schema.json",
+      "sha256": "d0342d61db9158b3f657717b47dc442d7ff1759ea136375ce75ac1c1055b1f6e",
+      "bytes": 26470
+    },
+    {
+      "path": "samples/backup-v2.example.json",
+      "sha256": "603ec41207621ea0761f72ef1c9a76b5f5907779b684b86dffa03d02095cf815",
+      "bytes": 2764
+    }
+  ]
+}

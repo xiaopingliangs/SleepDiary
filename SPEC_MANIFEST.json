@@ -1,6 +1,6 @@
 {
-  "specVersion": "SPEC-0.2.0",
-  "targetAppVersion": "0.2.0",
+  "specVersion": "SPEC-0.2.1",
+  "targetAppVersion": "0.2.1",
   "evidenceReviewDate": "2026-09-08",
   "cbtiProtocolVersion": "NONE",
   "files": [
@@ -11,8 +11,8 @@
     },
     {
       "path": "ARCHITECTURE.md",
-      "sha256": "a19658a72104858b7c174b2be62b0ca5e045acb85f972790d62449f4d9c7de8c",
-      "bytes": 5360
+      "sha256": "6b926f8201f12db7cfd11adccaaa185a9e025dda3405eb0002140ba3fb002e75",
+      "bytes": 5671
     },
     {
       "path": "CLINICAL_BOUNDARIES.md",
@@ -21,8 +21,8 @@
     },
     {
       "path": "DATA_SCHEMA.md",
-      "sha256": "01ab25963043185bb68c024336508502e177a3f0ad8edf1b2ff0eabd8b2822a4",
-      "bytes": 10404
+      "sha256": "577c0931108fae5584137d5ec858a3919c49e46e414314509c01100d8a307369",
+      "bytes": 10832
     },
     {
       "path": "EVIDENCE.md",
@@ -31,38 +31,38 @@
     },
     {
       "path": "IMPORT_EXPORT_SPEC.md",
-      "sha256": "e376f8f6fcffd515c6e518481a1afed0f8959df42f5b25e5963adfc6cf0e3213",
-      "bytes": 6525
+      "sha256": "1e4d08e228d483e89235c40951654fac069f72f3fba53812ecc0bae5a2549836",
+      "bytes": 7186
     },
     {
       "path": "PRODUCT_SPEC.md",
-      "sha256": "00070c47cd3a6851cb397e76a8b7ec03329ca143c91ba6ab54f8ccde5d7d43ad",
-      "bytes": 7915
+      "sha256": "4bb9520595e45984e0bedf8758c2b97e0fb5941bc1ba51ca2a7b82e4ddba4938",
+      "bytes": 8170
     },
     {
       "path": "README.md",
-      "sha256": "915b6d382980aa36bf1571c491c4563f679b4e0a9bca0b641c8929f44ca1b578",
-      "bytes": 6350
+      "sha256": "3a68ae0bb284a1b518f488900aed8f9492c62821bca00233ca1ab40cc75fd25f",
+      "bytes": 6676
     },
     {
       "path": "SELF_CHECK.json",
-      "sha256": "c1025fff1152cc872d29550af09b31d2ef795de9e29b8be43b84ce9711f259af",
-      "bytes": 2010
+      "sha256": "4e252338bea312b55f8f9751b3e8844602bd8e1380312514347f28dfe071f0a0",
+      "bytes": 2248
     },
     {
       "path": "TEST_PLAN.md",
-      "sha256": "a06e9c57fef41c87773c7ae3acec523d8d320c4f4149ae7c3ef17956c217c1cb",
-      "bytes": 16210
+      "sha256": "fafa2cff9648e6892f887facbcc37d821890a730447d3d554b26565726ccb93b",
+      "bytes": 16651
     },
     {
       "path": "UX_SPEC.md",
-      "sha256": "e20af173a8bcc7947feb98a13c866c7e01166988715834fece3331c1eb7ae686",
-      "bytes": 31690
+      "sha256": "61a1f3c1fb91e9beff8e49060c3b790eb72911a9f91010d8ea6da6cf774089e6",
+      "bytes": 31956
     },
     {
       "path": "VERSIONING_AND_TRACEABILITY.md",
-      "sha256": "dc3800974e4cb21c4e35d2454a9252186d878f1539905fa798c37fc1417e30b2",
-      "bytes": 6008
+      "sha256": "e8bd6da318b87104c0b1546c785330fa320e00017284c3d838350ef24d670a7d",
+      "bytes": 6451
     },
     {
       "path": "samples/backup-v1.example.json",
@@ -103,6 +103,21 @@
       "path": "samples/backup-v2.example.json",
       "sha256": "603ec41207621ea0761f72ef1c9a76b5f5907779b684b86dffa03d02095cf815",
       "bytes": 2764
+    },
+    {
+      "path": "docs/INPUT_SNAPSHOT_STORAGE_INCREMENT.md",
+      "sha256": "5cc01393df98ef0fac59320fc7cf7fc75db0f084fa3956176c89792024ca7e1f",
+      "bytes": 2074
+    },
+    {
+      "path": "schemas/backup-v2.1.schema.json",
+      "sha256": "626acfbb41014bac8adda40d13aa9334de89587c36bcba02f7f17478e25870bc",
+      "bytes": 27632
+    },
+    {
+      "path": "samples/backup-v2.1.example.json",
+      "sha256": "356d9b46401ebddc9744194cf7750dd272c6f9b67c4e97c2121ece0b24d3c2e2",
+      "bytes": 3215
     }
   ]
 }

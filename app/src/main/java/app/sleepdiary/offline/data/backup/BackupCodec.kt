@@ -16,9 +16,12 @@ internal fun JSONArray.objects()=(0 until length()).map{getJSONObject(it)}
 internal fun JSONArray.strings()=(0 until length()).map{getString(it)}
 internal fun obj(vararg pairs:Pair<String,Any?>)=JSONObject().apply{pairs.forEach{put(it.first,it.second?:JSONObject.NULL)}}
 
-data class BackupData(val entries:List<SleepDiaryEntry>,val assessments:List<AssessmentWithAnswers>,val summaries:List<WeeklySummarySnapshot>,val state:AppState,val workspaceRecords:List<WorkspaceRecord> = emptyList())
+data class BackupData(val entries:List<SleepDiaryEntry>,val assessments:List<AssessmentWithAnswers>,val summaries:List<WeeklySummarySnapshot>,val state:AppState,val workspaceRecords:List<WorkspaceRecord> = emptyList(),val inputSnapshots:List<InputSnapshot> = emptyList())
 
 object BackupCodec {
+ fun inputSnapshotJson(s:InputSnapshot)=obj("id" to s.id,"capturedAtUtc" to s.capturedAtUtc,"fromDate" to s.fromDate,"throughDate" to s.throughDate,"captureVersion" to s.captureVersion,"payloadBase64" to s.payloadBase64,"contentHash" to s.contentHash)
+ fun inputSnapshot(o:JSONObject)=InputSnapshot(o.getString("id"),o.getString("capturedAtUtc"),o.getString("fromDate"),o.getString("throughDate"),o.getString("captureVersion"),o.getString("payloadBase64"),o.getString("contentHash"))
+
  fun workspaceJson(r:WorkspaceRecord)=obj("id" to r.id,"kind" to r.kind,"title" to r.title,"body" to r.body,
   "createdAtUtc" to r.createdAtUtc,"updatedAtUtc" to r.updatedAtUtc,"revision" to r.revision,"workspaceSchemaVersion" to r.workspaceSchemaVersion)
  fun workspace(o:JSONObject)=WorkspaceRecord(o.getString("id"),o.getString("kind"),o.getString("title"),o.getString("body"),
@@ -45,12 +48,13 @@ object BackupCodec {
      })) }),
    "weeklySummaries" to JSONArray(data.summaries.sortedWith(compareBy({it.periodIndex},{it.revision})).map {v->obj("id" to v.id,"periodIndex" to v.periodIndex,"periodStartDate" to v.periodStartDate,"periodEndDate" to v.periodEndDate,"validEntryCount" to v.validEntryCount,"avgSolMin" to v.avgSolMin,"avgAwakeningCount" to v.avgAwakeningCount,"avgWasoMin" to v.avgWasoMin,"avgTerminalWakefulnessMin" to v.avgTerminalWakefulnessMin,"avgTibMin" to v.avgTibMin,"avgSleepQuality" to v.avgSleepQuality,"sourceEntryIds" to JSONArray(v.sourceEntryIdsJson),"diarySchemaVersion" to v.diarySchemaVersion,"weeklySummaryRuleVersion" to v.weeklySummaryRuleVersion,"generatedAtUtc" to v.generatedAtUtc,"revision" to v.revision,"isCurrent" to v.isCurrent,"supersedesSummaryId" to v.supersedesSummaryId)}),
    "trackingState" to obj("trackingStartDate" to s.trackingStartDate,"hasSeenMinimalInteractionExplanation" to s.hasSeenMinimalInteractionExplanation,"hasSeenSharePrivacyNotice" to s.hasSeenSharePrivacyNotice,"lastDisplayedWeeklyPeriodIndex" to s.lastDisplayedWeeklyPeriodIndex,"currentSafetyAssessmentId" to s.currentSafetyAssessmentId,"hasCompletedOnboarding" to s.hasCompletedOnboarding),
+   "inputSnapshots" to JSONArray(data.inputSnapshots.sortedBy{it.id}.map(::inputSnapshotJson)),
    "workspaceSchemaVersion" to Versions.WORKSPACE_SCHEMA,"workspaceRecords" to JSONArray(data.workspaceRecords.sortedBy{it.id}.map(::workspaceJson)))
  }
  fun decode(o:JSONObject):BackupData {
   val format=o.getString("exportFormatVersion")
-  require(format in setOf(Versions.BACKUP_FORMAT,Versions.LEGACY_BACKUP_1_1,Versions.LEGACY_BACKUP_FORMAT))
-  val records=if(format==Versions.BACKUP_FORMAT){
+  require(format in setOf(Versions.BACKUP_FORMAT,Versions.LEGACY_BACKUP_2_0,Versions.LEGACY_BACKUP_1_1,Versions.LEGACY_BACKUP_FORMAT))
+  val records=if(format in setOf(Versions.BACKUP_FORMAT,Versions.LEGACY_BACKUP_2_0)){
    require(o.getString("workspaceSchemaVersion")==Versions.WORKSPACE_SCHEMA)
    o.getJSONArray("workspaceRecords").objects().map(::workspace)
   }else{require(!o.has("workspaceRecords")&&!o.has("workspaceSchemaVersion"));emptyList()}
@@ -60,10 +64,13 @@ object BackupCodec {
     AssessmentWithAnswers(SafetyAssessment(id,a.getString("answeredAtUtc"),a.getString("safetySchemaVersion"),SafetyGate.valueOf(a.getString("derivedGate")),a.getString("safetyRuleVersion"),AssessmentStatus.valueOf(a.getString("status")),a.getBoolean("isCurrent")),a.getJSONArray("answers").objects().map {x->SafetyAnswer(id,x.getString("questionId"),x.getString("answerCode"),x.getString("safetySchemaVersion"),if(x.isNull("detailJson"))null else x.getJSONObject("detailJson").toString()).let {if(it.questionId=="S09")S09Codec.canonicalize(it) else it}})
    },o.getJSONArray("weeklySummaries").objects().map {v->WeeklySummarySnapshot(v.getString("id"),v.getInt("periodIndex"),v.getString("periodStartDate"),v.getString("periodEndDate"),v.getInt("validEntryCount"),v.doubleOrNull("avgSolMin"),v.doubleOrNull("avgAwakeningCount"),v.doubleOrNull("avgWasoMin"),v.doubleOrNull("avgTerminalWakefulnessMin"),v.doubleOrNull("avgTibMin"),v.doubleOrNull("avgSleepQuality"),v.getJSONArray("sourceEntryIds").toString(),v.getString("diarySchemaVersion"),v.getString("weeklySummaryRuleVersion"),v.getString("generatedAtUtc"),v.getInt("revision"),v.getBoolean("isCurrent"),v.textOrNull("supersedesSummaryId"))},
    AppState(trackingStartDate=s.textOrNull("trackingStartDate"),hasSeenMinimalInteractionExplanation=s.getBoolean("hasSeenMinimalInteractionExplanation"),hasSeenSharePrivacyNotice=s.getBoolean("hasSeenSharePrivacyNotice"),lastDisplayedWeeklyPeriodIndex=s.getInt("lastDisplayedWeeklyPeriodIndex"),currentSafetyAssessmentId=s.textOrNull("currentSafetyAssessmentId"),hasCompletedOnboarding=if(o.getString("exportFormatVersion")==Versions.LEGACY_BACKUP_FORMAT)false else s.getBoolean("hasCompletedOnboarding")))
-  val complete=data.copy(workspaceRecords=records)
+  val snapshots=if(format==Versions.BACKUP_FORMAT)o.getJSONArray("inputSnapshots").objects().map(::inputSnapshot) else { require(!o.has("inputSnapshots"));emptyList() }
+  val complete=data.copy(workspaceRecords=records,inputSnapshots=snapshots)
   validate(complete);return complete
  }
  fun validate(d:BackupData) {
+  require(d.inputSnapshots.map{it.id}.distinct().size==d.inputSnapshots.size)
+  d.inputSnapshots.forEach(app.sleepdiary.offline.application.InputSnapshotValidation::validate)
   require(d.workspaceRecords.map{it.id}.distinct().size==d.workspaceRecords.size)
   d.workspaceRecords.forEach(WorkspaceValidation::record)
   require(d.entries.map{it.id}.distinct().size==d.entries.size && d.entries.map{it.sleepDate}.distinct().size==d.entries.size)

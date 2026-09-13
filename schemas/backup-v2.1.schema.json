@@ -1,0 +1,995 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sleepdiary.local/schemas/backup-v2.1.schema.json",
+  "title": "SleepDiary BACKUP_2.1",
+  "type": "object",
+  "required": [
+    "exportFormatVersion",
+    "appVersion",
+    "exportedAtUtc",
+    "diarySchemaVersion",
+    "safetySchemaVersion",
+    "safetyRuleVersion",
+    "weeklySummaryRuleVersion",
+    "cbtiProtocolVersion",
+    "diaryEntries",
+    "safetyAssessments",
+    "weeklySummaries",
+    "trackingState",
+    "workspaceSchemaVersion",
+    "workspaceRecords",
+    "inputSnapshots"
+  ],
+  "properties": {
+    "exportFormatVersion": {
+      "const": "BACKUP_2.1"
+    },
+    "appVersion": {
+      "type": "string"
+    },
+    "exportedAtUtc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "diarySchemaVersion": {
+      "const": "DIARY_1.0"
+    },
+    "safetySchemaVersion": {
+      "const": "SAFETY_1.0"
+    },
+    "safetyRuleVersion": {
+      "const": "SAFETY_RULE_1.0"
+    },
+    "weeklySummaryRuleVersion": {
+      "const": "WEEKLY_1.0"
+    },
+    "cbtiProtocolVersion": {
+      "const": "NONE"
+    },
+    "diaryEntries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "sleepDate",
+          "bedEnteredAtLocal",
+          "trySleepAtLocal",
+          "sleepOnsetLatencyMin",
+          "awakeningCount",
+          "wakeAfterSleepOnsetMin",
+          "finalAwakeningAtLocal",
+          "outOfBedAtLocal",
+          "sleepQuality",
+          "timeZoneIdAtEntry",
+          "createdAtUtc",
+          "updatedAtUtc",
+          "diarySchemaVersion",
+          "consistencyWarning"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sleepDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "bedEnteredAtLocal": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$"
+          },
+          "trySleepAtLocal": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$"
+          },
+          "sleepOnsetLatencyMin": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1440
+          },
+          "awakeningCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 99
+          },
+          "wakeAfterSleepOnsetMin": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1440
+          },
+          "finalAwakeningAtLocal": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$"
+          },
+          "outOfBedAtLocal": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$"
+          },
+          "sleepQuality": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "comment": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "timeZoneIdAtEntry": {
+            "type": "string",
+            "minLength": 1
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "diarySchemaVersion": {
+            "const": "DIARY_1.0"
+          },
+          "consistencyWarning": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "safetyAssessments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "answeredAtUtc",
+          "safetySchemaVersion",
+          "derivedGate",
+          "safetyRuleVersion",
+          "isCurrent",
+          "answers",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "answeredAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "safetySchemaVersion": {
+            "const": "SAFETY_1.0"
+          },
+          "derivedGate": {
+            "enum": [
+              "NO_MAJOR_FLAG",
+              "CLINICIAN_REVIEW",
+              "DELAY_AUTOMATED_TREATMENT"
+            ]
+          },
+          "isCurrent": {
+            "type": "boolean"
+          },
+          "answers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "questionId",
+                "answerCode",
+                "safetySchemaVersion"
+              ],
+              "properties": {
+                "questionId": {
+                  "type": "string",
+                  "pattern": "^S(?:0[1-9]|1[0-5]|07b)$"
+                },
+                "answerCode": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "detailJson": {
+                  "type": [
+                    "object",
+                    "array",
+                    "string",
+                    "number",
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "safetySchemaVersion": {
+                  "const": "SAFETY_1.0"
+                }
+              },
+              "additionalProperties": false,
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "questionId": {
+                        "const": "S01"
+                      }
+                    },
+                    "required": [
+                      "questionId"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "answerCode": {
+                        "enum": [
+                          "YES",
+                          "NO"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "questionId": {
+                        "const": "S02"
+                      }
+                    },
+                    "required": [
+                      "questionId"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "answerCode": {
+                        "enum": [
+                          "YES",
+                          "NO",
+                          "UNSURE"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "questionId": {
+                        "const": "S03"
+                      }
+                    },
+                    "required": [
+                      "questionId"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "answerCode": {
+                        "enum": [
+                          "YES",
+                          "NO",
+                          "UNSURE"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "questionId": {
+                        "const": "S04"
+                      }
+                    },
+                    "required": [
+                      "questionId"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "answerCode": {
+                        "enum": [
+                          "YES",
+                          "NO",
+                          "UNSURE"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "questionId": {
+                        "const": "S05"
+                      }
+                    },
+                    "required": [
+                      "questionId"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "answerCode": {
+                        "enum": [
+                          "YES",
+                          "NO",
+                          "UNSURE"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "questionId": {
+                        "const": "S06"
+                      }
+                    },
+                    "required": [
+                      "questionId"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "answerCode": {
+                        "enum": [
+                          "YES",
+                          "NO",
+                          "UNSURE"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "questionId": {
+                        "const": "S07"
+                      }
+                    },
+                    "required": [
+                      "questionId"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "answerCode": {
+                        "enum": [
+                          "YES",
+                          "NO",
+                          "UNSURE"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "questionId": {
+                        "const": "S07b"
+                      }
+                    },
+                    "required": [
+                      "questionId"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "answerCode": {
+                        "enum": [
+                          "STABLE",
+                          "UNSTABLE",
+                          "UNSURE"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "questionId": {
+                        "const": "S08"
+                      }
+                    },
+                    "required": [
+                      "questionId"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "answerCode": {
+                        "enum": [
+                          "NONE",
+                          "OCCASIONAL",
+                          "FREQUENT",
+                          "DANGER_OCCURRED"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "questionId": {
+                        "const": "S10"
+                      }
+                    },
+                    "required": [
+                      "questionId"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "answerCode": {
+                        "enum": [
+                          "NO",
+                          "YES",
+                          "UNSURE"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "questionId": {
+                        "const": "S11"
+                      }
+                    },
+                    "required": [
+                      "questionId"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "answerCode": {
+                        "enum": [
+                          "SAFE",
+                          "POSSIBLY_UNSAFE",
+                          "UNSURE"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "questionId": {
+                        "const": "S12"
+                      }
+                    },
+                    "required": [
+                      "questionId"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "answerCode": {
+                        "enum": [
+                          "YES",
+                          "NO",
+                          "UNSURE"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "questionId": {
+                        "const": "S13"
+                      }
+                    },
+                    "required": [
+                      "questionId"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "answerCode": {
+                        "enum": [
+                          "NO",
+                          "YES",
+                          "UNSURE",
+                          "NOT_APPLICABLE"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "questionId": {
+                        "const": "S14"
+                      }
+                    },
+                    "required": [
+                      "questionId"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "answerCode": {
+                        "enum": [
+                          "NO",
+                          "YES",
+                          "UNSURE",
+                          "NOT_APPLICABLE"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "questionId": {
+                        "const": "S15"
+                      }
+                    },
+                    "required": [
+                      "questionId"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "answerCode": {
+                        "enum": [
+                          "YES",
+                          "NO",
+                          "UNSURE"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "questionId": {
+                        "const": "S10"
+                      },
+                      "answerCode": {
+                        "const": "YES"
+                      }
+                    },
+                    "required": [
+                      "questionId",
+                      "answerCode"
+                    ]
+                  },
+                  "then": {
+                    "required": [
+                      "detailJson"
+                    ],
+                    "properties": {
+                      "detailJson": {
+                        "type": "object",
+                        "required": [
+                          "diagnoses",
+                          "otherText"
+                        ],
+                        "properties": {
+                          "diagnoses": {
+                            "type": "array",
+                            "items": {
+                              "enum": [
+                                "RLS",
+                                "NARCOLEPSY",
+                                "RBD",
+                                "SLEEPWALKING",
+                                "SLEEP_TERRORS",
+                                "CIRCADIAN_RHYTHM_DISORDER",
+                                "OTHER"
+                              ]
+                            },
+                            "uniqueItems": true
+                          },
+                          "otherText": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "questionId": {
+                        "const": "S09"
+                      }
+                    },
+                    "required": [
+                      "questionId"
+                    ]
+                  },
+                  "then": {
+                    "required": [
+                      "detailJson"
+                    ],
+                    "properties": {
+                      "answerCode": {
+                        "enum": [
+                          "NONE",
+                          "UNSURE",
+                          "FLAGS_PRESENT"
+                        ]
+                      }
+                    },
+                    "allOf": [
+                      {
+                        "if": {
+                          "properties": {
+                            "answerCode": {
+                              "enum": [
+                                "NONE",
+                                "UNSURE"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "answerCode"
+                          ]
+                        },
+                        "then": {
+                          "properties": {
+                            "detailJson": {
+                              "type": "null"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "if": {
+                          "properties": {
+                            "answerCode": {
+                              "const": "FLAGS_PRESENT"
+                            }
+                          },
+                          "required": [
+                            "answerCode"
+                          ]
+                        },
+                        "then": {
+                          "properties": {
+                            "detailJson": {
+                              "type": "object",
+                              "required": [
+                                "selectedCodes"
+                              ],
+                              "additionalProperties": false,
+                              "properties": {
+                                "selectedCodes": {
+                                  "type": "array",
+                                  "minItems": 1,
+                                  "uniqueItems": true,
+                                  "items": {
+                                    "enum": [
+                                      "LOUD_SNORING",
+                                      "WITNESSED_APNEA",
+                                      "GASPING_AWAKENING",
+                                      "DIAGNOSED_OSA"
+                                    ]
+                                  },
+                                  "description": "Save/export in enum order; duplicates invalid in backup."
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "safetyRuleVersion": {
+            "const": "SAFETY_RULE_1.0"
+          },
+          "status": {
+            "enum": [
+              "DRAFT",
+              "COMPLETED"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "weeklySummaries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "periodIndex",
+          "periodStartDate",
+          "periodEndDate",
+          "validEntryCount",
+          "avgSolMin",
+          "avgAwakeningCount",
+          "avgWasoMin",
+          "avgTerminalWakefulnessMin",
+          "avgTibMin",
+          "avgSleepQuality",
+          "sourceEntryIds",
+          "diarySchemaVersion",
+          "weeklySummaryRuleVersion",
+          "generatedAtUtc",
+          "revision",
+          "isCurrent",
+          "supersedesSummaryId"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "periodIndex": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "periodStartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "periodEndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "validEntryCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 7
+          },
+          "avgSolMin": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "avgAwakeningCount": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "avgWasoMin": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "avgTerminalWakefulnessMin": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "avgTibMin": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "avgSleepQuality": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 5
+          },
+          "sourceEntryIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "uniqueItems": true
+          },
+          "diarySchemaVersion": {
+            "const": "DIARY_1.0"
+          },
+          "weeklySummaryRuleVersion": {
+            "const": "WEEKLY_1.0"
+          },
+          "generatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "isCurrent": {
+            "type": "boolean"
+          },
+          "supersedesSummaryId": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "trackingState": {
+      "type": "object",
+      "properties": {
+        "trackingStartDate": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "hasSeenMinimalInteractionExplanation": {
+          "type": "boolean"
+        },
+        "hasSeenSharePrivacyNotice": {
+          "type": "boolean"
+        },
+        "lastDisplayedWeeklyPeriodIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "currentSafetyAssessmentId": {
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hasCompletedOnboarding": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "trackingStartDate",
+        "hasSeenMinimalInteractionExplanation",
+        "hasSeenSharePrivacyNotice",
+        "lastDisplayedWeeklyPeriodIndex",
+        "currentSafetyAssessmentId",
+        "hasCompletedOnboarding"
+      ]
+    },
+    "workspaceSchemaVersion": {
+      "const": "WORKSPACE_1.0"
+    },
+    "workspaceRecords": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "body",
+          "createdAtUtc",
+          "updatedAtUtc",
+          "revision",
+          "workspaceSchemaVersion"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "kind": {
+            "enum": [
+              "LEARNING_NOTE",
+              "REFLECTION",
+              "CONTEXT_NOTE",
+              "CLINICIAN_NOTE"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "workspaceSchemaVersion": {
+            "const": "WORKSPACE_1.0"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "inputSnapshots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "capturedAtUtc",
+          "fromDate",
+          "throughDate",
+          "captureVersion",
+          "payloadBase64",
+          "contentHash"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "capturedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fromDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "throughDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "captureVersion": {
+            "const": "RAW_INPUT_CAPTURE_1",
+            "type": "string"
+          },
+          "payloadBase64": {
+            "type": "string",
+            "minLength": 1
+          },
+          "contentHash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$comment": "SPEC-0.1.2 approved onboarding state. Legacy BACKUP_1.0 uses its unchanged schema."
+}

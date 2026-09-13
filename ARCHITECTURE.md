@@ -200,3 +200,7 @@ app/build/outputs/apk/debug/app-debug.apk
 ## SPEC-0.2.0 独立个人记录增量
 
 Room 3 新增 workspace_record / WorkspaceDao / WorkspaceRepository；WorkspaceModel 持有未保存表单。AppContainer/AppServices 提供同一应用数据库实例。BACKUP_2.0 统一读取和恢复六张表，兼容历史 1.0/1.1；无新依赖或网络能力。见 docs/WORKSPACE_DATA_INCREMENT.md。
+
+## SPEC-0.2.1 快照持久化增量
+
+Room 4 新增 InputSnapshot/DAO；InputSnapshotStore 在同事务捕获、写入及回读，再提交后验证。固定 command ID 支持确认丢失后的重试。BackupRepository 七表同事务读取/替换。 详细合同见 docs/INPUT_SNAPSHOT_STORAGE_INCREMENT.md。

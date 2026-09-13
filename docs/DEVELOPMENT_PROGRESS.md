@@ -1,6 +1,18 @@
 # 开发进度与中断恢复入口
 
-更新时间：2026-09-13。本文件记录实际进度，不替代冻结规格。
+更新时间：2026-09-14。本文件记录实际进度，不替代冻结规格。
+
+## 最新完成检查点：SPEC-0.2.1 快照长期保存与 BACKUP_2.1
+
+接续 072822c。现已完成 InputSnapshot 独立表/DAO、InputSnapshotStore、RawInputDecoder 校验；同事务捕获/写入/回读，提交后再回读，command ID 幂等重试、范围冲突拒绝。快照在磁盘重开后保持，并不随原始日记编辑而变化。
+App 0.2.1（versionCode 3）/ SPEC-0.2.1 / Room 4 / BACKUP_2.1；RAW_INPUT_CAPTURE_1，其他领域版本及 CBT-I Protocol NONE 不变。Room 1/2/3→4 迁移通过，旧六表定义及旧三份 schema 历史不变。新 schema 4.json 已导出。
+完整备份支持 1.0/1.1/2.0/2.1；七张业务表同事务替换和回读。旧格式快照恢复为空，确认页面展示数量/清空提示。损坏哈希、版本、Base64 或二进制结构均拒绝；正确哈希也不能掩盖损坏 payload。新示例有一份合成空范围历史快照，无实际用户数据。
+新增 14 项测试（快照 13、Room 3 迁移 1），完整 347 项，0 failure/error/skipped。testDebugUnitTest、assembleDebug、assembleDebugAndroidTest 均通过，最终 32 秒。日志 work/snapshot-storage-20260914.log / work/snapshot-storage-verified-20260914.log。回滚测试确认每个检查点确实被执行，未把早期校验失败冒充回滚；samples 目录已声明为测试输入，示例改变会触发重测。
+APK：D:/Projects/SleepDiary/app/build/outputs/apk/debug/app-debug.apk，10784401 字节。
+SHA-256：27c2a0267a8498757be9e6301a45796499019ad1973ff923854d6a49f002e439。
+AGENTS/CLINICAL_BOUNDARIES/EVIDENCE、全部旧 backup schema/示例哈希保持；合并 Manifest 无禁止权限；未新增运行时网络或分析依赖。SELF_CHECK/清单已同步。没有本轮真机/connected 测试；不要求用户测试中间 APK。
+代码及此记录同次提交，使用 git log -1 -- app/src/main/java/app/sleepdiary/offline/application/InputSnapshotStore.kt 可找到提交。独立 meditation/ 未改动/暂存。
+下一步：实现本机恢复代次和持久化激活检查，随后治疗审计及原子计划提交；快照长期保存本轮已经完成，不要再次当作尚未落地。当前无面向真实用户的快照创建入口/自动治疗调用，持久化 hold、正式临床规则和完整治疗仍未完成。详细合同见 INPUT_SNAPSHOT_STORAGE_INCREMENT.md。
 
 ## 最新完成检查点：事务内原始输入捕获
 

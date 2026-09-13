@@ -1,53 +1,60 @@
 {
   "status": "PASS_IMPLEMENTED_INCREMENT_NOT_FULL_CBTI_RELEASE",
-  "specVersion": "SPEC-0.2.0",
-  "scope": "Independent personal records and backward-compatible complete backup increment",
+  "specVersion": "SPEC-0.2.1",
+  "scope": "Immutable raw input snapshot storage and BACKUP_2.1 compatibility",
   "checks": {
     "medicalSpecificationsByteIdentical": true,
     "legacyBackupSchemasAndExamplesByteIdentical": true,
-    "originalFiveRoomEntityDefinitionsUnchanged": true,
+    "originalSixRoomEntityDefinitionsUnchanged": true,
     "coreDiaryFieldsAndRulesUnchanged": true,
-    "roomTechnicalVersion": 3,
+    "roomTechnicalVersion": 4,
     "roomMigrationPathsTested": [
-      "1->2->3",
-      "2->3"
+      "1->2->3->4",
+      "2->3->4",
+      "3->4"
     ],
     "roomSchemaExported": true,
+    "inputCaptureVersion": "RAW_INPUT_CAPTURE_1",
     "workspaceSchemaVersion": "WORKSPACE_1.0",
-    "backupExportVersion": "BACKUP_2.0",
+    "backupExportVersion": "BACKUP_2.1",
     "backupImportVersions": [
       "BACKUP_1.0",
       "BACKUP_1.1",
-      "BACKUP_2.0"
+      "BACKUP_2.0",
+      "BACKUP_2.1"
     ],
-    "allSixTablesRoundTripAndRollbackPassed": true,
-    "legacyWorkspaceCollectionRestoresEmpty": true,
+    "allSevenTablesRoundTripAndRollbackPassed": true,
+    "legacySnapshotCollectionRestoresEmpty": true,
+    "snapshotIdempotencyAndDiskReopenPassed": true,
+    "snapshotPayloadStructureAndHashChecked": true,
     "cbtiProtocolVersion": "NONE",
-    "allThreeSchemaExamplesValidatedByApplication": true,
+    "allFourSchemaExamplesValidatedByApplication": true,
     "manifestForbiddenPermissionsAbsent": true,
     "specificationReviewCompleted": true
   },
   "blockingItemsForThisIncrement": [],
   "execution": {
     "unitTests": {
-      "tests": 307,
+      "tests": 347,
       "failures": 0,
       "errors": 0,
       "skipped": 0
     },
-    "addedUnitTests": 20,
+    "addedUnitTests": 14,
     "testDebugUnitTest": "PASS",
     "assembleDebug": "PASS",
     "assembleDebugAndroidTest": "PASS",
     "connectedDebugAndroidTest": "NOT_RUN_THIS_INCREMENT",
     "physicalDeviceValidation": "NOT_RUN_THIS_INCREMENT",
-    "log": "work/workspace-release-check-20260913.log",
+    "log": "work/snapshot-storage-verified-20260914.log",
     "apkPath": "D:\\Projects\\SleepDiary\\app\\build\\outputs\\apk\\debug\\app-debug.apk",
-    "apkSha256": "4cdeacd78320864c869dfa34dd113491e6f29deafb844bb78668602e29efa3c5"
+    "apkSha256": "27c2a0267a8498757be9e6301a45796499019ad1973ff923854d6a49f002e439"
   },
   "remainingWork": [
-    "Full CBT-I treatment lifecycle not implemented/released",
-    "Physical IME, rotation, process termination and SAF validation deferred to final integrated device acceptance"
+    "Restore generation and persistent activation checks",
+    "Treatment audit and atomic plan submission",
+    "Released clinical rules and full treatment lifecycle",
+    "Final integrated physical-device validation"
   ],
-  "note": "状态恢复测试是模拟，不宣称实际进程死亡或三星 IME 验收。旧测试结果仅保留在历史进度记录。"
+  "note": "快照已持久化并完整备份，不代表治疗已启用。未运行本轮真机测试；设备测试包构建不等于设备测试通过。"
 }

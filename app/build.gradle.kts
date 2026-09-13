@@ -18,7 +18,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         minSdk = 26
         targetSdk = 37
-        versionCode = 2
+        versionCode = 3
         versionName = domainVersions.getProperty("appVersion")
         mapOf(
             "SPEC_VERSION" to "specVersion",
@@ -69,5 +69,6 @@ dependencies {
     testImplementation(libs.room.testing)
 }
 tasks.withType<Test>().configureEach {
+    inputs.dir(rootProject.file("samples"))
     systemProperty("robolectric.dependency.repo.url", "https://repo.maven.apache.org/maven2")
 }
