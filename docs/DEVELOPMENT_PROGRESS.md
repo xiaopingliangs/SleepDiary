@@ -2,6 +2,19 @@
 
 更新时间：2026-09-13。本文件记录实际进度，不替代冻结规格。
 
+## 最新完成检查点：已获批准的就诊摘要 TXT 导出
+
+用户在查看具体范围后明确回复“批准，继续”。此前的 TXT 审批阻塞已获授权，不再等待重复确认。
+从 6a67186 接续，已添加 SummaryTextWriter 和预览锁定/系统文件创建器链路；默认排除备注/Safety，选择后预览并确认，用户决定保存位置。没有使用工具导出真实用户数据。
+导出持有生成时的字符串，打开选择器后不再查库拼接；选择器取消不写入；丢失预览拒绝开流；写入和关闭失败不显示成功。运行中导出使用 ViewModel scope，旋转不重新启动导出。
+新增 13 项测试（写入器 4、界面/状态 9）。完整 testDebugUnitTest / assembleDebug 实际通过：287 项，0 failure/error/skipped，BUILD SUCCESSFUL，30 秒。日志 work/clinician-export-20260913.log。
+APK：D:/Projects/SleepDiary/app/build/outputs/apk/debug/app-debug.apk；10,776,126 字节。
+SHA-256：e77624f0002d654faaaf5f1aed203f75418ac91f32b9f9992338bb63953167f5。
+17 个冻结文件哈希/字节数一致，合并 Manifest 无禁止权限，旧 JSON/CSV/PNG 与 Room/Backup 版本未改，CBT-I Protocol NONE。
+已验证假 SAF 的精确预览字节、两类敏感信息独立选择、取消、close 失败、状态恢复不重启选择器、丢失预览不打开流。状态恢复模拟/新 ViewModel 测试不等于真机旋转或真实进程死亡测试；本轮没有安装 APK 或真机导出。
+代码和记录同次提交，可用 git log -1 -- app/src/main/java/app/sleepdiary/offline/application/SummaryTextWriter.kt 找回提交。独立 meditation/ 保留，未改动/暂存。
+下一步仍是完整版的治疗规则、适用性和新数据合同落实；本次就诊摘要预览/TXT 模块已完成，原 TXT 授权阻塞已解除，不需要再询问。完整版治疗功能仍未全部实现。
+
 ## 最新完成检查点：就诊摘要本机预览
 
 接续 9800bf7。新增 ClinicianSummaryService、ClinicianSummaryScreen 与设置入口，只读事务读取选定日期日记，默认排除 comment 和 Safety；显式勾选后才加入本机预览。无治疗结论或计划，也无新持久化对象。
