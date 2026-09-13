@@ -48,7 +48,12 @@ class SafFlowTest {
   lateinit var model:DiaryViewModel
   compose.runOnUiThread{model=DiaryViewModel(RoomDiaryUiStore(db),clock=clockOn("2026-09-09"))}
   compose.setContent{CompositionLocalProvider(LocalActivityResultRegistryOwner provides owner){SleepDiaryTheme{SleepDiaryApp(model,{},services)}}}
-  compose.waitUntil(5000){model.state.value.page!=HomePage.LOADING}
+  // Room completes off-thread. Drain the UI queue before observing its Main continuation;
+  // polling StateFlow alone can leave Robolectric's paused main looper unprocessed.
+  compose.waitUntil(5000){compose.runOnIdle {
+   check(model.state.value.message==null){"Initial load failed: ${model.state.value.message}"}
+   model.state.value.page!=HomePage.LOADING
+  }}
   compose.onNodeWithText("设置").performScrollTo().performClick()
  }
  @After fun close(){db.close()}
