@@ -41,6 +41,13 @@ class NavigationComposeTest {
         compose.setContent {SleepDiaryTheme {SleepDiaryApp(model,onExit)}}
         compose.waitUntil(5_000) {model.state.value.page!=HomePage.LOADING}
     }
+    @Test fun clinicianSummaryHasRouteBackToSettings() {
+        start(Store())
+        compose.onNodeWithText("设置").performClick()
+        compose.onNodeWithText("就诊摘要").performScrollTo().performClick()
+        compose.onNodeWithText("返回设置").performClick()
+        compose.onNodeWithText("导出完整备份 JSON").assertExists()
+    }
     @Test fun threeIntroPagesThenSettingsAndHistoryAreNavigable() {
         start(Store(),intro=true)
         compose.onNodeWithText("下一页").performClick();compose.onNodeWithText("数据留在本机").assertIsDisplayed()

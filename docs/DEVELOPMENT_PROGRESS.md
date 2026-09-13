@@ -2,6 +2,19 @@
 
 更新时间：2026-09-13。本文件记录实际进度，不替代冻结规格。
 
+## 最新完成检查点：就诊摘要本机预览
+
+接续 9800bf7。新增 ClinicianSummaryService、ClinicianSummaryScreen 与设置入口，只读事务读取选定日期日记，默认排除 comment 和 Safety；显式勾选后才加入本机预览。无治疗结论或计划，也无新持久化对象。
+首次含 TXT 导出的补丁被自动审批拒绝，理由是该具体敏感负载/目的地授权不足；该补丁未落盘、没有导出数据。改为仅本机显示的安全替代方案已落盘。没有通过其他路径绕过导出拒绝。
+原始用户完整架构请求第十八节明确要求医生摘要可展示/导出近期日记、safety flags 等；但未继续重试敏感明文导出，待具体范围确认。现有 JSON/CSV/PNG 链路不变。
+新增 16 项测试。首次运行 274 项中，新增导航测试误对固定按钮执行滚动，失败于测试动作；修正后完整重跑通过：274 项，0 failure/error/skipped。testDebugUnitTest / assembleDebug：BUILD SUCCESSFUL，23 秒。
+日志：work/clinician-preview-20260913.log（首次失败）和 work/clinician-preview-20260913-verified.log（完整重跑）。
+APK：D:/Projects/SleepDiary/app/build/outputs/apk/debug/app-debug.apk，10,776,126 字节。
+SHA-256：5fa50301277edf8fd11e34660830b873480295076f7e34d96409f4123d3dca33。
+17 份冻结规格字节数/哈希一致，合并 Manifest 无禁止权限；旧 Room/Backup/Diary 版本不变，CBT-I Protocol NONE。未执行本轮真机验收，未安装新 APK。
+详细范围、测试和 TXT 出口的具体待确认方案见 CLINICIAN_PREVIEW_IMPLEMENTATION_20260913.md。代码与记录一并提交，可通过 git log -1 -- app/src/main/java/app/sleepdiary/offline/application/ClinicianSummaryService.kt 恢复提交。
+完整版仍未完成；下一步继续治疗规则/数据合同的落实和其他模块。TXT 导出仅在其具体敏感数据范围得到确认后实现。独立 meditation/ 未改动、不暂存。
+
 ## 最新完成检查点：源文候选规则层
 
 用户已要求继续。上次代码写入被自动审批额度限制拦截，2026-09-13 再查确认未落盘、HEAD 为 d919d84；随后恢复写入，无覆盖其他工作。

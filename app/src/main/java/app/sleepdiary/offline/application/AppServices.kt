@@ -8,4 +8,5 @@ import app.sleepdiary.offline.share.DiaryShare
 class AppServices(context: Context, database: SleepDiaryDatabase) {
     val backup = BackupRepository(database, context.applicationContext)
     val share = DiaryShare(context.applicationContext, database)
+    val clinicianSummary = ClinicianSummaryService(database)
 }
