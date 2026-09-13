@@ -2,6 +2,15 @@
 
 更新时间：2026-09-13。本文件记录实际进度，不替代冻结规格。
 
+## 最新完成检查点：约束合并与过期方案工程框架
+
+接续 b750e7b，完成 ConstraintIntersection / ProposalFreshnessGuard，说明见 CONSTRAINT_GUARD_IMPLEMENTATION_20260913.md。只落实既有架构的交集、完整来源轨迹、未知/冲突拒绝和旧 proposal 水位失效；没有疾病映射、医学参数、数据库/备份扩展或 UI 接入。不是持久化治疗生命周期，也不是临床发布授权。
+新增 16 项纯单元测试；最终完整 testDebugUnitTest：323 项，0 failure/error/skipped；assembleDebug 通过，BUILD SUCCESSFUL 34 秒。日志 work/constraint-guard-20260913.log。本轮未执行 instrumentation/真机。
+20 份冻结清单哈希/字节数一致；版本、Room、Backup 不变，Protocol NONE；合并 Manifest 无三项禁止权限。
+APK：D:/Projects/SleepDiary/app/build/outputs/apk/debug/app-debug.apk；10863476 字节；SHA-256：abf5a69d49f27f9be972462e6b306ead0f855abb0a96472b554e1b8b728ff57c。
+代码与本节同次提交，可用 git log -1 -- app/src/main/java/app/sleepdiary/offline/domain/protocol/ConstraintIntersection.kt 找回提交。独立 meditation/ 未修改或暂存。
+下一步继续治疗生命周期的正式数据合同与原子提交实现；本框架未来必须在同一提交事务中使用真实持久化水位，并补齐恢复代次/审计，不能把目前的纯类型当成已实现的持久化安全保持。临床适用性、规则及人工判例未齐的治疗分支仍不可发布，完整 CBT-I App 未完成。
+
 ## 最新完成检查点：SPEC-0.2.0 独立个人记录与 BACKUP_2.0
 
 接续 4f55762；恢复时确认此前额度拦截的补丁未落盘，随后完成本增量。用户已授权继续完整版工程，不等待普通技术细节批准。
