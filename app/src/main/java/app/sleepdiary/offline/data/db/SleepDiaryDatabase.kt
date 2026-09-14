@@ -12,8 +12,8 @@ class DatabaseConverters {
  @TypeConverter fun status(value: AssessmentStatus): String = value.name
 }
 @Database(
- entities = [SleepDiaryEntry::class, SafetyAssessment::class, SafetyAnswer::class, WeeklySummarySnapshot::class, AppState::class, WorkspaceRecord::class, InputSnapshot::class],
- version = 4, exportSchema = true
+ entities = [SleepDiaryEntry::class, SafetyAssessment::class, SafetyAnswer::class, WeeklySummarySnapshot::class, AppState::class, WorkspaceRecord::class, InputSnapshot::class, LocalExecutionState::class],
+ version = 5, exportSchema = true
 )
 @TypeConverters(DatabaseConverters::class)
 abstract class SleepDiaryDatabase : RoomDatabase() {
@@ -22,6 +22,7 @@ abstract class SleepDiaryDatabase : RoomDatabase() {
  abstract fun stateAndSummaryDao(): StateAndSummaryDao
  abstract fun workspaceDao(): WorkspaceDao
  abstract fun inputSnapshotDao(): InputSnapshotDao
+ abstract fun localExecutionDao(): LocalExecutionDao
  companion object {
   val MIGRATION_1_2 = object : androidx.room.migration.Migration(1, 2) {
    override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
@@ -41,7 +42,13 @@ abstract class SleepDiaryDatabase : RoomDatabase() {
     db.execSQL("UPDATE app_state SET backupFormatVersion = '" + Versions.BACKUP_FORMAT + "'")
    }
   }
+  val MIGRATION_4_5 = object : androidx.room.migration.Migration(4, 5) {
+   override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+    db.execSQL("CREATE TABLE IF NOT EXISTS local_execution_state (singletonId INTEGER NOT NULL, restoreGeneration TEXT NOT NULL, activationStatus TEXT NOT NULL, localSchemaVersion TEXT NOT NULL, PRIMARY KEY(singletonId))")
+    db.execSQL("INSERT INTO local_execution_state (singletonId, restoreGeneration, activationStatus, localSchemaVersion) VALUES (0, ?, 'REQUIRES_REVIEW', 'LOCAL_EXECUTION_1')", arrayOf(java.util.UUID.randomUUID().toString()))
+   }
+  }
   fun open(context: Context): SleepDiaryDatabase =
-   Room.databaseBuilder(context.applicationContext, SleepDiaryDatabase::class.java, "sleepdiary.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
+   Room.databaseBuilder(context.applicationContext, SleepDiaryDatabase::class.java, "sleepdiary.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5).build()
  }
 }

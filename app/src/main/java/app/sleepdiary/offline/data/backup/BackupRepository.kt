@@ -25,7 +25,7 @@ class BackupRepository(private val db:SleepDiaryDatabase,private val context:Con
  }
  suspend fun restore(text:String) {
   val expected=preview(text)
-  db.withTransaction {
+  val restoredLocal=db.withTransaction {
    val state=db.stateAndSummaryDao();val safety=db.safetyDao()
    db.inputSnapshotDao().deleteAllForRestore()
    db.workspaceDao().deleteAllForRestore()
@@ -40,9 +40,13 @@ class BackupRepository(private val db:SleepDiaryDatabase,private val context:Con
    expected.workspaceRecords.forEach{db.workspaceDao().insert(it)};checkpoint("afterWorkspace")
    expected.inputSnapshots.forEach{db.inputSnapshotDao().insert(it)};checkpoint("afterSnapshots")
    state.putState(expected.state);checkpoint("afterState")
+   val local=app.sleepdiary.offline.data.repository.LocalExecutionRepository(db).invalidateForRestore()
+   checkpoint("afterLocalState")
    check(equivalent(snapshot(),expected)){"恢复回读不一致"}
+   local
   }
   check(equivalent(snapshot(),expected)){"恢复提交后回读不一致"}
+  check(db.localExecutionDao().state()==restoredLocal){"本机恢复标识提交后回读不一致"}
  }
  private fun equivalent(a:BackupData,b:BackupData)=BackupCodec.encode(a,Instant.EPOCH).toString()==BackupCodec.encode(b,Instant.EPOCH).toString()
  suspend fun csv():ByteArray {

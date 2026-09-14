@@ -1,7 +1,7 @@
-# SleepDiary 0.2.1 — 开发规格总览
+# SleepDiary 0.2.2 — 开发规格总览
 
-规格版本：`SPEC-0.2.1`\
-目标应用版本：`0.2.1`\
+规格版本：`SPEC-0.2.2`\
+目标应用版本：`0.2.2`\
 工作名称：**睡眠日记 / SleepDiary**  
 默认 Android applicationId：`app.sleepdiary.offline`
 
@@ -136,4 +136,8 @@ V0.1 必须把上述能力保持为不存在，而不是“隐藏但已实现”
 
 ## 0.2.1 快照保存增量
 
-当前 Room 4、BACKUP_2.1；新增独立历史输入快照表及固定命令 ID 的事务保存/回读，兼容导入 1.0/1.1/2.0/2.1。旧格式没有的快照恢复为空。未启用实际治疗、恢复代次或治疗审计。合同见 docs/INPUT_SNAPSHOT_STORAGE_INCREMENT.md。
+0.2.1 增量采用 Room 4、BACKUP_2.1；新增独立历史输入快照表及固定命令 ID 的事务保存/回读，兼容导入 1.0/1.1/2.0/2.1。旧格式没有的快照恢复为空。未启用实际治疗、恢复代次或治疗审计。合同见 docs/INPUT_SNAPSHOT_STORAGE_INCREMENT.md。
+
+## 0.2.2 本机恢复校验增量
+
+Room 5 新增本机恢复代次与待复核状态。成功恢复备份时和业务数据一起原子更新；失败一起回滚。技术代次不进入备份、不能从文件获得治疗权限，BACKUP_2.1 结构保持。协议仍为 NONE。详细合同见 docs/LOCAL_EXECUTION_INCREMENT.md。

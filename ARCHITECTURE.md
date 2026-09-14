@@ -204,3 +204,7 @@ Room 3 新增 workspace_record / WorkspaceDao / WorkspaceRepository；WorkspaceM
 ## SPEC-0.2.1 快照持久化增量
 
 Room 4 新增 InputSnapshot/DAO；InputSnapshotStore 在同事务捕获、写入及回读，再提交后验证。固定 command ID 支持确认丢失后的重试。BackupRepository 七表同事务读取/替换。 详细合同见 docs/INPUT_SNAPSHOT_STORAGE_INCREMENT.md。
+
+## SPEC-0.2.2 本机恢复边界
+
+Room 5 新增 LocalExecutionState / DAO / Repository；BackupRepository 在现有恢复事务内调用失效更新。PersistentActivationCheck 将持久化代次和输入快照连接，事务内检查原始输入变化；没有治疗激活成功出口或真实计划提交。见 docs/LOCAL_EXECUTION_INCREMENT.md。

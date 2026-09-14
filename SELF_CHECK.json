@@ -1,21 +1,21 @@
 {
   "status": "PASS_IMPLEMENTED_INCREMENT_NOT_FULL_CBTI_RELEASE",
-  "specVersion": "SPEC-0.2.1",
-  "scope": "Immutable raw input snapshot storage and BACKUP_2.1 compatibility",
+  "specVersion": "SPEC-0.2.2",
+  "scope": "Persistent local restore generation and non-authorizing activation preflight",
   "checks": {
     "medicalSpecificationsByteIdentical": true,
-    "legacyBackupSchemasAndExamplesByteIdentical": true,
-    "originalSixRoomEntityDefinitionsUnchanged": true,
+    "allBackupSchemasAndExamplesByteIdentical": true,
+    "originalSevenBusinessTableDefinitionsUnchanged": true,
     "coreDiaryFieldsAndRulesUnchanged": true,
-    "roomTechnicalVersion": 4,
+    "roomTechnicalVersion": 5,
     "roomMigrationPathsTested": [
-      "1->2->3->4",
-      "2->3->4",
-      "3->4"
+      "1->2->3->4->5",
+      "2->3->4->5",
+      "3->4->5",
+      "4->5"
     ],
     "roomSchemaExported": true,
-    "inputCaptureVersion": "RAW_INPUT_CAPTURE_1",
-    "workspaceSchemaVersion": "WORKSPACE_1.0",
+    "localExecutionSchemaVersion": "LOCAL_EXECUTION_1",
     "backupExportVersion": "BACKUP_2.1",
     "backupImportVersions": [
       "BACKUP_1.0",
@@ -23,38 +23,38 @@
       "BACKUP_2.0",
       "BACKUP_2.1"
     ],
-    "allSevenTablesRoundTripAndRollbackPassed": true,
-    "legacySnapshotCollectionRestoresEmpty": true,
-    "snapshotIdempotencyAndDiskReopenPassed": true,
-    "snapshotPayloadStructureAndHashChecked": true,
+    "localExecutionMetadataExcludedFromBackup": true,
+    "restoreAtomicallyRotatesLocalGeneration": true,
+    "restoreFailureRollsBackBusinessAndLocalState": true,
+    "identicalRestoreInvalidatesOldToken": true,
+    "unchangedPreflightDoesNotAuthorizeTreatment": true,
     "cbtiProtocolVersion": "NONE",
-    "allFourSchemaExamplesValidatedByApplication": true,
     "manifestForbiddenPermissionsAbsent": true,
     "specificationReviewCompleted": true
   },
   "blockingItemsForThisIncrement": [],
   "execution": {
     "unitTests": {
-      "tests": 347,
+      "tests": 362,
       "failures": 0,
       "errors": 0,
       "skipped": 0
     },
-    "addedUnitTests": 14,
+    "addedUnitTests": 15,
     "testDebugUnitTest": "PASS",
     "assembleDebug": "PASS",
     "assembleDebugAndroidTest": "PASS",
     "connectedDebugAndroidTest": "NOT_RUN_THIS_INCREMENT",
     "physicalDeviceValidation": "NOT_RUN_THIS_INCREMENT",
-    "log": "work/snapshot-storage-verified-20260914.log",
+    "log": "work/local-execution-20260914.log",
     "apkPath": "D:\\Projects\\SleepDiary\\app\\build\\outputs\\apk\\debug\\app-debug.apk",
-    "apkSha256": "27c2a0267a8498757be9e6301a45796499019ad1973ff923854d6a49f002e439"
+    "apkSha256": "22014cc7ef1c691e0273180e76f13cba5525a91cfa6b379d0a3386d465742bba"
   },
   "remainingWork": [
-    "Restore generation and persistent activation checks",
-    "Treatment audit and atomic plan submission",
+    "Clinical hold and decision audit persistence",
+    "Atomic treatment plan submission with current-state checks",
     "Released clinical rules and full treatment lifecycle",
     "Final integrated physical-device validation"
   ],
-  "note": "快照已持久化并完整备份，不代表治疗已启用。未运行本轮真机测试；设备测试包构建不等于设备测试通过。"
+  "note": "技术代次与预检已持久化/验证，不代表治疗激活或临床审核通过。未执行本轮真机测试。"
 }

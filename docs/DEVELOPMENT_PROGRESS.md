@@ -2,6 +2,19 @@
 
 更新时间：2026-09-14。本文件记录实际进度，不替代冻结规格。
 
+## 最新完成检查点：SPEC-0.2.2 本机恢复代次与激活前检查
+
+接续 413d26c。此前写入被额度限制拒绝；用户继续后检查 git status/文件存在性确认未落盘，再正常恢复实现，没有绕过审批。LocalExecutionState/DAO/Repository、PersistentActivationCheck 已完成，详细合同见 LOCAL_EXECUTION_INCREMENT.md。
+App 0.2.2 / versionCode 4 / SPEC-0.2.2 / Room 5。新增本机 LOCAL_EXECUTION_1 元数据表，原七张业务表定义不变；旧 1/2/3/4→5 无损迁移通过，新 schema 5.json 已导出。
+本机 restoreGeneration 在新安装首次检查时创建、旧库迁移时创建，数据库重开保持。每次成功恢复（包括相同内容）和业务数据同事务更新代次并设置 REQUIRES_REVIEW；失败时一起回滚，提交后回读。不是历史业务数据，不导出/导入，所以 BACKUP_2.1 和四代备份 schema/示例全部保持。
+激活前检查事务内读取本机代次、既有快照及当前原始输入；日记/Safety 变化、缺失快照、恢复或技术错误区分返回。没有激活成功分支，数据一致仍为 REQUIRES_REVIEW；医生原文或备份字段不能解锁治疗。
+新增 15 项测试（激活前检查 14、Room 4 迁移 1）。完整 362 项，0 failure/error/skipped；testDebugUnitTest / assembleDebug / assembleDebugAndroidTest 均通过，BUILD SUCCESSFUL 1m2s。日志 work/local-execution-20260914.log。
+APK：D:/Projects/SleepDiary/app/build/outputs/apk/debug/app-debug.apk；10800785 字节。
+SHA-256：22014cc7ef1c691e0273180e76f13cba5525a91cfa6b379d0a3386d465742bba。
+旧医学文件、全部 backup schema/示例哈希保持，合并 Manifest 无禁止权限，无新运行时联网依赖。SELF_CHECK/清单已同步。没有本轮真机或 connected 测试；数据库重开不冒充真实进程终止验收。
+本节与代码同次提交，可用 git log -1 -- app/src/main/java/app/sleepdiary/offline/data/entity/LocalExecutionState.kt 找回提交。独立 meditation/ 未改动/暂存。
+下一步：临床 hold/决策审计与原子计划提交的正式数据合同和实现；本机恢复代次本轮已完成，不要再次从头实现。未来提交仍须在写入事务中重新校验，不能把这里的预检结果当成治疗许可。CBT-I Protocol NONE，完整临床治疗流程尚未完成，不要求用户测试中间 APK。
+
 ## 最新完成检查点：SPEC-0.2.1 快照长期保存与 BACKUP_2.1
 
 接续 072822c。现已完成 InputSnapshot 独立表/DAO、InputSnapshotStore、RawInputDecoder 校验；同事务捕获/写入/回读，提交后再回读，command ID 幂等重试、范围冲突拒绝。快照在磁盘重开后保持，并不随原始日记编辑而变化。

@@ -1,6 +1,6 @@
 {
-  "specVersion": "SPEC-0.2.1",
-  "targetAppVersion": "0.2.1",
+  "specVersion": "SPEC-0.2.2",
+  "targetAppVersion": "0.2.2",
   "evidenceReviewDate": "2026-09-08",
   "cbtiProtocolVersion": "NONE",
   "files": [
@@ -11,8 +11,8 @@
     },
     {
       "path": "ARCHITECTURE.md",
-      "sha256": "6b926f8201f12db7cfd11adccaaa185a9e025dda3405eb0002140ba3fb002e75",
-      "bytes": 5671
+      "sha256": "6f27b08c67f006ae39a02de1bf478aee3d2c0ad346b0abaa247e73cd5d0d2da2",
+      "bytes": 6022
     },
     {
       "path": "CLINICAL_BOUNDARIES.md",
@@ -21,8 +21,8 @@
     },
     {
       "path": "DATA_SCHEMA.md",
-      "sha256": "577c0931108fae5584137d5ec858a3919c49e46e414314509c01100d8a307369",
-      "bytes": 10832
+      "sha256": "fffb740beb0c186219208ba1bc5a5d944b71011f309c452f1b4dc764f9d22c76",
+      "bytes": 11232
     },
     {
       "path": "EVIDENCE.md",
@@ -31,28 +31,28 @@
     },
     {
       "path": "IMPORT_EXPORT_SPEC.md",
-      "sha256": "1e4d08e228d483e89235c40951654fac069f72f3fba53812ecc0bae5a2549836",
-      "bytes": 7186
+      "sha256": "1ee4111beb1d55004cd5987601b80372fa44f532b37840b067586ea683083b45",
+      "bytes": 7603
     },
     {
       "path": "PRODUCT_SPEC.md",
-      "sha256": "4bb9520595e45984e0bedf8758c2b97e0fb5941bc1ba51ca2a7b82e4ddba4938",
-      "bytes": 8170
+      "sha256": "4c15aedafb66a6c02fbaab903d33614cdb2ff9dd1c628c31a4da63080fd895bb",
+      "bytes": 8369
     },
     {
       "path": "README.md",
-      "sha256": "3a68ae0bb284a1b518f488900aed8f9492c62821bca00233ca1ab40cc75fd25f",
-      "bytes": 6676
+      "sha256": "2ad7341a4200533c49affca4ae79e9e5cfdec73f535b90a0f7d6d47d236cc41a",
+      "bytes": 7019
     },
     {
       "path": "SELF_CHECK.json",
-      "sha256": "4e252338bea312b55f8f9751b3e8844602bd8e1380312514347f28dfe071f0a0",
-      "bytes": 2248
+      "sha256": "0e318fa65f0579d3d221c1735817fbaed792f0d3c45bb6f82ef7f5b5a42f109f",
+      "bytes": 2221
     },
     {
       "path": "TEST_PLAN.md",
-      "sha256": "fafa2cff9648e6892f887facbcc37d821890a730447d3d554b26565726ccb93b",
-      "bytes": 16651
+      "sha256": "1499b85476dd927699410778e29bb50717243a9977da77ca41c66d4f150460ed",
+      "bytes": 17131
     },
     {
       "path": "UX_SPEC.md",
@@ -61,8 +61,8 @@
     },
     {
       "path": "VERSIONING_AND_TRACEABILITY.md",
-      "sha256": "e8bd6da318b87104c0b1546c785330fa320e00017284c3d838350ef24d670a7d",
-      "bytes": 6451
+      "sha256": "8c5565ea10d774efe3496c5f6d5ef7a36af736c6bf551cd1a266422c6764a0e4",
+      "bytes": 6836
     },
     {
       "path": "samples/backup-v1.example.json",
@@ -118,6 +118,11 @@
       "path": "samples/backup-v2.1.example.json",
       "sha256": "356d9b46401ebddc9744194cf7750dd272c6f9b67c4e97c2121ece0b24d3c2e2",
       "bytes": 3215
+    },
+    {
+      "path": "docs/LOCAL_EXECUTION_INCREMENT.md",
+      "sha256": "66c3cec7724a21dec1eb6d7b56a88cc56c648d7733c749ae8c0b584d608f2f91",
+      "bytes": 1829
     }
   ]
 }

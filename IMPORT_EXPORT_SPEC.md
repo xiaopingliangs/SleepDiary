@@ -168,3 +168,7 @@ V0.1 分享图：
 ## 10. 原始输入快照
 
 inputSnapshots 使用 RAW_INPUT_CAPTURE_1，含规范 Base64 原始输入与 SHA-256。导入须同时校验外层 schema、编码版本、哈希、二进制结构、范围、必填类型、集合唯一性及排序，不能仅验证哈希。历史快照不使用当前规则重新作医学结论。完整恢复替换全部集合，预览显示快照数量；旧格式缺少的集合清空需明确告知。其他出口不加入快照。见 docs/INPUT_SNAPSHOT_STORAGE_INCREMENT.md。
+
+## SPEC-0.2.2 本机恢复边界
+
+BACKUP_2.1 对外结构不变。业务历史仍完整恢复；本机 local_execution_state 不是可携带的历史数据或授权，不导出、不导入。成功恢复同时生成新代次和 REQUIRES_REVIEW，失败一并回滚，提交后回读。旧 token 即使对应相同备份内容也失效；预览/导出/取消不改变代次。见 docs/LOCAL_EXECUTION_INCREMENT.md。

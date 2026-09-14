@@ -237,3 +237,7 @@ Room 技术版本由 1 升为 2，新增 hasCompletedOnboarding NOT NULL DEFAULT
 ## 13. SPEC-0.2.1 InputSnapshot
 
 新增 input_snapshot 独立不可变表，完整字段、编码、校验与命令幂等合同见 docs/INPUT_SNAPSHOT_STORAGE_INCREMENT.md。原六表定义不变，Room 3→4 新增表并更新 AppState 技术备份版本。历史快照保存实际当时值，不从今天的日记反推过去；完整备份包含它们，旧格式恢复该集合为空。尚不包含治疗审核或计划。
+
+## SPEC-0.2.2 本机恢复边界
+
+新增 local_execution_state 单例技术元数据表（LOCAL_EXECUTION_1），字段/唯一允许状态/生成与失效规则见 docs/LOCAL_EXECUTION_INCREMENT.md。旧七张业务表定义不变。该表不是原始数据或用户设置，不进入完整备份；每次替换恢复与业务数据在同事务内重新生成，不接受文件里的执行许可。

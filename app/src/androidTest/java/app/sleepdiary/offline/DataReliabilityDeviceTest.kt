@@ -31,7 +31,7 @@ class DataReliabilityDeviceTest {
   return SleepDiaryEntry(UUID.randomUUID().toString(),d.toString(),"${d.minusDays(1)}T23:00:00","${d.minusDays(1)}T23:30:00",20,2,30,"${d}T06:00:00","${d}T07:00:00",3,note,"Asia/Shanghai",clock(day).instant().toString(),clock(day).instant().toString(),consistencyWarning=false)
  }
  @Before fun setup(){name="device-test-${UUID.randomUUID()}.db";open()}
- private fun open(){db=Room.databaseBuilder(context,SleepDiaryDatabase::class.java,name).addMigrations(SleepDiaryDatabase.MIGRATION_1_2,SleepDiaryDatabase.MIGRATION_2_3,SleepDiaryDatabase.MIGRATION_3_4).build()}
+ private fun open(){db=Room.databaseBuilder(context,SleepDiaryDatabase::class.java,name).addMigrations(SleepDiaryDatabase.MIGRATION_1_2,SleepDiaryDatabase.MIGRATION_2_3,SleepDiaryDatabase.MIGRATION_3_4,SleepDiaryDatabase.MIGRATION_4_5).build()}
  @After fun close(){db.close();context.deleteDatabase(name)}
  private suspend fun save(day:Int):SaveResult.Success {
   val result=DiaryRepository(db,clock(day)).save(entry(day));assertTrue(result.toString(),result is SaveResult.Success)

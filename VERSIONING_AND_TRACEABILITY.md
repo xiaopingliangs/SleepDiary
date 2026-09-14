@@ -9,10 +9,10 @@ App 版本、数据字段、计算规则、医学安全规则、未来治疗协�
 ## 2. 版本对象
 
 ### 规格基线
-当前：`SPEC-0.2.1`。规格文档版本独立于 App、数据库及领域版本；仅交互设计修订不改变已有数据/规则版本。
+当前：`SPEC-0.2.2`。规格文档版本独立于 App、数据库及领域版本；仅交互设计修订不改变已有数据/规则版本。
 
 ### App
-`0.2.1`
+`0.2.2`
 
 ### Diary schema
 `DIARY_1.0`
@@ -145,3 +145,7 @@ SELF_CHECK 只声明本轮实际执行的规格与完整性检查，不沿用历
 ## 13. SPEC-0.2.1 原始输入快照保存
 
 2026-09-14：App 0.2.1 / versionCode 3、Room 4、BACKUP_2.1；RAW_INPUT_CAPTURE_1 标识历史原始输入编码。新增独立表，旧六表定义不变，旧三代 backup schema/示例不改写；旧格式恢复快照集合为空。其他领域版本及 CBT-I Protocol NONE 保持。原始快照保存不等于医学发布或治疗授权。合同见 docs/INPUT_SNAPSHOT_STORAGE_INCREMENT.md。
+
+## 14. SPEC-0.2.2 本机执行检查
+
+2026-09-14：App 0.2.2 / versionCode 4、Room 5、LOCAL_EXECUTION_1。新增仅本机技术代次与待复核状态，恢复时重新生成，不作为恢复的历史业务数据。BACKUP_2.1 及其 schema/示例保持；其他领域版本和 CBT-I Protocol NONE 不变。合同见 docs/LOCAL_EXECUTION_INCREMENT.md。不是临床协议更新。
