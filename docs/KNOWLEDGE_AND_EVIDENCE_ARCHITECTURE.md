@@ -1,5 +1,7 @@
 # 统一 Knowledge / Evidence Registry
 
+2026-09-14 进度补注：下文为 2026-09-11 的架构时点，不能当作当前文件取得/阅读状态。VA 2014 官方副本、哈希及算法核心页已在 [来源检查](PROTOCOL_SOURCE_CHECK_20260913.md) 记录；认知、放松、课程与维持的新增页码/中文内容草稿见 [模块核对](CBTI_MODULE_SOURCE_REVIEW_20260914.md)。来源核对不等于临床发布审核，尚未启用治疗包。
+
 `ARCH-FULL-0.1` 工程草案，2026-09-11。关联 [总览](FULL_APP_ARCHITECTURE.md)、[Protocol](CBTI_PROTOCOL_ARCHITECTURE.md)、[Exception](EXCEPTION_ROUTER_ARCHITECTURE.md)、[医生桥接](CLINICIAN_BRIDGE_ARCHITECTURE.md)。不替换冻结 EVIDENCE.md，不宣称本轮完成所有医学全文审查。
 
 ## 1. 来源身份与本轮核验范围
