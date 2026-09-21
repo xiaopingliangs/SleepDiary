@@ -1,7 +1,21 @@
 # 开发进度与中断恢复入口
 
-更新时间：2026-09-14。本文件记录实际进度，不替代冻结规格。
+更新时间：2026-09-21。本文件记录实际进度，不替代冻结规格。
 
+## 最新完成检查点：2026-09-21 学习入口与完整工程汇报
+
+代码提交 a1224608e1959ff3bfbd6655880fdf73be0c600a。已实现设置中的六条睡眠学习内容、来源页码、主动官方链接、返回原学习页的个人记录入口；读取不写库、不推进治疗，笔记保存/编辑/完整备份恢复和分享隔离通过。详见 ENGINEERING_REPORT_20260921.md 与 LEARNING_INCREMENT_20260915.md。
+全量测试曾暴露旧 CommentBackupTest 使用不同日期导致无限等 SUCCESS；线程定位后给 RoomDiaryUiStore 增加时钟注入，测试固定时钟并加超时，默认生产时钟不变。新增来源白名单只允许指定 VA 手册。
+最终 369 项测试全部通过，0 failure/error/skipped（新增 7 项）。testDebugUnitTest / assembleDebug / assembleDebugAndroidTest 均通过，36 秒；work/learning-final-20260921.log。冻结清单 24 文件、合并权限与 APK 签名验证通过。
+交付 APK：D:/Projects/SleepDiary/work/deliveries/20260921/SleepDiary-0.2.2-20260921-debug.apk，10,890,127 字节；SHA-256 44615e97b171b4d88d28d181f2a9f5e6dad0c5d37ea64789339e75bac73bb86b。标准构建目录仍有同一 APK。
+App/SPEC 0.2.2、Room 5、BACKUP_2.1、CBT-I Protocol NONE 不变。没有连接手机，没有执行设备测试；完整版治疗闭环仍未完成。不能把此包当作最终完整 CBT-I 成品。
+下一步：补齐独立治疗指标、SC 和安全适用性合同，再接持久化 hold/审计/计划事务。学习入口本轮已完成，不再重复实现。报告和本记录随后单独提交；独立 meditation/ 未修改、未暂存。完整报告包含功能清单、历史范围、技术版本、迁移隐私、验证、剩余工作与交付哈希。
+
+## 已被上方完成记录取代：2026-09-21 恢复验证过程
+
+上次代码与 LearningFlowTest 已落盘，旧日志没有最终测试结论，不能记为通过。本次确认没有残留 Java 测试进程；重新运行发现 JUnit 返回类型错误，改成 runBlocking<Unit>。另修正测试对 AlertDialog 使用无滚动点击，并等待 Compose 完成状态更新后触发系统返回。没有删除测试或放宽业务断言。
+新增 7 项 LearningFlowTest 已全部通过（work/learning-targeted-final-20260921.log，11 秒）。目前正在执行完整 testDebugUnitTest / assembleDebug / assembleDebugAndroidTest，日志 work/learning-full-20260921.log；最终结果尚待记录。补齐认识睡眠担忧页面安全提示的第 63 页引用。
+本次 adb 没有连接设备。冻结 24 个文件哈希与字节数核对一致，独立 meditation/ 保持未跟踪。接下来解析全量结果、核对 APK/Manifest、生成完整工程汇报、提交本轮文件。不要重写已存在的学习模块。
 ## 最新完成检查点：认知、放松、课程与维持内容来源核对
 
 接续 `fa91ee8c95e6ca687ffd01d8ae13633bf75074fc`。中断发生在手册阅读阶段，没有遗留代码变更；恢复后确认只有独立 meditation/ 未跟踪，再补读未完成页面。没有从头改写上一阶段的数据层。
