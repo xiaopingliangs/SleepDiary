@@ -82,11 +82,11 @@ class CommentBackupTest {
  @Test fun viewModelCommentSaveReadbackAndBackupRestoreAreConsistent()=runBlocking {
   Dispatchers.setMain(Dispatchers.Unconfined)
   try {
-   val store=RoomDiaryUiStore(db);store.completeOnboarding()
+   val store=RoomDiaryUiStore(db,clockOn("2026-09-09"));store.completeOnboarding()
    val model=DiaryViewModel(store,clock=clockOn("2026-09-09"))
-   model.state.first{it.page!=HomePage.LOADING}
+   withTimeout(10000) { model.state.first{it.page!=HomePage.LOADING} }
    model.edit(diary());model.comment(note);model.save()
-   val saved=model.state.first{it.page==HomePage.SUCCESS}
+   val saved=withTimeout(10000) { model.state.first{it.page==HomePage.SUCCESS} }
    assertEquals(note,db.diaryDao().byId(saved.form.id)!!.comment)
    val backup=repo.export();repo.restore(backup)
    assertEquals(note,DiaryForm.from(store.entries().single()).comment)

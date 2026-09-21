@@ -4,9 +4,11 @@ import android.net.Uri
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import app.sleepdiary.offline.domain.model.Versions
+import app.sleepdiary.offline.ui.learning.LearningContent
 
 data class EvidenceSource(val title:String,val attribution:String,val usage:String,val url:String)
 val EVIDENCE_SOURCES=listOf(
+ EvidenceSource(LearningContent.SOURCE_TITLE + "\n" + LearningContent.SOURCE_CHINESE, LearningContent.SOURCE_ATTRIBUTION,"睡眠学习中的认知、放松与维持教育说明；具体页码见各条内容。不是官方中文版，当前不据此执行治疗。",LearningContent.SOURCE_URL),
  EvidenceSource("The consensus sleep diary: standardizing prospective sleep self-monitoring","Carney CE et al. · Sleep · 2012 · DOI 10.5665/sleep.1642","共识睡眠日记：每日主观记录的核心构念；本项目独立中文表述，不是官方授权中文版。","https://pubmed.ncbi.nlm.nih.gov/22294820/"),
  EvidenceSource("Sleep Diary Instructions - Core / Consensus Sleep Diary-Core","Colleen Carney 作者实验室公开表格 · 年份未在当前依据文件中注明","共识睡眠日记核心说明：主观估计、无需盯钟、漏记留空及可选备注。","https://drcolleencarney.com/wp-content/uploads/2016/01/Final-CSD-Core-and-instructions.pdf"),
  EvidenceSource("Psychometric Properties of the Consensus Sleep Diary in Those With Insomnia Disorder","Maich KHG, Lachowski AM, Carney CE · 2018（online 2016）· DOI 10.1080/15402002.2016.1173556","共识睡眠日记心理测量学研究；不据此自动启用治疗算法。","https://pubmed.ncbi.nlm.nih.gov/27231885/"),

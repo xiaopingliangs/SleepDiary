@@ -68,6 +68,7 @@ const val FIRST_SAVE_EXPLANATION="为了让记录尽量简单，也减少对单�
     Action("导出完整备份 JSON",{exportKind="json"},!busy);Action("导出睡眠日记 CSV",{exportKind="csv"},!busy);Action("导入完整备份",{importJson.launch(arrayOf("application/json","text/plain"))},!busy);Action("历史记录",{nav.navigate("history")})
     Action("就诊摘要",{nav.navigate("clinicianSummary")})
     Action("个人记录",{nav.navigate("workspace")})
+    Action("睡眠学习",{nav.navigate("learning")})
     Text("安全与说明");Action("查看当前安全问询",{model.viewSafety();nav.popBackStack("home",false)})
     Action("重新完成安全问询",{model.openSafety(true,fromSettings=true);nav.popBackStack("home",false)})
     if(state.safety?.assessment?.status==AssessmentStatus.DRAFT)Action("安全问询尚未完成 · 继续",{model.openSafety(fromSettings=true);nav.popBackStack("home",false)})
@@ -90,6 +91,8 @@ const val FIRST_SAVE_EXPLANATION="为了让记录尽量简单，也减少对单�
    }
    composable("clinicianSummary"){app.sleepdiary.offline.ui.clinician.ClinicianSummaryScreen(services?.clinicianSummary){nav.popBackStack()}}
    composable("workspace"){app.sleepdiary.offline.ui.workspace.WorkspaceScreen(services?.workspace){nav.popBackStack()}}
+   composable("learning"){app.sleepdiary.offline.ui.learning.LearningScreen({nav.popBackStack()},{nav.navigate("learningNotes")}){url->runCatching{context.startActivity(officialLinkIntent(url))}.onFailure{message="无法打开系统浏览器"}}}
+   composable("learningNotes"){app.sleepdiary.offline.ui.workspace.WorkspaceScreen(services?.workspace,"返回学习内容"){nav.popBackStack()}}
    composable("methods"){MethodsScreen({nav.popBackStack()},{nav.navigate("terms")}){url->runCatching{context.startActivity(officialLinkIntent(url))}.onFailure{message="无法打开系统浏览器"}}}
    composable("versions"){VersionsScreen{nav.popBackStack()}}
    composable("terms"){SimplePage("术语表"){Action("返回",{nav.popBackStack()});TERMS.forEach{(title,body)->Text(title);Text(body)}}}

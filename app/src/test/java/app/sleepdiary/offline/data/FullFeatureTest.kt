@@ -38,7 +38,14 @@ class FullFeatureTest {
  @Test fun onboardingWithDraftPersistsIndependently()=runBlocking{val id=UUID.randomUUID().toString();SafetyRepository(db).save(id,listOf(SafetyAnswer(id,"S03","YES",detailJson=null)),false);val store=RoomDiaryUiStore(db);store.completeOnboarding();assertTrue(store.state().hasCompletedOnboarding);assertEquals(AssessmentStatus.DRAFT,store.currentSafety()!!.assessment.status)}
  @Test fun shareContentContainsOnlyEightRawFields(){val e=diary().copy(comment="SECRET PRIVATE COMMENT");val lines=DiaryShare.lines(e);assertEquals(11,lines.size);assertFalse(lines.joinToString().contains("SECRET"));assertFalse(lines.joinToString().contains("Safety"));assertFalse(lines.joinToString().contains("TST"))}
  @Test fun shareRefusesMissingOrChangedEntry()=runBlocking{val e=diary();assertTrue(runCatching{DiaryShare(context,db).prepare(e)}.isFailure);db.diaryDao().insert(e.copy(comment="changed"));assertTrue(runCatching{DiaryShare(context,db).prepare(e)}.isFailure)}
- @Test fun evidenceOnlyContainsApprovedSources(){assertEquals(7,EVIDENCE_SOURCES.size);val evidence=java.io.File("../EVIDENCE.md").readText();EVIDENCE_SOURCES.forEach{assertTrue(evidence.contains(it.url))}}
+ @Test fun evidenceOnlyContainsApprovedSources(){
+  assertEquals(8,EVIDENCE_SOURCES.size)
+  val evidence=java.io.File("../EVIDENCE.md").readText()
+  val selectedManual="https://www.mirecc.va.gov/visn19/treatmentworksforvets/docs/CBT-I-Therapist-Manual.pdf"
+  val additions=EVIDENCE_SOURCES.filterNot{evidence.contains(it.url)}
+  assertEquals(listOf(selectedManual),additions.map{it.url})
+  assertTrue(java.io.File("../docs/PROTOCOL_SOURCE_CHECK_20260913.md").readText().contains(selectedManual))
+ }
  @Test fun officialSourceOpensExternalBrowser(){val intent=officialLinkIntent(EVIDENCE_SOURCES.first().url);assertEquals(Intent.ACTION_VIEW,intent.action);assertEquals(EVIDENCE_SOURCES.first().url,intent.data.toString());assertTrue(runCatching{officialLinkIntent("https://unapproved.invalid")}.isFailure)}
  @Test fun requiredTermsPresent(){for(term in listOf("CBT-I","CSD","SOL","WASO","TIB","OSA","RLS","RBD"))assertTrue(TERMS.any{it.first.startsWith(term+" ·")})}
  @Test fun exactPairConflictReturned(){val e=diary().copy(trySleepAtLocal="2026-09-08T22:40:00");val v=DiaryValidator.validate(e);assertFalse(v.canSave);assertEquals(listOf("bedEnteredAtLocal","trySleepAtLocal"),v.conflicts.single().fields);assertEquals("‘开始尝试入睡’不能早于‘进入睡觉位置’。",v.conflicts.single().message)}

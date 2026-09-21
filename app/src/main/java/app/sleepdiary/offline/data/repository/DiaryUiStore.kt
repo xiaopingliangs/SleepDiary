@@ -16,8 +16,8 @@ interface DiaryUiStore {
     suspend fun acknowledgeExplanation()
 }
 
-class RoomDiaryUiStore(private val db:SleepDiaryDatabase):DiaryUiStore {
-    private val repository=DiaryRepository(db)
+class RoomDiaryUiStore(private val db:SleepDiaryDatabase, clock: java.time.Clock = java.time.Clock.systemDefaultZone()):DiaryUiStore {
+    private val repository=DiaryRepository(db, clock)
     override suspend fun entries() = db.diaryDao().all()
     override suspend fun state() = db.stateAndSummaryDao().state() ?: AppState()
     override suspend fun save(entry:SleepDiaryEntry,confirmed:Boolean)=repository.save(entry,confirmed)

@@ -86,15 +86,15 @@ class WorkspaceModel(private val repository: WorkspaceRepository, private val sa
     }
 }
 
-@Composable fun WorkspaceScreen(repository: WorkspaceRepository?, onBack: () -> Unit) {
-    if (repository == null) { SimplePage("个人记录") { Action("返回设置", onBack); Text("当前无法读取个人记录。") }; return }
+@Composable fun WorkspaceScreen(repository: WorkspaceRepository?, backLabel: String = "返回设置", onBack: () -> Unit) {
+    if (repository == null) { SimplePage("个人记录") { Action(backLabel, onBack); Text("当前无法读取个人记录。") }; return }
     val model: WorkspaceModel = viewModel(factory = viewModelFactory { initializer { WorkspaceModel(repository, createSavedStateHandle()) } })
     var discard by remember { mutableStateOf(false) }
     fun leaveEditor() { if(model.dirty) discard = true else model.closeEditor() }
     BackHandler(enabled = model.busy || model.draft != null) { if(!model.busy) leaveEditor() }
     val draft = model.draft
     SimplePage(if(draft == null) "个人记录" else WorkspaceKind.entries.firstOrNull { it.name == draft.kind }?.label ?: "个人记录") {
-        Action(if(draft == null) "返回设置" else "返回记录列表", { if(draft == null) onBack() else leaveEditor() }, !model.busy)
+        Action(if(draft == null) backLabel else "返回记录列表", { if(draft == null) onBack() else leaveEditor() }, !model.busy)
         model.message?.let { Text(it, modifier = Modifier.testTag("workspace_message")) }
         if (model.busy) Text("正在处理…")
         if (draft == null) {
