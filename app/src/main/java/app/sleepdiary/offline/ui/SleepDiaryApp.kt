@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.*
 import app.sleepdiary.offline.ui.diary.*
 import app.sleepdiary.offline.domain.model.*
+import app.sleepdiary.offline.domain.weekly.RecentAverageCalculator
 import app.sleepdiary.offline.share.DiaryShare
 import kotlinx.coroutines.*
 import java.time.LocalDate
@@ -56,7 +57,7 @@ const val FIRST_SAVE_EXPLANATION="为了让记录尽量简单，也减少对单�
      safety?.answers?.forEach{a->Text((SAFETY_QUESTIONS.firstOrNull{it.id==a.questionId}?.text?:"S07b 控制情况")+"\n"+safetyAnswerLabel(a.answerCode)+(a.detailJson?.let{"\n"+safetyDetailLabel(it)}?:""))}
      Action("继续记录睡眠",model::continueDiary)
     }
-    HomePage.TODAY->SimplePage("今天的睡眠记录已经完成"){Text("为减少对单个夜晚数据的反复关注，通常不需要再次查看今天的记录。");Action("退出",onExit);OutlinedButton(onClick=model::editToday,modifier=Modifier.heightIn(min=48.dp)){Text("继续查看")};Action("查看历史记录",{nav.navigate("history")});Action("设置",{nav.navigate("settings")})}
+    HomePage.TODAY->TodayScreen(state,onExit,model::editToday,{nav.navigate("history")},{nav.navigate("settings")})
     HomePage.FORM->DiaryScreen(state,model::answerTime,model::answerNumber,model::comment,model::save,model::dismissWarning,{nav.navigate("settings")})
     HomePage.SUCCESS->{BackHandler{model.exitAfterSuccess(onExit)};SimplePage(if(state.firstSuccess)"记录已保存"else"数据已保存成功"){if(state.firstSuccess)Text(FIRST_SAVE_EXPLANATION);state.message?.let{Text(it)};Action("退出",{model.exitAfterSuccess(onExit)},!state.busy&&!busy);Action("分享并退出",::share,!state.busy&&!busy)}}
     HomePage.WEEKLY->{BackHandler{model.exitAfterSuccess(onExit)};SimplePage("过去 7 天"){
@@ -111,5 +112,34 @@ const val FIRST_SAVE_EXPLANATION="为了让记录尽量简单，也减少对单�
 }
 @Composable fun SimplePage(title:String,content:@Composable ColumnScope.()->Unit){Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){Text(title,style=MaterialTheme.typography.headlineSmall);content()}}
 @Composable fun Action(label:String,action:()->Unit,enabled:Boolean=true){Button(onClick=action,enabled=enabled,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)){Text(label)}}
+
+@Composable fun TodayScreen(state:DiaryUiState,onExit:()->Unit,onEdit:()->Unit,onHistory:()->Unit,onSettings:()->Unit) {
+ var showAverages by rememberSaveable{mutableStateOf(false)}
+ var selectedDays by rememberSaveable{mutableIntStateOf(7)}
+ val today=state.today?.sleepDate?.let(LocalDate::parse)
+ val averages=remember(state.entries,today,selectedDays){today?.let{RecentAverageCalculator.calculate(it,selectedDays,state.entries)}}
+ SimplePage("今天的睡眠记录已经完成") {
+  Text("为减少对单个夜晚数据的反复关注，通常不需要再次查看今天的记录。")
+  OutlinedButton(onClick={showAverages=!showAverages},modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)){Text(if(showAverages)"收起最近平均数据" else "查看最近平均数据")}
+  if(showAverages) {
+   Text("最近平均数据",style=MaterialTheme.typography.titleMedium)
+   Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+    FilterChip(selected=selectedDays==7,onClick={selectedDays=7},label={Text("最近 7 天")},modifier=Modifier.heightIn(min=48.dp))
+    FilterChip(selected=selectedDays==14,onClick={selectedDays=14},label={Text("最近 14 天")},modifier=Modifier.heightIn(min=48.dp))
+   }
+   averages?.let { value ->
+    Text("有记录的天数：${value.validEntryCount} / $selectedDays")
+    val labels=listOf("平均估计入睡耗时（分钟）","平均夜醒次数","平均夜间清醒总时长（分钟）","平均最后醒来到离床时长（分钟）","平均在睡觉位置总时长 TIB（分钟，不等于睡眠时长）","平均主观睡眠质量（1很差 — 5很好）")
+    val means=listOf(value.avgSolMin,value.avgAwakeningCount,value.avgWasoMin,value.avgTerminalWakefulnessMin,value.avgTibMin,value.avgSleepQuality)
+    labels.zip(means).forEach{(label,mean)->Text(label+"："+(mean?.let{String.format(Locale.ROOT,"%.1f",it)}?:"无记录"))}
+   }
+   Text("按今天向前计算；没有记录的日期不会按 0 计算。这只是已有主观记录的实时平均，不是睡眠评分或治疗指标。",style=MaterialTheme.typography.bodySmall)
+  }
+  Action("退出",onExit)
+  OutlinedButton(onClick=onEdit,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)){Text("继续查看")}
+  Action("查看历史记录",onHistory)
+  Action("设置",onSettings)
+ }
+}
 fun safetyAnswerLabel(code:String)=mapOf("YES" to "是","NO" to "否","UNSURE" to "不确定","NOT_APPLICABLE" to "不适用","NONE" to "没有／以上都没有","FLAGS_PRESENT" to "已选择具体提示","STABLE" to "目前控制稳定","UNSTABLE" to "近期仍有发作或控制不稳定","OCCASIONAL" to "偶尔","FREQUENT" to "经常","DANGER_OCCURRED" to "曾因此出现危险","SAFE" to "安全","POSSIBLY_UNSAFE" to "可能不安全")[code]?:code
 fun safetyDetailLabel(json:String):String {val o=org.json.JSONObject(json);val names=S10_CHOICES.toMap()+mapOf("LOUD_SNORING" to "经常大声打鼾","WITNESSED_APNEA" to "睡眠中被别人发现暂停呼吸","GASPING_AWAKENING" to "经常憋醒或喘醒","DIAGNOSED_OSA" to "医生已诊断 OSA");val a=o.optJSONArray("selectedCodes")?:o.optJSONArray("diagnoses")?:org.json.JSONArray();return (0 until a.length()).joinToString("、"){names[a.getString(it)]?:a.getString(it)}+o.optString("otherText","")}

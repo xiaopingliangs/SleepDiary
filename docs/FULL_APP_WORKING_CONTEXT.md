@@ -1,6 +1,6 @@
 # Full App Working Context
 
-2026-09-22：Phase 0 已提交 `b2952b7`；Phase 1 实现和验证完成，等待本阶段提交。App/SPEC 0.2.2、Room 6、BACKUP_3.0、TREATMENT_DATA_1.0、CBT-I Protocol NONE。
+2026-09-22：Phase 0 已提交 `b2952b7`；Phase 1 已提交 `2cc541e`。随后按用户要求完成独立首页增量：今天已有记录后再次进入应用时，可按需查看实时最近 7/14 天中性平均；缺失日不计 0，不含 TST/SE/治疗判断，不改 Room、Backup、规格或协议。完整 388 项测试通过，APK SHA-256 `81dbdf77d1ca3928d115cf15b2c9575ae0ab6cfb6b8f73efd1f0a870dbdcac02`，日志 `work/recent-averages-20260922.log`；可用 `git log -1 -- app/src/main/java/app/sleepdiary/offline/domain/weekly/RecentAverageCalculator.kt` 定位提交。App/SPEC 0.2.2、Room 6、BACKUP_3.0、TREATMENT_DATA_1.0、CBT-I Protocol NONE。
 
 用户要求原文保存在 FULL_APP_IMPLEMENTATION_BRIEF.md。目标是完整治疗闭环，不是再交付六条教育说明。Phase 0 产物：FULL_APP_GAP_ANALYSIS、FULL_APP_STATE_MACHINE、FULL_APP_DATA_CONTRACT、FULL_APP_REQUIREMENTS_MATRIX（REQ 00–48），FULL_APP_ARCHITECTURE 已增加当前执行合同。
 

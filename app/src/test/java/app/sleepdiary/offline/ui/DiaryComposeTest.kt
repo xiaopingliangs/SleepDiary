@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import app.sleepdiary.offline.ui.diary.*
 import app.sleepdiary.offline.ui.theme.SleepDiaryTheme
+import app.sleepdiary.offline.diary
 import org.junit.*
 import org.junit.Assert.*
 import org.junit.runner.RunWith
@@ -119,6 +120,16 @@ class DiaryComposeTest {
             compose.onNodeWithTag("diary_fields").performScrollToIndex(field.ordinal)
             listOf("TST","SE","总睡眠时长","总睡眠时间","睡眠评分").forEach {compose.onAllNodesWithText(it,substring=true).assertCountEquals(0)}
         }
+    }
+    @Test fun todayScreenLetsUserChooseLiveSevenOrFourteenDayAverages() {
+        val today=diary("2026-09-22")
+        compose.setContent {SleepDiaryTheme {TodayScreen(DiaryUiState(form(),page=HomePage.TODAY,entries=listOf(today),today=today),{},{},{},{})}}
+        compose.onNodeWithText("查看最近平均数据").performClick()
+        compose.onNodeWithText("有记录的天数：1 / 7").assertIsDisplayed()
+        compose.onNodeWithText("最近 14 天").performClick()
+        compose.onNodeWithText("有记录的天数：1 / 14").assertIsDisplayed()
+        compose.onAllNodesWithText("TST",substring=true).assertCountEquals(0)
+        compose.onAllNodesWithText("SE",substring=true).assertCountEquals(0)
     }
     @Test fun lightModeRenders() {screen();compose.onNodeWithTag("save_diary").assertIsDisplayed();capture("light")}
     @Test fun darkModeRenders() {screen(dark=true);compose.onNodeWithTag("time_BED").assertIsDisplayed();capture("dark")}

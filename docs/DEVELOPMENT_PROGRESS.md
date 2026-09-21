@@ -1,6 +1,16 @@
 # 开发进度与中断恢复入口
 
-更新时间：2026-09-21。本文件记录实际进度，不替代冻结规格。
+更新时间：2026-09-22。本文件记录实际进度，不替代冻结规格。
+
+## 2026-09-22 当天再次进入首页的最近平均数据
+
+在既有 `TODAY` 首页增加按需展开的“最近平均数据”，用户可选最近 7 天或 14 天。窗口以当天为结束日按日历日期实时筛选已有 `SleepDiaryEntry`；缺失日期不按 0 计算，展示与既有中性周总结一致的 SOL、夜醒次数、WASO、最后醒来到离床、TIB 和主观质量平均值，不增加 TST、SE、评分或治疗判断。
+
+保存完成后的当前会话仍停留在成功/周总结页；只有今天已有记录后再次进入应用才会进入 `TODAY`，因此没有新增启动次数、Room 或备份字段。日记、Safety、Weekly、Backup、CBT-I Protocol 和冻结规格均未改变。
+
+新增 5 项纯计算测试和 1 项首页选择测试。完整 `testDebugUnitTest`：388 项，0 failure/error/skipped；`assembleDebug`、`assembleDebugAndroidTest` 均通过，日志 `work/recent-averages-20260922.log`。合并 Manifest 无 INTERNET、ACCESS_NETWORK_STATE、MANAGE_EXTERNAL_STORAGE。
+
+APK：`D:/Projects/SleepDiary/app/build/outputs/apk/debug/app-debug.apk`，10,991,498 字节；SHA-256：`81dbdf77d1ca3928d115cf15b2c9575ae0ab6cfb6b8f73efd1f0a870dbdcac02`。未执行本轮真机交互验证。独立未跟踪 `meditation/` 未修改、未暂存。
 
 ## 2026-09-22 Full App Phase 0 工程合同
 
