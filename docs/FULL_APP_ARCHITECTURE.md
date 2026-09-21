@@ -1,5 +1,23 @@
 # SleepDiary 完整版架构总览
 
+## 当前执行合同：ARCH-FULL-0.2 / 2026-09-22
+
+当前实现基点为 `f6a815f`（代码 `a122460`）：App / SPEC 0.2.2、Room 5、BACKUP_2.1、CBT-I Protocol NONE。用户最新的 [完整实施 Brief](FULL_APP_IMPLEMENTATION_BRIEF.md) 已授权按 Phase 0–12 持续推进，因此下方历史 ARCH-FULL-0.1 中的 Room 2、BACKUP_1.1 及“文档后停止”仅代表 2026-09-11 当时状态，不再描述当前工程。
+
+当前工程合同由 [差距分析](FULL_APP_GAP_ANALYSIS.md)、[状态机](FULL_APP_STATE_MACHINE.md)、[数据合同](FULL_APP_DATA_CONTRACT.md)、[需求矩阵](FULL_APP_REQUIREMENTS_MATRIX.md) 和 [中断恢复入口](FULL_APP_WORKING_CONTEXT.md) 组成。它们覆盖下方同主题历史提议，但不改变根目录冻结的日记、安全和中性周报语义，也不把工程设计当成医学审核。
+
+完整版保持四个相互隔离的平面：Data Plane 保存原始与不可变业务事实；Treatment Control Plane 执行 Baseline → Metrics → Safety/Exception → Protocol Candidate → Preview/Confirmation → Transactional Commit；Education Plane 只影响学习呈现；External Bridge Plane 只提供用户主动选择的医生或外部 AI 出口。Education、External AI 和未来 Research 都没有治疗状态写权限。
+
+状态使用 Brief 指定的 17 个持久状态，TreatmentMode 独立；安全限制集合、本机执行有效性和用户暂停意愿不能被单一枚举覆盖。所有状态写入由同一控制器完成。日记始终可用，未成年人只被排除在成人治疗算法之外，不删除其既有本地日记能力。
+
+VA Manber 2014 是唯一 PROTOCOL_PRIMARY，VA/DoD 2025 负责安全覆盖，AASM 2021 只负责证据验证，中国来源只作语言和本地情境交叉核对。未明确的有效日、治疗指标、Safety/Exception 映射、恢复条件和时间语义标为 MEDICAL_RULE_BLOCKED，只阻断对应自动路径。SNQ 不复制或重构；依赖它的自助周调整保持权利门控。
+
+首次新增治疗业务数据时采用显式 Room 5→6 和 BACKUP_3.0；之后新增持久集合时继续明确升级，不能等到 Phase 11 才保护已保存数据。激活后的计划业务字段不可变；状态变化使用追加事件与 episode 当前指针。旧备份恢复保留历史但刷新本机恢复代次，不能授予执行权限。
+
+Phase 0 已形成差距、状态、数据及 00–48 需求矩阵，未启用治疗、未修改 Android 代码或冻结根规格。V4 源文件尚未在已检查位置找到，因此原生 V4 集成保持 SOURCE_NOT_AVAILABLE；现有六条学习短文不能冒充 V4。下一步自动进入 Phase 1：持久 episode/audit、非处方状态控制器和不可变 plan 领域骨架，并同步完整备份。
+
+## 历史 ARCH-FULL-0.1（保留审计；同主题以上述当前合同为准）
+
 架构草案：`ARCH-FULL-0.1`，2026-09-11。用途：后续分阶段实施的工程设计，不是已批准的医学操作规程，不取代根目录冻结规格。
 
 当前运行版本仍为 SPEC-0.1.2 / App 0.1.0 / DIARY_1.0 / SAFETY_1.0 / SAFETY_RULE_1.0 / WEEKLY_1.0 / BACKUP_1.1 / CBT-I Protocol = NONE / Room 2。本轮只新增规划文档，不启用治疗，不改版本、数据库、APK 或冻结文件哈希。
