@@ -28,7 +28,8 @@ android {
             "WEEKLY_RULE" to "weeklySummaryRuleVersion",
             "BACKUP_FORMAT" to "backupFormatVersion",
             "CBTI_PROTOCOL" to "cbtiProtocolVersion",
-            "WORKSPACE_SCHEMA" to "workspaceSchemaVersion"
+            "WORKSPACE_SCHEMA" to "workspaceSchemaVersion",
+            "TREATMENT_DATA_SCHEMA" to "treatmentDataSchemaVersion"
         ).forEach { (field, key) ->
             buildConfigField("String", field, "\"" + domainVersions.getProperty(key) + "\"")
         }

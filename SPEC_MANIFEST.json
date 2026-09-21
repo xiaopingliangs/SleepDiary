@@ -46,8 +46,8 @@
     },
     {
       "path": "SELF_CHECK.json",
-      "sha256": "0e318fa65f0579d3d221c1735817fbaed792f0d3c45bb6f82ef7f5b5a42f109f",
-      "bytes": 2221
+      "sha256": "e501499900d8b460babe7115c841f2a61526ca4851c2f8d5c372d90ce3175b79",
+      "bytes": 1661
     },
     {
       "path": "TEST_PLAN.md",
@@ -123,6 +123,61 @@
       "path": "docs/LOCAL_EXECUTION_INCREMENT.md",
       "sha256": "66c3cec7724a21dec1eb6d7b56a88cc56c648d7733c749ae8c0b584d608f2f91",
       "bytes": 1829
+    },
+    {
+      "path": "version.properties",
+      "sha256": "2cdf618b42fd141f62c6bb90a7d787e6ac73aa547548463ce2c08e5852e25842",
+      "bytes": 309
+    },
+    {
+      "path": "docs/FULL_APP_IMPLEMENTATION_BRIEF.md",
+      "sha256": "97611ec9c886bbd6511f7606d3d47a5399ab651713e411f32e432590d136ab04",
+      "bytes": 28944
+    },
+    {
+      "path": "docs/FULL_APP_ARCHITECTURE.md",
+      "sha256": "32746178e335ae4bbee2e367caee8d9a93898d3f7b248da09d23b436daea39af",
+      "bytes": 17609
+    },
+    {
+      "path": "docs/FULL_APP_GAP_ANALYSIS.md",
+      "sha256": "335f7261bf2227925144cc1e3eb244b580d2d0a16f811e5eee49ee227ae646d8",
+      "bytes": 7872
+    },
+    {
+      "path": "docs/FULL_APP_STATE_MACHINE.md",
+      "sha256": "35425e17fd41574b24ee3eff206b18359cb999f0acc0f98991927431045b1910",
+      "bytes": 5480
+    },
+    {
+      "path": "docs/FULL_APP_DATA_CONTRACT.md",
+      "sha256": "23454b1d09e31c39a7930876ffa4ba83f104ece96dad40f04456baacbfb9ebd6",
+      "bytes": 6879
+    },
+    {
+      "path": "docs/FULL_APP_REQUIREMENTS_MATRIX.md",
+      "sha256": "fc957afb83b1fc8a89587ca0b3909f37399ebe038bfbe5de22dfa54a17934847",
+      "bytes": 8178
+    },
+    {
+      "path": "docs/FULL_APP_WORKING_CONTEXT.md",
+      "sha256": "1e1eb7e91055defe0028198e2caf60883f994e032288be422e2dfa6ed29e607a",
+      "bytes": 2240
+    },
+    {
+      "path": "docs/FULL_APP_PHASE1_REPORT.md",
+      "sha256": "cd2f0635ef91c3c146ea4c51e8e8c2d5dddc55dc95de81e40f6f2916db281000",
+      "bytes": 2320
+    },
+    {
+      "path": "schemas/backup-v3.schema.json",
+      "sha256": "eedea3a910eeacfead0c8faccb0dac100e1519b9a5949cad04673736077606a3",
+      "bytes": 30881
+    },
+    {
+      "path": "samples/backup-v3.example.json",
+      "sha256": "b3c2cf7a2c56f6d7003c4d7353c330fedf5aac3200cb8719b4e097cd6abf5555",
+      "bytes": 3326
     }
   ]
 }

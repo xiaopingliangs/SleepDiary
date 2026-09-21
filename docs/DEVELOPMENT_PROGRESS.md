@@ -10,6 +10,12 @@
 
 下一步自动进入 Phase 1：episode / audit、非处方状态控制器和 plan 领域骨架；新增业务同步进入 BACKUP_3.0，使用无损 Room 5→6。Phase 0 是文档阶段，不重复执行旧 Android 测试，也不把历史 369 项作为本阶段新结果。中断恢复见 `FULL_APP_WORKING_CONTEXT.md`，提交可用 `git log -1 -- docs/FULL_APP_GAP_ANALYSIS.md` 定位。
 
+## 2026-09-22 Full App Phase 1 数据与状态基础
+
+Phase 0提交 `b2952b7`。Phase 1新增TreatmentEpisode/Audit、唯一状态控制器、不可变TreatmentPlan领域骨架、Room 5→6和BACKUP_3.0。只开放非处方基线/暂停转换；所有Safety放行、窗口、计划和周调整转换返回MEDICAL_RULE_BLOCKED。Protocol保持NONE。
+
+完整382项0失败，assembleDebug/assembleDebugAndroidTest通过；Room6导出10表，Manifest无三项禁止权限。日志`work/full-app-phase1-20260922.log`；APK SHA-256 `b0252ae7cf88d639c56211a8a202ce42a48b4981eacfcc664685150bb42dd09c`。未执行真机。详细见FULL_APP_PHASE1_REPORT.md；下一步Phase2，缺失医学定义继续门控。
+
 ## 最新完成检查点：2026-09-21 学习入口与完整工程汇报
 
 代码提交 a1224608e1959ff3bfbd6655880fdf73be0c600a。已实现设置中的六条睡眠学习内容、来源页码、主动官方链接、返回原学习页的个人记录入口；读取不写库、不推进治疗，笔记保存/编辑/完整备份恢复和分享隔离通过。详见 ENGINEERING_REPORT_20260921.md 与 LEARNING_INCREMENT_20260915.md。

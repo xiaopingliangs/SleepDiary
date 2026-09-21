@@ -61,7 +61,7 @@ class PersistentActivationCheckTest {
     }
     @Test fun everySupportedFormatRotatesGenerationWithoutAcceptingFileAuthority()=runBlocking {
         val generations=mutableSetOf(local.current().restoreGeneration)
-        for(v in listOf("v1","v1.1","v2","v2.1")) {
+        for(v in listOf("v1","v1.1","v2","v2.1","v3")) {
             backup.restore(File("../samples/backup-$v.example.json").readText())
             assertTrue(generations.add(local.current().restoreGeneration))
             assertEquals("REQUIRES_REVIEW",local.current().activationStatus)

@@ -26,7 +26,8 @@ Mode 独立：SELF_GUIDED / CLINICIAN_ASSISTED，由用户明确选择，缺失�
 | PLAN_ADJUSTMENT_PENDING | 用户确认 | ACTIVE_TREATMENT 或 ACTIVE_ADAPTED | 新不可变 plan revision 原子提交，不改旧 plan |
 | 未完成 episode | 用户暂停 | USER_PAUSED | 明确动作；保留计划史和所有安全约束；不能以暂停清除 hold |
 | 任一未完成 episode | 保存安全决策 | SAFETY_HOLD / MEDICAL_HOLD / CLINICIAN_REVIEW / ACTIVE_ADAPTED | 精确版本规则；URGENT_HELP 是优先行动并保持不可执行，不是疾病分级 |
-| USER_PAUSED/SAFETY_HOLD/MEDICAL_HOLD/CLINICIAN_REVIEW | 请求恢复 | SAFETY_REVIEW | 仅提出重评，不能清空原约束或恢复旧窗口；规则缺失则维持不可执行 |
+| USER_PAUSED | 请求恢复 | 暂停前的 BASELINE_COLLECTING / BASELINE_REVIEW，或 SAFETY_REVIEW | Phase 1 仅恢复两个基线状态；进入过治疗/安全流程后必须回到 SAFETY_REVIEW，不能恢复旧窗口 |
+| SAFETY_HOLD/MEDICAL_HOLD/CLINICIAN_REVIEW | 请求恢复 | SAFETY_REVIEW | 仅提出重评，不能清空原约束或恢复旧窗口；规则缺失则维持不可执行 |
 | review 完成 | 进入维持 | MAINTENANCE | 已采用的进入条件 + 明确个人维持计划；不按日期/阅读次数自动触发 |
 | MAINTENANCE | 明确结束 | COMPLETED | 结束合同及用户确认；无“治愈”判断 |
 | COMPLETED | 再次请求帮助 | RELAPSE_REVIEW（新 episode） | 旧 episode 不变，新评估/新权限；不用旧窗口默认值 |

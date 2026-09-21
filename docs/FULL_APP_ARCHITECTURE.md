@@ -14,7 +14,7 @@ VA Manber 2014 是唯一 PROTOCOL_PRIMARY，VA/DoD 2025 负责安全覆盖，AAS
 
 首次新增治疗业务数据时采用显式 Room 5→6 和 BACKUP_3.0；之后新增持久集合时继续明确升级，不能等到 Phase 11 才保护已保存数据。激活后的计划业务字段不可变；状态变化使用追加事件与 episode 当前指针。旧备份恢复保留历史但刷新本机恢复代次，不能授予执行权限。
 
-Phase 0 已形成差距、状态、数据及 00–48 需求矩阵，未启用治疗、未修改 Android 代码或冻结根规格。V4 源文件尚未在已检查位置找到，因此原生 V4 集成保持 SOURCE_NOT_AVAILABLE；现有六条学习短文不能冒充 V4。下一步自动进入 Phase 1：持久 episode/audit、非处方状态控制器和不可变 plan 领域骨架，并同步完整备份。
+Phase 0 已提交。Phase 1 已实现持久 episode/audit、非处方状态控制器、不可变 plan 领域骨架、Room 6 和 BACKUP_3.0；所有医疗转换仍失败关闭，详见 [Phase 1报告](FULL_APP_PHASE1_REPORT.md)。V4 原生集成继续 SOURCE_NOT_AVAILABLE；现有六条学习短文不能冒充 V4。下一步 Phase 2 只在来源明确处实现治疗指标和基线，其余保留 MEDICAL_RULE_BLOCKED。
 
 ## 历史 ARCH-FULL-0.1（保留审计；同主题以上述当前合同为准）
 

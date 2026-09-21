@@ -16,9 +16,13 @@ internal fun JSONArray.objects()=(0 until length()).map{getJSONObject(it)}
 internal fun JSONArray.strings()=(0 until length()).map{getString(it)}
 internal fun obj(vararg pairs:Pair<String,Any?>)=JSONObject().apply{pairs.forEach{put(it.first,it.second?:JSONObject.NULL)}}
 
-data class BackupData(val entries:List<SleepDiaryEntry>,val assessments:List<AssessmentWithAnswers>,val summaries:List<WeeklySummarySnapshot>,val state:AppState,val workspaceRecords:List<WorkspaceRecord> = emptyList(),val inputSnapshots:List<InputSnapshot> = emptyList())
+data class BackupData(val entries:List<SleepDiaryEntry>,val assessments:List<AssessmentWithAnswers>,val summaries:List<WeeklySummarySnapshot>,val state:AppState,val workspaceRecords:List<WorkspaceRecord> = emptyList(),val inputSnapshots:List<InputSnapshot> = emptyList(),val treatmentEpisodes:List<TreatmentEpisode> = emptyList(),val treatmentAuditEvents:List<TreatmentAuditEvent> = emptyList())
 
 object BackupCodec {
+ fun treatmentEpisodeJson(e:TreatmentEpisode)=obj("id" to e.id,"mode" to e.mode,"state" to e.state,"pausedFromState" to e.pausedFromState,"adultScopeConfirmed" to e.adultScopeConfirmed,"protocolVersion" to e.protocolVersion,"metricsVersion" to e.metricsVersion,"treatmentSafetyRuleVersion" to e.treatmentSafetyRuleVersion,"exceptionRuleVersion" to e.exceptionRuleVersion,"currentPlanId" to e.currentPlanId,"startedAtUtc" to e.startedAtUtc,"createdAtUtc" to e.createdAtUtc,"updatedAtUtc" to e.updatedAtUtc,"completedAtUtc" to e.completedAtUtc,"revision" to e.revision,"treatmentDataSchemaVersion" to e.treatmentDataSchemaVersion)
+ fun treatmentEpisode(o:JSONObject)=TreatmentEpisode(o.getString("id"),o.getString("mode"),o.getString("state"),o.textOrNull("pausedFromState"),o.getBoolean("adultScopeConfirmed"),o.getString("protocolVersion"),o.getString("metricsVersion"),o.getString("treatmentSafetyRuleVersion"),o.getString("exceptionRuleVersion"),o.textOrNull("currentPlanId"),o.getString("startedAtUtc"),o.getString("createdAtUtc"),o.getString("updatedAtUtc"),o.textOrNull("completedAtUtc"),o.getInt("revision"),o.getString("treatmentDataSchemaVersion"))
+ fun treatmentAuditJson(e:TreatmentAuditEvent)=obj("id" to e.id,"episodeId" to e.episodeId,"commandType" to e.commandType,"requestFingerprint" to e.requestFingerprint,"fromState" to e.fromState,"toState" to e.toState,"fromRevision" to e.fromRevision,"toRevision" to e.toRevision,"occurredAtUtc" to e.occurredAtUtc,"restoreGenerationAtCommand" to e.restoreGenerationAtCommand,"treatmentDataSchemaVersion" to e.treatmentDataSchemaVersion)
+ fun treatmentAudit(o:JSONObject)=TreatmentAuditEvent(o.getString("id"),o.getString("episodeId"),o.getString("commandType"),o.getString("requestFingerprint"),o.textOrNull("fromState"),o.getString("toState"),o.getInt("fromRevision"),o.getInt("toRevision"),o.getString("occurredAtUtc"),o.getString("restoreGenerationAtCommand"),o.getString("treatmentDataSchemaVersion"))
  fun inputSnapshotJson(s:InputSnapshot)=obj("id" to s.id,"capturedAtUtc" to s.capturedAtUtc,"fromDate" to s.fromDate,"throughDate" to s.throughDate,"captureVersion" to s.captureVersion,"payloadBase64" to s.payloadBase64,"contentHash" to s.contentHash)
  fun inputSnapshot(o:JSONObject)=InputSnapshot(o.getString("id"),o.getString("capturedAtUtc"),o.getString("fromDate"),o.getString("throughDate"),o.getString("captureVersion"),o.getString("payloadBase64"),o.getString("contentHash"))
 
@@ -49,12 +53,15 @@ object BackupCodec {
    "weeklySummaries" to JSONArray(data.summaries.sortedWith(compareBy({it.periodIndex},{it.revision})).map {v->obj("id" to v.id,"periodIndex" to v.periodIndex,"periodStartDate" to v.periodStartDate,"periodEndDate" to v.periodEndDate,"validEntryCount" to v.validEntryCount,"avgSolMin" to v.avgSolMin,"avgAwakeningCount" to v.avgAwakeningCount,"avgWasoMin" to v.avgWasoMin,"avgTerminalWakefulnessMin" to v.avgTerminalWakefulnessMin,"avgTibMin" to v.avgTibMin,"avgSleepQuality" to v.avgSleepQuality,"sourceEntryIds" to JSONArray(v.sourceEntryIdsJson),"diarySchemaVersion" to v.diarySchemaVersion,"weeklySummaryRuleVersion" to v.weeklySummaryRuleVersion,"generatedAtUtc" to v.generatedAtUtc,"revision" to v.revision,"isCurrent" to v.isCurrent,"supersedesSummaryId" to v.supersedesSummaryId)}),
    "trackingState" to obj("trackingStartDate" to s.trackingStartDate,"hasSeenMinimalInteractionExplanation" to s.hasSeenMinimalInteractionExplanation,"hasSeenSharePrivacyNotice" to s.hasSeenSharePrivacyNotice,"lastDisplayedWeeklyPeriodIndex" to s.lastDisplayedWeeklyPeriodIndex,"currentSafetyAssessmentId" to s.currentSafetyAssessmentId,"hasCompletedOnboarding" to s.hasCompletedOnboarding),
    "inputSnapshots" to JSONArray(data.inputSnapshots.sortedBy{it.id}.map(::inputSnapshotJson)),
-   "workspaceSchemaVersion" to Versions.WORKSPACE_SCHEMA,"workspaceRecords" to JSONArray(data.workspaceRecords.sortedBy{it.id}.map(::workspaceJson)))
+   "workspaceSchemaVersion" to Versions.WORKSPACE_SCHEMA,"workspaceRecords" to JSONArray(data.workspaceRecords.sortedBy{it.id}.map(::workspaceJson)),
+   "treatmentDataSchemaVersion" to Versions.TREATMENT_DATA_SCHEMA,
+   "treatmentEpisodes" to JSONArray(data.treatmentEpisodes.sortedBy{it.id}.map(::treatmentEpisodeJson)),
+   "treatmentAuditEvents" to JSONArray(data.treatmentAuditEvents.sortedWith(compareBy({it.episodeId},{it.toRevision})).map(::treatmentAuditJson)))
  }
  fun decode(o:JSONObject):BackupData {
   val format=o.getString("exportFormatVersion")
-  require(format in setOf(Versions.BACKUP_FORMAT,Versions.LEGACY_BACKUP_2_0,Versions.LEGACY_BACKUP_1_1,Versions.LEGACY_BACKUP_FORMAT))
-  val records=if(format in setOf(Versions.BACKUP_FORMAT,Versions.LEGACY_BACKUP_2_0)){
+  require(format in setOf(Versions.BACKUP_FORMAT,Versions.LEGACY_BACKUP_2_1,Versions.LEGACY_BACKUP_2_0,Versions.LEGACY_BACKUP_1_1,Versions.LEGACY_BACKUP_FORMAT))
+  val records=if(format in setOf(Versions.BACKUP_FORMAT,Versions.LEGACY_BACKUP_2_1,Versions.LEGACY_BACKUP_2_0)){
    require(o.getString("workspaceSchemaVersion")==Versions.WORKSPACE_SCHEMA)
    o.getJSONArray("workspaceRecords").objects().map(::workspace)
   }else{require(!o.has("workspaceRecords")&&!o.has("workspaceSchemaVersion"));emptyList()}
@@ -64,11 +71,37 @@ object BackupCodec {
     AssessmentWithAnswers(SafetyAssessment(id,a.getString("answeredAtUtc"),a.getString("safetySchemaVersion"),SafetyGate.valueOf(a.getString("derivedGate")),a.getString("safetyRuleVersion"),AssessmentStatus.valueOf(a.getString("status")),a.getBoolean("isCurrent")),a.getJSONArray("answers").objects().map {x->SafetyAnswer(id,x.getString("questionId"),x.getString("answerCode"),x.getString("safetySchemaVersion"),if(x.isNull("detailJson"))null else x.getJSONObject("detailJson").toString()).let {if(it.questionId=="S09")S09Codec.canonicalize(it) else it}})
    },o.getJSONArray("weeklySummaries").objects().map {v->WeeklySummarySnapshot(v.getString("id"),v.getInt("periodIndex"),v.getString("periodStartDate"),v.getString("periodEndDate"),v.getInt("validEntryCount"),v.doubleOrNull("avgSolMin"),v.doubleOrNull("avgAwakeningCount"),v.doubleOrNull("avgWasoMin"),v.doubleOrNull("avgTerminalWakefulnessMin"),v.doubleOrNull("avgTibMin"),v.doubleOrNull("avgSleepQuality"),v.getJSONArray("sourceEntryIds").toString(),v.getString("diarySchemaVersion"),v.getString("weeklySummaryRuleVersion"),v.getString("generatedAtUtc"),v.getInt("revision"),v.getBoolean("isCurrent"),v.textOrNull("supersedesSummaryId"))},
    AppState(trackingStartDate=s.textOrNull("trackingStartDate"),hasSeenMinimalInteractionExplanation=s.getBoolean("hasSeenMinimalInteractionExplanation"),hasSeenSharePrivacyNotice=s.getBoolean("hasSeenSharePrivacyNotice"),lastDisplayedWeeklyPeriodIndex=s.getInt("lastDisplayedWeeklyPeriodIndex"),currentSafetyAssessmentId=s.textOrNull("currentSafetyAssessmentId"),hasCompletedOnboarding=if(o.getString("exportFormatVersion")==Versions.LEGACY_BACKUP_FORMAT)false else s.getBoolean("hasCompletedOnboarding")))
-  val snapshots=if(format==Versions.BACKUP_FORMAT)o.getJSONArray("inputSnapshots").objects().map(::inputSnapshot) else { require(!o.has("inputSnapshots"));emptyList() }
-  val complete=data.copy(workspaceRecords=records,inputSnapshots=snapshots)
+  val snapshots=if(format in setOf(Versions.BACKUP_FORMAT,Versions.LEGACY_BACKUP_2_1))o.getJSONArray("inputSnapshots").objects().map(::inputSnapshot) else { require(!o.has("inputSnapshots"));emptyList() }
+  val episodes:List<TreatmentEpisode>;val audits:List<TreatmentAuditEvent>
+  if(format==Versions.BACKUP_FORMAT){require(o.getString("treatmentDataSchemaVersion")==Versions.TREATMENT_DATA_SCHEMA);episodes=o.getJSONArray("treatmentEpisodes").objects().map(::treatmentEpisode);audits=o.getJSONArray("treatmentAuditEvents").objects().map(::treatmentAudit)}
+  else{require(!o.has("treatmentDataSchemaVersion")&&!o.has("treatmentEpisodes")&&!o.has("treatmentAuditEvents"));episodes=emptyList();audits=emptyList()}
+  val complete=data.copy(workspaceRecords=records,inputSnapshots=snapshots,treatmentEpisodes=episodes,treatmentAuditEvents=audits)
   validate(complete);return complete
  }
  fun validate(d:BackupData) {
+  require(d.treatmentEpisodes.map{it.id}.distinct().size==d.treatmentEpisodes.size)
+  d.treatmentEpisodes.forEach(app.sleepdiary.offline.application.TreatmentRecordValidation::episode)
+  require(d.treatmentEpisodes.count{it.completedAtUtc==null}<=1)
+  require(d.treatmentAuditEvents.map{it.id}.distinct().size==d.treatmentAuditEvents.size)
+  d.treatmentAuditEvents.forEach(app.sleepdiary.offline.application.TreatmentRecordValidation::audit)
+  require(d.treatmentAuditEvents.all{a->d.treatmentEpisodes.any{it.id==a.episodeId}})
+  d.treatmentEpisodes.forEach { episode ->
+   val events=d.treatmentAuditEvents.filter{it.episodeId==episode.id}.sortedBy{it.toRevision}
+   require(events.isNotEmpty() && events.first().fromRevision==0 && events.first().fromState==null)
+   require(events.first().commandType=="START_BASELINE" && events.first().toState==app.sleepdiary.offline.domain.treatment.TreatmentState.BASELINE_COLLECTING.name)
+   require(events.map{it.toRevision}==(1..events.size).toList())
+   events.zipWithNext().forEach{(a,b)->require(a.toState==b.fromState && Instant.parse(a.occurredAtUtc)<=Instant.parse(b.occurredAtUtc))}
+   events.drop(1).forEach { event ->
+    val valid=when(event.commandType){
+     "REQUEST_BASELINE_REVIEW"->event.fromState=="BASELINE_COLLECTING"&&event.toState=="BASELINE_REVIEW"
+     "RETURN_TO_BASELINE_COLLECTION"->event.fromState=="BASELINE_REVIEW"&&event.toState=="BASELINE_COLLECTING"
+     "PAUSE"->event.fromState in setOf("BASELINE_COLLECTING","BASELINE_REVIEW")&&event.toState=="USER_PAUSED"
+     "RESUME"->event.fromState=="USER_PAUSED"&&event.toState in setOf("BASELINE_COLLECTING","BASELINE_REVIEW")
+     else->false
+    };require(valid)
+   }
+   require(events.last().toRevision==episode.revision && events.last().toState==episode.state)
+  }
   require(d.inputSnapshots.map{it.id}.distinct().size==d.inputSnapshots.size)
   d.inputSnapshots.forEach(app.sleepdiary.offline.application.InputSnapshotValidation::validate)
   require(d.workspaceRecords.map{it.id}.distinct().size==d.workspaceRecords.size)

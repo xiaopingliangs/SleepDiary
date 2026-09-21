@@ -83,7 +83,7 @@ class InputSnapshotStoreTest {
     }
     @Test fun completeBackupRoundTripIncludesSnapshotsAndAllSevenTables()=runBlocking {
         seedAll();val before=backup.snapshot();val text=backup.export()
-        assertEquals("BACKUP_2.1",JSONObject(text).getString("exportFormatVersion"))
+        assertEquals("BACKUP_3.0",JSONObject(text).getString("exportFormatVersion"))
         capture();backup.restore(text);assertEquals(before,backup.snapshot())
     }
     @Test fun legacyRestoreClearsSnapshotsAndKeepsItsOwnData()=runBlocking {

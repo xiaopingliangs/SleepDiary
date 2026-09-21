@@ -11,11 +11,11 @@ import java.time.Instant
 /** Prepared bytes are validated again at confirmation; no database mutation happens during preview. */
 class BackupRepository(private val db:SleepDiaryDatabase,private val context:Context,private val checkpoint:(String)->Unit={}) {
  suspend fun snapshot():BackupData=db.withTransaction {
-  BackupData(db.diaryDao().all(),db.safetyDao().all(),db.stateAndSummaryDao().summaries(),db.stateAndSummaryDao().state()?:AppState(),db.workspaceDao().all(),db.inputSnapshotDao().all())
+  BackupData(db.diaryDao().all(),db.safetyDao().all(),db.stateAndSummaryDao().summaries(),db.stateAndSummaryDao().state()?:AppState(),db.workspaceDao().all(),db.inputSnapshotDao().all(),db.treatmentDao().episodes(),db.treatmentDao().audits())
  }
  fun preview(text:String):BackupData {
   val o=BackupSchemaValidator.parse(text)
-  val file=when(o.getString("exportFormatVersion")){Versions.BACKUP_FORMAT->"backup-v2.1.schema.json";Versions.LEGACY_BACKUP_2_0->"backup-v2.schema.json";Versions.LEGACY_BACKUP_1_1->"backup-v1.1.schema.json";Versions.LEGACY_BACKUP_FORMAT->"backup-v1.schema.json";else->error("不支持的备份版本")}
+  val file=when(o.getString("exportFormatVersion")){Versions.BACKUP_FORMAT->"backup-v3.schema.json";Versions.LEGACY_BACKUP_2_1->"backup-v2.1.schema.json";Versions.LEGACY_BACKUP_2_0->"backup-v2.schema.json";Versions.LEGACY_BACKUP_1_1->"backup-v1.1.schema.json";Versions.LEGACY_BACKUP_FORMAT->"backup-v1.schema.json";else->error("不支持的备份版本")}
   val schema=context.assets.open(file).bufferedReader().use{JSONObject(it.readText())}
   BackupSchemaValidator.validate(o,schema)
   return BackupCodec.decode(o)
@@ -27,6 +27,7 @@ class BackupRepository(private val db:SleepDiaryDatabase,private val context:Con
   val expected=preview(text)
   val restoredLocal=db.withTransaction {
    val state=db.stateAndSummaryDao();val safety=db.safetyDao()
+   db.treatmentDao().deleteAllAuditsForRestore();db.treatmentDao().deleteAllEpisodesForRestore();checkpoint("afterTreatmentDelete")
    db.inputSnapshotDao().deleteAllForRestore()
    db.workspaceDao().deleteAllForRestore()
    state.deleteState()
@@ -40,6 +41,9 @@ class BackupRepository(private val db:SleepDiaryDatabase,private val context:Con
    expected.workspaceRecords.forEach{db.workspaceDao().insert(it)};checkpoint("afterWorkspace")
    expected.inputSnapshots.forEach{db.inputSnapshotDao().insert(it)};checkpoint("afterSnapshots")
    state.putState(expected.state);checkpoint("afterState")
+   expected.treatmentEpisodes.forEach{db.treatmentDao().insertEpisode(it)}
+   expected.treatmentAuditEvents.sortedWith(compareBy({it.episodeId},{it.toRevision})).forEach{db.treatmentDao().insertAudit(it)}
+   checkpoint("afterTreatment")
    val local=app.sleepdiary.offline.data.repository.LocalExecutionRepository(db).invalidateForRestore()
    checkpoint("afterLocalState")
    check(equivalent(snapshot(),expected)){"恢复回读不一致"}

@@ -4,7 +4,7 @@
 
 ## 第一阶段持久化切片
 
-TreatmentEpisode：id（规范小写 UUID，入组 command ID）；mode；state（17 态）；protocolVersion、metricsVersion、safetyRuleVersion、exceptionRuleVersion；currentPlanId nullable；startedAtUtc、createdAtUtc、updatedAtUtc；completedAtUtc nullable；revision 正整数；schemaVersion=TREATMENT_DATA_1.0。Phase 1 四类医疗版本均 NONE，currentPlanId/completedAtUtc 为 null。开始评估不等于治疗启动。mode 必须显式指定。至多一个未完成/未退出 episode；COMPLETED/DIARY_ONLY 历史不得被重用成新 episode。
+TreatmentEpisode：id（规范小写 UUID，入组 command ID）；mode；state（17 态）；pausedFromState nullable；adultScopeConfirmed；protocolVersion、metricsVersion、safetyRuleVersion、exceptionRuleVersion；currentPlanId nullable；startedAtUtc、createdAtUtc、updatedAtUtc；completedAtUtc nullable；revision 正整数；schemaVersion=TREATMENT_DATA_1.0。Phase 1 四类医疗版本均 NONE，currentPlanId/completedAtUtc 为 null。开始评估不等于治疗启动。mode 与成人范围确认必须显式提供；不保存出生日期。至多一个未完成/未退出 episode；COMPLETED/DIARY_ONLY 历史不得被重用成新 episode。
 
 TreatmentAuditEvent：id（规范 UUID/command ID）、episodeId（外键 NO ACTION）、commandType、requestFingerprint（完整命令的规范编码 SHA-256）、fromState nullable、toState、fromRevision、toRevision、occurredAtUtc、restoreGenerationAtCommand、schemaVersion=TREATMENT_DATA_1.0。只追加、同 episode/toRevision 唯一。初始事件 0→1，后继连续，时间不得早于前事件；每次转换都能回放其状态/修订。requestFingerprint 不是身份认证。恢复保留事件历史代次，但不把它作为新本机授权。
 

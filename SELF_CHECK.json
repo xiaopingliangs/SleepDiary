@@ -1,60 +1,35 @@
 {
-  "status": "PASS_IMPLEMENTED_INCREMENT_NOT_FULL_CBTI_RELEASE",
+  "status": "PASS_PHASE_1_NOT_FULL_CBTI_RELEASE",
   "specVersion": "SPEC-0.2.2",
-  "scope": "Persistent local restore generation and non-authorizing activation preflight",
+  "scope": "Treatment episode, audit, non-prescriptive state controller, Room 6 and BACKUP_3.0",
   "checks": {
-    "medicalSpecificationsByteIdentical": true,
-    "allBackupSchemasAndExamplesByteIdentical": true,
-    "originalSevenBusinessTableDefinitionsUnchanged": true,
-    "coreDiaryFieldsAndRulesUnchanged": true,
-    "roomTechnicalVersion": 5,
-    "roomMigrationPathsTested": [
-      "1->2->3->4->5",
-      "2->3->4->5",
-      "3->4->5",
-      "4->5"
-    ],
+    "roomTechnicalVersion": 6,
+    "roomTableCount": 10,
+    "roomMigrationPathsTested": ["1->2->3->4->5->6", "2->3->4->5->6", "3->4->5->6", "4->5->6", "5->6"],
     "roomSchemaExported": true,
-    "localExecutionSchemaVersion": "LOCAL_EXECUTION_1",
-    "backupExportVersion": "BACKUP_2.1",
-    "backupImportVersions": [
-      "BACKUP_1.0",
-      "BACKUP_1.1",
-      "BACKUP_2.0",
-      "BACKUP_2.1"
-    ],
-    "localExecutionMetadataExcludedFromBackup": true,
+    "treatmentDataSchemaVersion": "TREATMENT_DATA_1.0",
+    "backupExportVersion": "BACKUP_3.0",
+    "backupImportVersions": ["BACKUP_1.0", "BACKUP_1.1", "BACKUP_2.0", "BACKUP_2.1", "BACKUP_3.0"],
+    "episodeAndAuditRoundTrip": true,
     "restoreAtomicallyRotatesLocalGeneration": true,
     "restoreFailureRollsBackBusinessAndLocalState": true,
-    "identicalRestoreInvalidatesOldToken": true,
-    "unchangedPreflightDoesNotAuthorizeTreatment": true,
+    "medicalTransitionsFailClosed": true,
     "cbtiProtocolVersion": "NONE",
     "manifestForbiddenPermissionsAbsent": true,
-    "specificationReviewCompleted": true
+    "physicalDeviceValidationCompleted": false
   },
-  "blockingItemsForThisIncrement": [],
+  "medicalRuleBlockers": ["M-BASELINE", "M-METRICS", "M-SAFETY", "M-WINDOW", "M-EXCEPTION", "M-CONTENT", "SNQ_RIGHTS"],
   "execution": {
-    "unitTests": {
-      "tests": 362,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 0
-    },
-    "addedUnitTests": 15,
+    "unitTests": {"tests": 382, "failures": 0, "errors": 0, "skipped": 0},
+    "addedUnitTests": 13,
     "testDebugUnitTest": "PASS",
     "assembleDebug": "PASS",
     "assembleDebugAndroidTest": "PASS",
-    "connectedDebugAndroidTest": "NOT_RUN_THIS_INCREMENT",
-    "physicalDeviceValidation": "NOT_RUN_THIS_INCREMENT",
-    "log": "work/local-execution-20260914.log",
-    "apkPath": "D:\\Projects\\SleepDiary\\app\\build\\outputs\\apk\\debug\\app-debug.apk",
-    "apkSha256": "22014cc7ef1c691e0273180e76f13cba5525a91cfa6b379d0a3386d465742bba"
+    "connectedDebugAndroidTest": "NOT_RUN",
+    "physicalDeviceValidation": "NOT_RUN",
+    "log": "work/full-app-phase1-20260922.log",
+    "apkPath": "D:/Projects/SleepDiary/app/build/outputs/apk/debug/app-debug.apk",
+    "apkSha256": "b0252ae7cf88d639c56211a8a202ce42a48b4981eacfcc664685150bb42dd09c"
   },
-  "remainingWork": [
-    "Clinical hold and decision audit persistence",
-    "Atomic treatment plan submission with current-state checks",
-    "Released clinical rules and full treatment lifecycle",
-    "Final integrated physical-device validation"
-  ],
-  "note": "技术代次与预检已持久化/验证，不代表治疗激活或临床审核通过。未执行本轮真机测试。"
+  "next": "Phase 2 treatment metrics and baseline contracts; undefined medical rules remain blocked."
 }

@@ -91,7 +91,7 @@ class WorkspaceDataTest {
     }
     @Test fun backupTwoRoundTripPreservesAllSixTables() = runBlocking {
         seedAll(); val before = backup.snapshot(); val text = backup.export()
-        assertEquals("BACKUP_2.1", JSONObject(text).getString("exportFormatVersion"))
+        assertEquals("BACKUP_3.0", JSONObject(text).getString("exportFormatVersion"))
         assertEquals(before, backup.preview(text)); saved(draft("later")); backup.restore(text)
         assertEquals(before, backup.snapshot())
     }

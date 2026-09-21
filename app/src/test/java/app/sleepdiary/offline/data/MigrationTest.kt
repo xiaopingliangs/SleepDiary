@@ -22,6 +22,7 @@ class MigrationTest {
  @Test fun versionTwoMigrationPreservesOnboardingAndAllFiveTables()=verifyMigration(2)
  @Test fun versionThreeMigrationPreservesWorkspace()=verifyMigration(3)
  @Test fun versionFourMigrationPreservesInputSnapshots()=verifyMigration(4)
+ @Test fun versionFiveMigrationAddsEmptyTreatmentTables()=verifyMigration(5)
  private fun verifyMigration(from: Int)=runBlocking {
   val context=ApplicationProvider.getApplicationContext<Context>();val name="migration-${UUID.randomUUID()}.db"
   val file=context.getDatabasePath(name);file.parentFile!!.mkdirs()
@@ -38,12 +39,14 @@ class MigrationTest {
   put("weekly_summary_snapshot",JSONObject().put("id",summaryId).put("periodIndex",1).put("periodStartDate","2026-09-08").put("periodEndDate","2026-09-14").put("validEntryCount",1).put("avgSolMin",30.0).put("avgAwakeningCount",3.0).put("avgWasoMin",55.0).put("avgTerminalWakefulnessMin",50.0).put("avgTibMin",475.0).put("avgSleepQuality",2.0).put("sourceEntryIdsJson",JSONArray().put(entry.getString("id")).toString()).put("diarySchemaVersion",Versions.DIARY_SCHEMA).put("weeklySummaryRuleVersion",Versions.WEEKLY_RULE).put("generatedAtUtc","2026-09-14T00:00:00Z").put("revision",1).put("isCurrent",true).put("supersedesSummaryId",JSONObject.NULL))
   val legacyWorkspace=if(from>=3)JSONObject(File("../samples/backup-v2.example.json").readText()).getJSONArray("workspaceRecords").getJSONObject(0) else null
   if(legacyWorkspace!=null)put("workspace_record",legacyWorkspace)
-  val legacySnapshot=if(from==4)JSONObject(File("../samples/backup-v2.1.example.json").readText()).getJSONArray("inputSnapshots").getJSONObject(0) else null
+  val legacySnapshot=if(from>=4)JSONObject(File("../samples/backup-v2.1.example.json").readText()).getJSONArray("inputSnapshots").getJSONObject(0) else null
   if(legacySnapshot!=null)put("input_snapshot",legacySnapshot)
+  if(from>=5)put("local_execution_state",JSONObject().put("singletonId",0).put("restoreGeneration",UUID.randomUUID().toString()).put("activationStatus","REQUIRES_REVIEW").put("localSchemaVersion","LOCAL_EXECUTION_1"))
   legacy.version=from;legacy.close()
-  val db=Room.databaseBuilder(context,SleepDiaryDatabase::class.java,name).addMigrations(SleepDiaryDatabase.MIGRATION_1_2,SleepDiaryDatabase.MIGRATION_2_3,SleepDiaryDatabase.MIGRATION_3_4,SleepDiaryDatabase.MIGRATION_4_5).build()
+  val db=Room.databaseBuilder(context,SleepDiaryDatabase::class.java,name).addMigrations(SleepDiaryDatabase.MIGRATION_1_2,SleepDiaryDatabase.MIGRATION_2_3,SleepDiaryDatabase.MIGRATION_3_4,SleepDiaryDatabase.MIGRATION_4_5,SleepDiaryDatabase.MIGRATION_5_6).build()
   try {assertEquals(BackupCodec.entry(entry),db.diaryDao().all().single());assertEquals(answers.length(),db.safetyDao().byId(assessment.getString("id"))!!.answers.size);assertEquals(summaryId,db.stateAndSummaryDao().summaries().single().id);val s=db.stateAndSummaryDao().state()!!;assertEquals(from>=2,s.hasCompletedOnboarding);assertTrue(s.hasSeenMinimalInteractionExplanation);assertEquals(Versions.BACKUP_FORMAT,s.backupFormatVersion)
    assertEquals("REQUIRES_REVIEW",db.localExecutionDao().state()!!.activationStatus)
+   assertTrue(db.treatmentDao().episodes().isEmpty());assertTrue(db.treatmentDao().audits().isEmpty())
    if(legacySnapshot==null)assertTrue(db.inputSnapshotDao().all().isEmpty()) else assertEquals(BackupCodec.inputSnapshot(legacySnapshot),db.inputSnapshotDao().all().single())
    if(legacyWorkspace==null)assertTrue(db.workspaceDao().all().isEmpty()) else assertEquals(BackupCodec.workspace(legacyWorkspace),db.workspaceDao().all().single())
    db.workspaceDao().insert(app.sleepdiary.offline.data.entity.WorkspaceRecord(UUID.randomUUID().toString(),"LEARNING_NOTE","测试","保留内容","2026-09-13T00:00:00Z","2026-09-13T00:00:00Z"))
