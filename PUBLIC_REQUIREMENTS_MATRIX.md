@@ -1,0 +1,143 @@
+# SleepDiary Public Edition v1.0 — Requirements Matrix
+
+状态：P0 FROZEN
+说明：`EXISTING` 表示当前基线已有主要能力；`PARTIAL` 表示可复用但需 Public Core 整合；`PLANNED` 表示后续实现；`BLOCKED` 表示发布前必须解决外部或内容问题；`FROZEN` 表示边界决定已确定但不代表实现完成。P0 状态不是测试通过声明。
+
+## Functional requirements
+
+| ID | Requirement | Acceptance evidence | P0 status |
+|---|---|---|---|
+| PUB-F-001 | 单 Activity、四个顶级区域 Today/Sleep/Education/Me | 导航测试及真机 back stack | PLANNED |
+| PUB-F-002 | 首次三页说明仅完成一次 | Room/App 重启测试 | PARTIAL |
+| PUB-F-003 | 首次启动不创建 TreatmentEpisode | DB 前后对比 | PLANNED |
+| PUB-F-004 | 再次启动直接进入 Today | onboarding 状态测试 | PARTIAL |
+| PUB-F-005 | Today 支持新建、查看和修改当天日记 | 现有保存/编辑回归 | EXISTING |
+| PUB-F-006 | Sleep 支持历史查看和编辑 | UI/Repository 回归 | EXISTING |
+| PUB-F-007 | Sleep 显示 WEEKLY_1.0 中性周总结 | 周期、revision 测试 | EXISTING |
+| PUB-F-008 | Sleep 显示最近 7/14 天中性实时平均 | 日期窗口/缺失日测试 | EXISTING |
+| PUB-F-009 | Education 显示版本化内容目录和详情 | registry/UI 测试 | PLANNED |
+| PUB-F-010 | 用户明确保存 Education progress | 无隐式写入及持久化测试 | PLANNED |
+| PUB-F-011 | 用户明确保存/取消稍后复习 | review state 测试 | PLANNED |
+| PUB-F-012 | Education note 关联 WorkspaceRecord | 事务、外键、编辑测试 | PLANNED |
+| PUB-F-013 | Me 提供个人记录和数据管理 | 导航/UI 测试 | PARTIAL |
+| PUB-F-014 | 不显示 Treatment 入口或占位标签 | 全导航扫描 | PLANNED |
+| PUB-F-015 | Public Edition 不生成个性化建议 | 内容和生产调用审计 | PLANNED |
+| PUB-F-016 | Public 首次启动不自动进入现有 Safety 问询 | onboarding/navigation test | PLANNED |
+
+## Neutral-statistics requirements
+
+| ID | Requirement | Acceptance evidence | P0 status |
+|---|---|---|---|
+| PUB-S-001 | 缺失日期不按 0 计算 | Calculator tests | EXISTING |
+| PUB-S-002 | TIB 明确不等于睡眠时长 | UI 文案测试 | EXISTING |
+| PUB-S-003 | 不计算/展示治疗 TST 或 SE | UI/domain negative tests | EXISTING |
+| PUB-S-004 | 不显示好坏、正常异常、改善率或趋势评级 | 全页面文本/语义检查 | PARTIAL |
+| PUB-S-005 | 原始 sleepQuality 可中性显示但不转为 App 分数 | UI/模型检查 | PARTIAL |
+| PUB-S-006 | 统计只读，不覆盖原始日记 | Repository/DB 对比 | EXISTING |
+
+## Education requirements
+
+| ID | Requirement | Acceptance evidence | P0 status |
+|---|---|---|---|
+| PUB-E-001 | 每项内容有稳定 contentId 和 contentVersionId | registry validation | PLANNED |
+| PUB-E-002 | 每项内容有来源角色、版次和精确 locator | source completeness test | PARTIAL |
+| PUB-E-003 | 中文内容标识为项目独立表述 | UI/content snapshot | PARTIAL |
+| PUB-E-004 | 打开/滚动内容不写 progress | DB before/after test | PLANNED |
+| PUB-E-005 | progress 只由明确操作写入 | ViewModel/repository test | PLANNED |
+| PUB-E-006 | 不记录点击、耗时、连续天数或评分 | schema/code audit | PLANNED |
+| PUB-E-007 | notes 不被自动分析或分类为医疗事实 | dependency/behavior test | PLANNED |
+| PUB-E-008 | bookmark 不产生后台提醒或自动推荐 | WorkManager/manifest audit | PLANNED |
+| PUB-E-009 | Education 不读个人日记做定制 | dependency test | PLANNED |
+| PUB-E-010 | Education 不写 Treatment 数据 | transaction before/after test | PLANNED |
+| PUB-E-011 | 内容来源和许可满足公开发布 | 内容审查记录 | BLOCKED |
+
+## Personal-data and privacy requirements
+
+| ID | Requirement | Acceptance evidence | P0 status |
+|---|---|---|---|
+| PUB-P-001 | 默认数据只存应用私有 Room | storage/manifest audit | EXISTING |
+| PUB-P-002 | 无账号、广告、分析、遥测或云服务 | dependency/manifest audit | EXISTING |
+| PUB-P-003 | 无 INTERNET/ACCESS_NETWORK_STATE/MANAGE_EXTERNAL_STORAGE | merged Manifest test | EXISTING |
+| PUB-P-004 | 用户自由文本视为敏感数据 | export/privacy tests | PARTIAL |
+| PUB-P-005 | Diary PNG 不含 comment、Safety、Education notes | image model tests | EXISTING |
+| PUB-P-006 | Diary CSV 不自动增加 Education/Treatment 字段 | CSV header test | EXISTING |
+| PUB-P-007 | 官方链接只由用户主动交给系统浏览器 | intent whitelist test | EXISTING |
+| PUB-P-008 | 阅读行为不形成隐式行为画像 | schema and code audit | PLANNED |
+| PUB-P-009 | 导出取消或失败不显示成功 | SAF flow tests | EXISTING |
+
+## Data requirements
+
+| ID | Requirement | Acceptance evidence | P0 status |
+|---|---|---|---|
+| PUB-D-001 | Diary/Safety/Weekly 现有 schema 语义不变 | schema/hash regression | EXISTING |
+| PUB-D-002 | 新增 EDUCATION_DATA_1.0 独立版本 | version constants/test | PLANNED |
+| PUB-D-003 | Room 6→7 仅新增 Education 表 | migration schema diff | PLANNED |
+| PUB-D-004 | 旧十表数据全部保留 | migration fixture test | PLANNED |
+| PUB-D-005 | 旧学习笔记不自动关联内容 | migration/data test | PLANNED |
+| PUB-D-006 | EducationRecord 正文只保存在 WorkspaceRecord | schema/repository test | PLANNED |
+| PUB-D-007 | progress 按 contentId+version 保存 | unique key test | PLANNED |
+| PUB-D-008 | 内容正文来自不可变 registry，不复制进 Room | schema/content test | PLANNED |
+| PUB-D-009 | 所有持久时间和版本可校验 | validation tests | PLANNED |
+| PUB-D-010 | Room schema 7 导出并提交 | exported schema check | PLANNED |
+
+## Backup and export requirements
+
+| ID | Requirement | Acceptance evidence | P0 status |
+|---|---|---|---|
+| PUB-B-001 | BACKUP_3.0 历史 schema/样例不可改写 | hash regression | EXISTING |
+| PUB-B-002 | 新完整备份使用 BACKUP_3.1 | exact version/schema test | PLANNED |
+| PUB-B-003 | 兼容导入 1.0/1.1/2.0/2.1/3.0/3.1 | parameterized restore tests | PLANNED |
+| PUB-B-004 | 旧格式恢复 Education 集合为空 | legacy restore tests | PLANNED |
+| PUB-B-005 | Education 与其他业务数据单事务替换 | injected-failure rollback tests | PLANNED |
+| PUB-B-006 | EducationRecord 引用 WorkspaceRecord 完整校验 | corrupt-reference tests | PLANNED |
+| PUB-B-007 | 提交后完整回读并比对 | repository tests | PARTIAL |
+| PUB-B-008 | 恢复不授予 Treatment 执行能力 | LocalExecutionState tests | PARTIAL |
+| PUB-B-009 | 恢复预览显示 Education 和休眠 Treatment 数量 | UI flow tests | PLANNED |
+| PUB-B-010 | Education export 与完整恢复格式分离 | codec/SAF tests | PLANNED |
+| PUB-B-011 | Education export 不含 Diary/Safety/Treatment | exact-field tests | PLANNED |
+
+## Treatment-disabled requirements
+
+| ID | Requirement | Acceptance evidence | P0 status |
+|---|---|---|---|
+| PUB-T-001 | CBT-I Protocol 固定为 NONE | build/version test | EXISTING |
+| PUB-T-002 | Public navigation 无 Treatment route | navigation graph test | PLANNED |
+| PUB-T-003 | Public AppServices 不向 UI 暴露 controller | compile/dependency test | PLANNED |
+| PUB-T-004 | 不创建 TreatmentMetricSnapshot 或 TreatmentPlan | schema/code audit | EXISTING |
+| PUB-T-005 | Education/Diary 操作不改变 episode/audit | DB before/after tests | PLANNED |
+| PUB-T-006 | 医学 transition 保持 MEDICAL_RULE_BLOCKED | controller regression | EXISTING |
+| PUB-T-007 | 备份保留休眠历史但不能激活 | restore/activation tests | PARTIAL |
+| PUB-T-008 | 未来 Treatment 需要独立批准、规格和能力装配 | release review checklist | FROZEN |
+
+## Navigation and accessibility requirements
+
+| ID | Requirement | Acceptance evidence | P0 status |
+|---|---|---|---|
+| PUB-U-001 | 四个顶级入口有稳定返回路径 | navigation tests | PLANNED |
+| PUB-U-002 | onboarding/form/restore 流程不会误切换丢草稿 | recreation/back tests | PLANNED |
+| PUB-U-003 | 主要触摸目标至少 48dp | Compose semantics tests | PARTIAL |
+| PUB-U-004 | 字体放大和 TalkBack 可操作 | UI tests + S24 | PARTIAL |
+| PUB-U-005 | 不使用连续打卡、奖励或失败感文案 | UI/content audit | PARTIAL |
+| PUB-U-006 | Education 状态不只靠颜色表达 | semantics tests | PLANNED |
+
+## Release and compatibility requirements
+
+| ID | Requirement | Acceptance evidence | P0 status |
+|---|---|---|---|
+| PUB-C-001 | Public Edition 目标 App version 为 1.0.0 | release config check | PLANNED |
+| PUB-C-002 | 当前 0.2.2 用户可无损升级 | Room/backup/device test | PLANNED |
+| PUB-C-003 | 不删除休眠 Treatment foundation 数据 | migration/backup diff | FROZEN |
+| PUB-C-004 | 根规格与实际 BACKUP_3.x 状态统一 | manifest/spec verification | PLANNED |
+| PUB-C-005 | 自动化、迁移、离线和 S24 真机验收通过 | final release report | PLANNED |
+| PUB-C-006 | 未完成内容许可或安全复核不得发布对应内容 | release gate | BLOCKED |
+| PUB-C-007 | `meditation/` 独立项目不得进入构建或提交 | settings/Git audit | EXISTING |
+
+## P0 exit criteria
+
+P0 完成条件：
+
+- 四份 Public Edition P0 文档建立且边界一致；
+- Public Core 取代原 Treatment Phase 2 作为下一执行路线；
+- Education 与 Treatment 的依赖禁止项明确；
+- Room 7/BACKUP_3.1 只作为后续实现目标，本阶段不落库；
+- 未解决内容项单独列出，不用代码默认值替代。
