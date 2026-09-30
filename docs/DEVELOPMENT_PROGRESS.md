@@ -1,6 +1,14 @@
 # 开发进度与中断恢复入口
 
-更新时间：2026-09-22。本文件记录实际进度，不替代冻结规格。
+更新时间：2026-09-30。本文件记录实际进度，不替代冻结规格。
+
+## 2026-09-30 Public Edition P1 Education Content Foundation
+
+接续 Public Edition P0 提交 `1f9acf0`。新增纯静态 Education registry、schema 模型、来源 registry、规范化 SHA-256、manifest 与边界 validator；现有 `EDUCATION_TEXT_1.0` 六项内容原文迁移为不可变 `EDUCATION_CONTENT_1.0`，版本 hash 为 `b988e5d87f6a3ffc0c6963b6b6fc4350dc92012aa13c7b6cc64ddecc1eaa514c`。原 `LearningContent` 只改为兼容投影，页面布局和导航未变。
+
+指定 V4 HTML 已按只读数据审查，文件 SHA-256 为 `7028c44b2f4fa4863625a4332dee67ba9667c31ab101182e949e3752b45d0af5`。它含开场和 10 个章节，也混合治疗阈值、行为指令、用户记录及复习状态，因此没有整体导入；逐章边界和后续候选见根目录 `EDUCATION_CONTENT_ARCHITECTURE.md`。
+
+新增 6 项 registry 测试；完整 `testDebugUnitTest` 实际执行 394 项，0 failure/error/skipped；`assembleDebug` 通过。未改 Room、migration、Backup、导航或 Treatment，CBT-I Protocol 仍为 NONE。独立 `meditation/` 未改动、未暂存。下一阶段须单独批准 Education 用户数据合同、Room migration 与 Backup 演进；不得从本阶段自动进入。
 
 ## 2026-09-22 当天再次进入首页的最近平均数据
 
