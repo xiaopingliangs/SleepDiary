@@ -14,9 +14,9 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneId
 
-enum class HomePage { LOADING, INTRO, SAFETY, HELP, SAFETY_RESULT, TODAY, FORM, SUCCESS, WEEKLY }
+enum class HomePage { LOADING, SAFETY, HELP, SAFETY_RESULT, TODAY, FORM, SUCCESS, WEEKLY }
 data class DiaryUiState(
-    val form:DiaryForm, val page:HomePage=HomePage.LOADING, val introPage:Int=0,
+    val form:DiaryForm, val page:HomePage=HomePage.LOADING,
     val busy:Boolean=false, val message:String?=null, val missing:DiaryField?=null,
     val warning:Boolean=false, val entries:List<SleepDiaryEntry> = emptyList(),
     val today:SleepDiaryEntry?=null, val firstSuccess:Boolean=false,
@@ -41,17 +41,16 @@ class DiaryViewModel(
         val existing = mutable.value.entries.firstOrNull { it.sleepDate == date.toString() }
         if (existing != null) edit(existing) else beginNewDiary()
     }
-    private val mutable=MutableStateFlow(DiaryUiState(saved.get<DiaryForm>("form") ?: DiaryForm(referenceDate=localDate(),zoneId=localZone().id),introPage=saved["introPage"] ?: 0,safetyFromSettings=saved["safetyFromSettings"] ?: false))
+    private val mutable=MutableStateFlow(DiaryUiState(saved.get<DiaryForm>("form") ?: DiaryForm(referenceDate=localDate(),zoneId=localZone().id),safetyFromSettings=saved["safetyFromSettings"] ?: false))
     val state=mutable.asStateFlow()
     init { start() }
     fun afterRestore() { saved.remove<Boolean>("editing");saved.remove<DiaryForm>("form");saved.remove<Int>("introPage");saved.remove<Boolean>("safetyFromSettings");saved.remove<String>("safetyPage");mutable.value=DiaryUiState(DiaryForm(referenceDate=localDate(),zoneId=localZone().id));start() }
     fun start() { viewModelScope.launch {
         try {
-            val entries=store.entries();val appState=store.state()
+            val entries=store.entries()
             val safety=store.currentSafety()
             val today=entries.firstOrNull { it.sleepDate==localDate().toString() }
             val page=when {
-                !appState.hasCompletedOnboarding -> HomePage.INTRO
                 saved.get<Boolean>("editing")==true -> HomePage.FORM
                 else -> HomePage.TODAY
             }
@@ -77,12 +76,18 @@ class DiaryViewModel(
             catch (_: Exception) { mutable.value = mutable.value.copy(message = "读取记录失败，请重试") }
         }
     }
-    fun nextIntro() {
-        if(mutable.value.introPage<2) { val page=mutable.value.introPage+1;saved["introPage"]=page;mutable.value=mutable.value.copy(introPage=page) }
-        else { if(mutable.value.busy)return;mutable.value=mutable.value.copy(busy=true);viewModelScope.launch {
-            try {store.completeOnboarding();saved["introDone"]=true;mutable.value=mutable.value.copy(page=HomePage.TODAY,busy=false);claimDailyRouteIfNeeded()}
-            catch(c:CancellationException){throw c}catch(_:Exception){mutable.value=mutable.value.copy(busy=false,message="说明状态保存失败，请重试")}
-        } }
+    /** Records completion only when the user explicitly finishes the optional guide. */
+    fun completeOptionalGuide(onCompleted: () -> Unit) {
+        if (mutable.value.busy) return
+        mutable.value = mutable.value.copy(busy = true, message = null)
+        viewModelScope.launch {
+            try {
+                store.completeOnboarding()
+                mutable.value = mutable.value.copy(busy = false)
+                onCompleted()
+            } catch (c: CancellationException) { throw c }
+            catch (_: Exception) { mutable.value = mutable.value.copy(busy = false, message = "说明状态未能保存，请重试") }
+        }
     }
     private fun diaryPage()=if(mutable.value.today!=null)HomePage.TODAY else HomePage.FORM
     fun continueDiary(){clearSafetyOrigin();mutable.value=mutable.value.copy(page=diaryPage(),message=null,safetyFromSettings=false)}

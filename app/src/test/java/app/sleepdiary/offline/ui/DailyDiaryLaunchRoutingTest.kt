@@ -87,15 +87,15 @@ class DailyDiaryLaunchRoutingTest {
         model.answerNumber(DiaryField.QUALITY, 3)
     }
 
-    @Test fun flowAFirstDailyLaunchSavesEntryAndNextLaunchGoesToToday() {
+    @Test fun flowAFreshInstallOpensDiaryWithoutBlockingIntroductionThenNextLaunchGoesToToday() {
         val date = LocalDate.parse("2026-09-09")
         val store = Store().also { it.app = AppState() }
         val marker = Marker()
         val first = model(store, marker, clockOn(date.toString()))
         attach(first)
-        assertEquals(HomePage.INTRO, first.state.value.page)
-        first.nextIntro(); first.nextIntro(); first.nextIntro()
-        compose.waitUntil(5000) { first.state.value.page == HomePage.FORM }
+        assertEquals(HomePage.FORM, first.state.value.page)
+        assertFalse(store.app.hasCompletedOnboarding)
+        assertEquals(0, store.safetyWriteCount)
         assertEquals(date, first.state.value.form.referenceDate)
         fill(first, date)
         val savedId = first.state.value.form.id

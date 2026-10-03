@@ -110,7 +110,7 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
 
     val currentRoute = nav.currentBackStackEntryAsState().value?.destination?.route.orEmpty()
     val topRoutes = PublicDestination.entries.map { it.route }.toSet()
-    val overlay = state.page in setOf(HomePage.LOADING, HomePage.INTRO, HomePage.FORM, HomePage.SUCCESS, HomePage.WEEKLY)
+    val overlay = state.page in setOf(HomePage.LOADING, HomePage.FORM, HomePage.SUCCESS, HomePage.WEEKLY)
 
     Surface(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize()) {
@@ -140,7 +140,8 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
                         onPrivacy = { nav.navigate("privacy") },
                         onMethods = { nav.navigate("methods") },
                         onTerms = { nav.navigate("terms") },
-                        onVersions = { nav.navigate("versions") }
+                        onVersions = { nav.navigate("versions") },
+                        onUsageGuide = { nav.navigate("usage") }
                     )
                 }
                 composable("history") {
@@ -157,6 +158,14 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
                     }
                 }
                 composable("versions") { VersionsScreen { nav.popBackStack() } }
+                composable("usage") {
+                    UsageGuideScreen(
+                        pageEnabled = !state.busy,
+                        message = state.message,
+                        onFinish = { model.completeOptionalGuide { nav.popBackStack() } },
+                        onBack = { nav.popBackStack() }
+                    )
+                }
                 composable("terms") { SimplePage("术语表") { Action("← 返回", { nav.popBackStack() }); TERMS.forEach { (title, body) -> Text(title); Text(body) } } }
                 composable("privacy") { SimplePage("隐私说明") { Action("← 返回", { nav.popBackStack() }); Text("数据仅保存在应用私有存储。无账号、广告、分析或后台联网。只有你主动导出或分享时，记录才离开应用。备份、CSV 和学习导出是明文，请保存到可信位置。") } }
             }
@@ -166,7 +175,6 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
         if (state.page == HomePage.LOADING) SimplePage("SleepDiary") { Text(state.message ?: "正在读取本机记录…"); Action("重试", model::start) }
         if (overlay && state.page != HomePage.LOADING) {
             when (state.page) {
-                HomePage.INTRO -> { IntroScreen(state.introPage, model::nextIntro, !state.busy); state.message?.let { Text(it) } }
                 HomePage.SAFETY, HomePage.HELP, HomePage.SAFETY_RESULT -> Unit
                 HomePage.FORM -> {
                     BackHandler(enabled = !state.busy) { model.cancelForm(); nav.navigate(editReturnRoute) { launchSingleTop = true } }

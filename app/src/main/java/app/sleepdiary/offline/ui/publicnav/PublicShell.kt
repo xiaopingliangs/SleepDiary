@@ -164,7 +164,8 @@ fun PublicMeHome(
     onPrivacy: () -> Unit,
     onMethods: () -> Unit,
     onTerms: () -> Unit,
-    onVersions: () -> Unit
+    onVersions: () -> Unit,
+    onUsageGuide: () -> Unit = {}
 ) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("我的", style = MaterialTheme.typography.headlineMedium)
@@ -179,6 +180,7 @@ fun PublicMeHome(
         Action("就诊摘要", onClinicianSummary)
         Text("隐私与说明", style = MaterialTheme.typography.titleMedium)
         Action("隐私说明", onPrivacy)
+        Action("使用说明", onUsageGuide)
         Action("方法与依据", onMethods)
         Action("术语表", onTerms)
         Action("版本信息", onVersions)

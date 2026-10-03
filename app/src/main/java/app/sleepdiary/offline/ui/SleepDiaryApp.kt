@@ -27,10 +27,22 @@ import java.util.Locale
 
 const val HISTORY_EMPTY_TEXT="这一天没有睡眠记录，不需要补写。睡眠日记关注的是一段时间内的大致模式，不要求精确到分钟，也不建议为了补记反复回想或查看设备数据。"
 const val FIRST_SAVE_EXPLANATION="为了让记录尽量简单，也减少对单个夜晚数据的反复关注，日常记录完成后应用会结束本次使用。每完成一个 7 天记录周期，再集中查看一次整体记录。"
-@Composable fun IntroScreen(page:Int,onNext:()->Unit,enabled:Boolean=true) {
+@Composable fun IntroScreen(page:Int,onNext:()->Unit,enabled:Boolean=true,finishLabel:String="开始使用") {
  val titles=listOf("睡眠日记","数据留在本机","SleepDiary Public Edition")
  val bodies=listOf("记录每日主观估计，查看中性统计，按需阅读睡眠知识。当前版本不诊断，也不提供 CBT-I 治疗。","不需要账号，不联网。只有你主动导出或分享时，数据才会离开应用。","你可以使用今天、睡眠、学习和我的四个区域。教育内容用于了解一般概念，不是治疗建议；当前不启用 CBT-I 治疗。")
- SimplePage(titles[page]){Text(bodies[page]);Action(if(page==2)"开始使用"else"下一页",onNext,enabled)}
+ SimplePage(titles[page]){Text(bodies[page]);Action(if(page==2)finishLabel else "下一页",onNext,enabled)}
+}
+@Composable fun UsageGuideScreen(pageEnabled:Boolean,message:String?,onFinish:()->Unit,onBack:()->Unit) {
+ var page by rememberSaveable { mutableIntStateOf(0) }
+ fun back() { if(page>0) page-- else onBack() }
+ BackHandler(onBack=::back)
+ Column(Modifier.fillMaxSize()) {
+  TextButton(onClick=::back,modifier=Modifier.heightIn(min=48.dp)) { Text("← 返回") }
+  Box(Modifier.weight(1f).fillMaxWidth()) {
+   IntroScreen(page,onNext={if(page<2)page++ else onFinish()},enabled=pageEnabled,finishLabel="完成查看")
+  }
+  message?.let { Text(it,modifier=Modifier.padding(horizontal=20.dp,vertical=8.dp)) }
+ }
 }
 @Composable fun SimplePage(title:String,content:@Composable ColumnScope.()->Unit){Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){Text(title,style=MaterialTheme.typography.headlineSmall);content()}}
 @Composable fun Action(label:String,action:()->Unit,enabled:Boolean=true,modifier:Modifier=Modifier){Button(onClick=action,enabled=enabled,modifier=modifier.fillMaxWidth().heightIn(min=48.dp)){Text(label)}}

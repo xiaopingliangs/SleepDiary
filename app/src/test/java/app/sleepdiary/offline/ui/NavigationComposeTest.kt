@@ -35,9 +35,8 @@ class NavigationComposeTest {
         override suspend fun acknowledgeExplanation(){acknowledged=true}
     }
     private lateinit var model:DiaryViewModel
-    private fun start(store:Store,intro:Boolean=false,onExit:()->Unit={}) {
-        if(intro)store.app=store.app.copy(hasCompletedOnboarding=false)
-        compose.runOnUiThread {model=DiaryViewModel(store,SavedStateHandle(mapOf("introDone" to !intro)),clockOn("2026-09-09"))}
+    private fun start(store:Store,onExit:()->Unit={}) {
+        compose.runOnUiThread {model=DiaryViewModel(store,SavedStateHandle(),clockOn("2026-09-09"))}
         compose.setContent {SleepDiaryTheme {SleepDiaryApp(model,onExit)}}
         compose.waitUntil(5_000) {model.state.value.page!=HomePage.LOADING}
     }
@@ -48,11 +47,16 @@ class NavigationComposeTest {
     compose.onNodeWithText("返回我的").performClick()
     compose.onNodeWithText("导出完整备份 JSON").assertExists()
  }
-    @Test fun threeIntroPagesThenSettingsAndHistoryAreNavigable() {
-        start(Store(),intro=true)
+    @Test fun optionalUsageGuideAndSettingsAndHistoryAreNavigable() {
+        val store=Store().also{it.app=AppState()}
+        start(store)
+        assertEquals(HomePage.TODAY,model.state.value.page)
+        compose.onAllNodesWithText("下一页").assertCountEquals(0)
+        compose.onNodeWithTag("public_tab_me").performClick()
+        compose.onNodeWithText("使用说明").performScrollTo().performClick()
         compose.onNodeWithText("下一页").performClick();compose.onNodeWithText("数据留在本机").assertIsDisplayed()
         compose.onNodeWithText("下一页").performClick();compose.onNodeWithText("SleepDiary Public Edition").assertIsDisplayed()
-    compose.onNodeWithText("开始使用").performClick();compose.onNodeWithTag("public_tab_me").performClick()
+        compose.onNodeWithText("完成查看").performClick();compose.waitUntil(5000){store.app.hasCompletedOnboarding}
     compose.onNodeWithText("导出完整备份 JSON").assertIsEnabled()
     compose.onNodeWithTag("public_tab_sleep").performClick();compose.onNodeWithText("日记历史").performClick();compose.onNodeWithText(HISTORY_EMPTY_TEXT).assertIsDisplayed()
     compose.onNodeWithText("← 返回睡眠").performClick();compose.onNodeWithTag("public_tab_today").performClick()

@@ -5,12 +5,12 @@
 
 ## Functional requirements
 
-| ID | Requirement | Acceptance evidence | P0 status |
+| ID | Requirement | Acceptance evidence | Status |
 |---|---|---|---|
 | PUB-F-001 | 单 Activity、四个顶级区域 Today/Sleep/Education/Me | 导航测试及真机 back stack | PLANNED |
-| PUB-F-002 | 首次三页说明仅完成一次 | Room/App 重启测试 | PARTIAL |
-| PUB-F-003 | 首次启动不创建 TreatmentEpisode | DB 前后对比 | PLANNED |
-| PUB-F-004 | 再次启动直接进入 Today | onboarding 状态测试 | PARTIAL |
+| PUB-F-002 | 三页一般说明可从“我的 / 使用说明”主动打开，不阻塞启动；只有明确完成才记录完成状态 | Fresh-install routing 与 optional-guide persistence 测试 | P5 IMPLEMENTED |
+| PUB-F-003 | 首次启动不创建 TreatmentEpisode | DB 前后对比 | P5 TESTED |
+| PUB-F-004 | 每个本地日期首次真实启动进入当天日记；当天后续启动进入 Today | Daily marker / launch routing 集成测试 | P5 IMPLEMENTED |
 | PUB-F-005 | Today 支持新建、查看和修改当天日记 | 现有保存/编辑回归 | EXISTING |
 | PUB-F-006 | Sleep 支持历史查看和编辑 | UI/Repository 回归 | EXISTING |
 | PUB-F-007 | Sleep 显示 WEEKLY_1.0 中性周总结 | 周期、revision 测试 | EXISTING |
