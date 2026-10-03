@@ -33,7 +33,7 @@ class CommentRegressionTest {
   lateinit var model:DiaryViewModel
   compose.runOnUiThread {model=DiaryViewModel(store,SavedStateHandle(mapOf("editing" to true)),clockOn("2026-09-09"))}
   compose.setContent {val s by model.state.collectAsState();SleepDiaryTheme{DiaryScreen(s,model::answerTime,model::answerNumber,model::comment,model::save,model::dismissWarning,{})}}
-  compose.onNodeWithText("＋ 昨晚有特殊情况（可选）").performScrollTo().performClick()
+  compose.onNodeWithText("＋ 有什么特殊情况吗？（可选）").performScrollTo().performClick()
   compose.onNodeWithTag("comment").performClick()
   lateinit var editor:View
   compose.runOnIdle {
@@ -45,8 +45,8 @@ class CommentRegressionTest {
   compose.runOnIdle {assertEquals("中文",model.state.value.form.comment);val input=editor.onCreateInputConnection(EditorInfo())!!;input.finishComposingText();input.commitText(" abc123",1)}
   compose.waitForIdle()
   compose.runOnIdle {assertEquals("中文 abc123",model.state.value.form.comment);editor.clearFocus()}
-  compose.onNodeWithText("＋ 昨晚有特殊情况（可选）").performScrollTo().performClick()
-  compose.onNodeWithText("＋ 昨晚有特殊情况（可选）").performScrollTo().performClick()
+  compose.onNodeWithText("＋ 有什么特殊情况吗？（可选）").performScrollTo().performClick()
+  compose.onNodeWithText("＋ 有什么特殊情况吗？（可选）").performScrollTo().performClick()
   compose.onNodeWithTag("comment").assert(SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.EditableText,androidx.compose.ui.text.AnnotatedString("中文 abc123")))
  }
 }

@@ -44,7 +44,8 @@ class ShareRegressionTest {
    db.diaryDao().insert(entry)
    val share=DiaryShare(context,db);val file=share.renderSaved(entry)
    assertArrayEquals(byteArrayOf(-119,80,78,71,13,10,26,10),file.readBytes().take(8).toByteArray())
-   assertFalse(DiaryShare.lines(entry).joinToString().contains(entry.comment!!))
+    assertFalse(DiaryShare.lines(entry).joinToString().contains(entry.comment!!))
+    assertTrue(DiaryShare.lines(entry,includeComment=true).joinToString().contains(entry.comment!!))
    assertTrue(runCatching{share.renderSaved(entry.copy(comment="不同"))}.isFailure)
   } finally {db.close()}
  }

@@ -153,6 +153,7 @@ class DiaryViewModel(
     }
     fun answerTime(field:DiaryField,value:java.time.LocalDateTime)=updateForm(mutable.value.form.answerTime(field,value))
     fun answerNumber(field:DiaryField,value:Int)=updateForm(mutable.value.form.answerNumber(field,value))
+    fun answerDelay(field:DiaryField,minutes:Int)=updateForm(mutable.value.form.answerDelay(field,minutes))
     fun comment(value:String)=updateForm(mutable.value.form.copy(comment=value))
     fun dismissWarning(){mutable.value=mutable.value.copy(warning=false)}
     fun save(confirmWarning:Boolean=false) {

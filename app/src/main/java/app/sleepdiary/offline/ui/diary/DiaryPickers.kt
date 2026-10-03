@@ -83,10 +83,10 @@ private fun NumberWheel(label:String,values:List<Int>,selected:Int,modifier:Modi
 fun NumberPickerDialog(field:DiaryField,initial:Int?,onDismiss:()->Unit,onConfirm:(Int)->Unit) {
     val range=if(field==DiaryField.COUNT) 6..99 else 0..1440
     var text by rememberSaveable { mutableStateOf(initial?.takeIf { it in range }?.toString() ?: "") }
-    val number=text.toIntOrNull()?.takeIf { it in range }
+    val number=text.toIntOrNull()?.takeIf { it in range && (field !in RELATIVE_FIELDS || it % 5 == 0) }
     AlertDialog(onDismissRequest=onDismiss,title={Text(field.label)},text={Column {
-        FormTextInput(text,{text=it},field.unit+"（"+range.first+"–"+range.last+"）","number_input",keyboardType=KeyboardType.Number)
-        if(text.isNotEmpty()&&number==null) Text("请选择范围内的明确整数")
+        FormTextInput(text,{text=it},field.unit+"（"+range.first+"–"+range.last+(if(field in RELATIVE_FIELDS) "，每 5 分钟" else "")+"）","number_input",keyboardType=KeyboardType.Number)
+        if(text.isNotEmpty()&&number==null) Text(if(field in RELATIVE_FIELDS)"请选择范围内、按 5 分钟递增的整数" else "请选择范围内的明确整数")
     }},confirmButton={TextButton(onClick={onConfirm(checkNotNull(number))},enabled=number!=null,modifier=Modifier.heightIn(min=48.dp).testTag("number_confirm")){Text("确认")}},
         dismissButton={TextButton(onClick=onDismiss,modifier=Modifier.heightIn(min=48.dp)){Text("取消")}})
 }

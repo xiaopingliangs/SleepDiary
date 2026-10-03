@@ -11,9 +11,10 @@ class DiaryFormTest {
     private fun blank()=DiaryForm(referenceDate=LocalDate.parse("2026-09-09"),zoneId="Asia/Shanghai")
     @Test fun allAnswersStartNull() { val f=blank();assertNull(f.bed);assertNull(f.attempt);assertNull(f.sol);assertNull(f.count);assertNull(f.waso);assertNull(f.final);assertNull(f.out);assertNull(f.quality);assertNull(f.comment) }
     @Test fun fourAnchorsDoNotWriteAnswers() {
-        val f=blank();val fields=listOf(DiaryField.BED,DiaryField.TRY,DiaryField.FINAL,DiaryField.OUT)
-        val hours=listOf(LocalTime.of(22,0),LocalTime.of(22,30),LocalTime.of(6,0),LocalTime.of(6,30))
+        val f=blank();val fields=listOf(DiaryField.BED,DiaryField.FINAL)
+        val hours=listOf(LocalTime.of(22,0),LocalTime.of(6,0))
         fields.forEachIndexed {i,field -> assertEquals(hours[i],f.pickerPosition(field).toLocalTime());assertNull(f.time(field))}
+        assertNull(f.delay(DiaryField.TRY));assertNull(f.delay(DiaryField.OUT))
         assertNull(f.toEntry(Instant.now()))
     }
     @Test fun confirmingOneTimeOnlyChangesThatAnswer() {
@@ -65,5 +66,19 @@ class DiaryFormTest {
         assertEquals(LocalDateTime.parse("2026-09-09T00:00"),blank().positionAt(DiaryField.BED,LocalTime.MIDNIGHT))
         assertEquals(LocalDateTime.parse("2026-09-09T00:00"),blank().positionAt(DiaryField.TRY,LocalTime.MIDNIGHT))
         assertNull(blank().bed);assertNull(blank().attempt)
+    }
+    @Test fun relativeDelayCrossesMidnightAndKeepsExistingAbsoluteStorageFields() {
+        var f=blank().answerTime(DiaryField.BED,LocalDateTime.parse("2026-09-08T23:55"))
+        f=f.answerDelay(DiaryField.TRY,10).answerNumber(DiaryField.SOL,5).answerNumber(DiaryField.COUNT,0).answerNumber(DiaryField.WASO,0)
+            .answerTime(DiaryField.FINAL,LocalDateTime.parse("2026-09-09T06:00")).answerDelay(DiaryField.OUT,30).answerNumber(DiaryField.QUALITY,3)
+        val entry=checkNotNull(f.toEntry(Instant.parse("2026-09-10T00:00:00Z")))
+        assertEquals("2026-09-09T00:05",entry.trySleepAtLocal)
+        assertEquals("2026-09-09T06:30",entry.outOfBedAtLocal)
+        assertEquals("2026-09-09",entry.sleepDate)
+    }
+    @Test fun tryDelayInputIsConvenientButNotLimitedToShortQuickChoices() {
+        val f=blank().answerTime(DiaryField.BED,LocalDateTime.parse("2026-09-08T22:00")).answerDelay(DiaryField.TRY,600)
+        assertEquals(600,f.delay(DiaryField.TRY))
+        assertEquals(LocalDateTime.parse("2026-09-09T08:00"),f.time(DiaryField.TRY))
     }
 }

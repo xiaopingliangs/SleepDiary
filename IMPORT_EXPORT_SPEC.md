@@ -152,7 +152,7 @@ Sharesheet 成功交给系统后：
 
 分享是用户主动行为。
 
-Public UX 2.0 日记分享图：
+Public UX 2.0 日记分享图（当前 UX 2.0 合同）：
 - 特殊情况备注默认不包含；
 - 分享前显示可见预览和“包含特殊情况”明确开关；
 - 仅用户主动开启后才把数据库已保存的 comment 加入本次 PNG；
@@ -167,7 +167,7 @@ Public UX 2.0 日记分享图：
 
 ## 9. 独立个人记录隐私边界
 
-完整 JSON 包含全部已保存个人记录；CSV 不增列、不导出该集合；日记 PNG 仍排除 comment、Safety 和独立个人记录。就诊摘要不会自动加入个人记录。全部七表恢复在一个 Room transaction 中替换并全量回读，错误回滚；用户选择文件位置的 SAF 流程保持不变。
+完整 JSON 包含全部已保存个人记录；CSV 不增列、不导出该集合；日记 PNG 默认排除 comment，只有分享前用户明确开启“包含特殊情况”时，才包含本条日记中已保存的 comment。PNG 始终排除 Safety 和独立个人记录。就诊摘要不会自动加入个人记录。全部七表恢复在一个 Room transaction 中替换并全量回读，错误回滚；用户选择文件位置的 SAF 流程保持不变。
 
 ## 10. 原始输入快照
 
@@ -179,9 +179,9 @@ BACKUP_2.1 对外结构不变。业务历史仍完整恢复；本机 local_execu
 
 ## P2A current contract and P2B target (2026-10-03)
 
-Current format is `BACKUP_3.0`; its immutable schema/example are `schemas/backup-v3.schema.json` and `samples/backup-v3.example.json`. Current Room is 6. P2B target is `BACKUP_3.1`, with additive Education state only. `BACKUP_1.0`, `1.1`, `2.0`, `2.1`, and `3.0` remain immutable historical contracts; P2B adds a new schema/sample and does not replace any of them.
+Current format is `BACKUP_3.1`; its schema/example are the current `BACKUP_3.1` definitions. Current Room is 7. `BACKUP_1.0`, `1.1`, `2.0`, `2.1`, and `3.0` remain immutable historical contracts and import-compatible.
 
-`BACKUP_3.1` keeps every `BACKUP_3.0` root field and adds `educationDataSchemaVersion = EDUCATION_DATA_1.0`, `educationContentVersions[]` (packaged registry descriptors only), `educationProgress[]`, `educationCommittedChoices[]`, `educationReviewStates[]`, `educationRecords[]` (one-to-one links by WorkspaceRecord ID), and `educationPositions[]`. `EducationContentVersion` is not copied as course content and is not a Room table. Preview is never exported or persisted. Legacy `BACKUP_1.0–3.0` restore Education collections empty and never infer associations from WorkspaceRecords.
+`BACKUP_3.1` contains `educationDataSchemaVersion = EDUCATION_DATA_1.0`, `educationContentVersions[]` (packaged registry descriptors only), `educationProgress[]`, `educationCommittedChoices[]`, `educationReviewStates[]`, `educationRecords[]` (one-to-one links by WorkspaceRecord ID), and `educationPositions[]`. `EducationContentVersion` is not copied as course content and is not a Room table. Preview is never exported or persisted. Legacy `BACKUP_1.0–3.0` restore Education collections empty and never infer associations from WorkspaceRecords.
 
 Before any database mutation, import validates each exact Education `contentVersionId` and manifest hash against packaged compatible registries. An unknown version ID produces a clear “需要兼容/更新版本的 App” error; a known ID with a different hash produces a clear Education content-version incompatibility error. Neither is mislabeled as ordinary data corruption, and no title/near-ID guessing is permitted. Other malformed or dangling references fail normal semantic validation. A rejected file leaves the current database unchanged.
 

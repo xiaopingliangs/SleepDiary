@@ -4,10 +4,13 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -41,6 +44,8 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
     var restoreSummary by remember { mutableStateOf("") }
     var editReturnRoute by rememberSaveable { mutableStateOf("today") }
     var weeklySummaries by remember { mutableStateOf(emptyList<WeeklySummarySnapshot>()) }
+    var shareEntryId by rememberSaveable { mutableStateOf<String?>(null) }
+    var includeSpecialSituation by rememberSaveable { mutableStateOf(false) }
 
     fun operation(block: suspend () -> Unit) {
         if (busy) return
@@ -109,10 +114,11 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
             restoreState = true
         }
     }
-    fun shareAndExit() {
-        val entry = state.today ?: return
+    fun shareAndExit(includeComment:Boolean) {
+        val entry = state.entries.firstOrNull { it.id == shareEntryId } ?: return
         operation {
-            val intent = withContext(Dispatchers.IO) { checkNotNull(services).share.prepare(entry) }
+            val intent = withContext(Dispatchers.IO) { checkNotNull(services).share.prepare(entry,includeComment) }
+            shareEntryId = null
             model.exitAfterSuccess { DiaryShare.handOff(intent, { context.startActivity(it) }, onExit) }
         }
     }
@@ -202,7 +208,7 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
                     BackHandler(enabled = !state.busy) { model.cancelForm(); nav.navigate(editReturnRoute) { launchSingleTop = true } }
                     Column(Modifier.fillMaxSize()) {
                         TextButton(onClick = { model.cancelForm(); nav.navigate(editReturnRoute) { launchSingleTop = true } }, enabled = !state.busy, modifier = Modifier.heightIn(min = 48.dp)) { Text("← 返回") }
-                        Box(Modifier.weight(1f)) { DiaryScreen(state, model::answerTime, model::answerNumber, model::comment, model::save, model::dismissWarning) { navigateTop(PublicDestination.ME) } }
+                        Box(Modifier.weight(1f)) { DiaryScreen(state, model::answerTime, model::answerNumber, model::comment, model::save, model::dismissWarning, { navigateTop(PublicDestination.ME) }, model::answerDelay) }
                     }
                 }
                 HomePage.SUCCESS -> {
@@ -211,7 +217,7 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
                         if (state.firstSuccess) Text(FIRST_SAVE_EXPLANATION)
                         state.message?.let { Text(it) }
                         Action("返回", { model.returnToToday { nav.navigate(editReturnRoute) { launchSingleTop = true } } }, !state.busy && !busy)
-                        Action("分享并退出", ::shareAndExit, !state.busy && !busy)
+                        Action("分享并退出", { shareEntryId = state.form.id; includeSpecialSituation = false }, !state.busy && !busy)
                     }
                 }
                 HomePage.WEEKLY -> {
@@ -237,6 +243,26 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
     }
 
     if (busy) AlertDialog(onDismissRequest = {}, text = { Text("正在处理，请稍候…") }, confirmButton = {})
+    shareEntryId?.let { id ->
+        val entry = state.entries.firstOrNull { it.id == id }
+        if (entry != null) AlertDialog(
+            onDismissRequest = { if (!busy) shareEntryId = null },
+            title = { Text("分享睡眠记录") },
+            text = {
+                Column(Modifier.heightIn(max = 520.dp).verticalScroll(androidx.compose.foundation.rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("请先预览分享内容。特殊情况备注默认不包含。")
+                    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        Checkbox(checked = includeSpecialSituation, onCheckedChange = { includeSpecialSituation = it }, enabled = entry.comment?.isNotBlank() == true, modifier = Modifier.testTag("share_include_comment"))
+                        Text("包含特殊情况")
+                    }
+                    val lines = DiaryShare.lines(entry, includeSpecialSituation)
+                    lines.forEach { Text(it) }
+                }
+            },
+            confirmButton = { TextButton(enabled = !busy && !state.busy, onClick = { shareAndExit(includeSpecialSituation) }) { Text("继续分享并退出") } },
+            dismissButton = { TextButton(enabled = !busy, onClick = { shareEntryId = null }) { Text("取消") } }
+        )
+    }
     if (exportKind != null) AlertDialog(onDismissRequest = { exportKind = null }, title = { Text("导出明文文件") },
         text = { Text("睡眠日记和完整备份均为明文文件。完整备份还包含安全问询及个人记录。请只保存到你信任的位置。") },
         confirmButton = { TextButton(onClick = { val kind = exportKind; exportKind = null; val stamp = java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")); if (kind == "json") operation { val prepared = withContext(Dispatchers.IO) { checkNotNull(services).backup.export() }; pendingBackupPath = withContext(Dispatchers.IO) { app.sleepdiary.offline.data.backup.PreparedBackupStore.create(context.cacheDir, prepared) }; exportBackup.launch("SleepDiary_backup_$stamp.json") } else exportCsv.launch("SleepDiary_entries_$stamp.csv") }) { Text("选择保存位置") } },
