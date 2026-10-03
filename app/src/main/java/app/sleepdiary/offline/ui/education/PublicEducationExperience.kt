@@ -24,6 +24,7 @@ import app.sleepdiary.offline.data.repository.EducationRepository
 import app.sleepdiary.offline.data.repository.EducationUserDataSnapshot
 import app.sleepdiary.offline.data.repository.WorkspaceRepository
 import app.sleepdiary.offline.domain.model.Versions
+import app.sleepdiary.offline.domain.education.ContextualEducationSuggestion
 import app.sleepdiary.offline.share.EducationSummaryImageShare
 import app.sleepdiary.offline.ui.Action
 import kotlinx.coroutines.launch
@@ -40,7 +41,11 @@ fun PublicEducationExperience(
     repository: EducationRepository?,
     workspace: WorkspaceRepository?,
     onBackToToday: () -> Unit = {},
-    onShareSummary: ((List<String>) -> Unit)? = null
+    onShareSummary: ((List<String>) -> Unit)? = null,
+    contextualSuggestion: ContextualEducationSuggestion? = null,
+    onContextWhy: () -> Unit = {},
+    initialExperienceId: String? = null,
+    onInitialExperienceConsumed: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val catalog = remember { runCatching { PublicEducationCatalog.fromAssets(context.assets) }.getOrNull() }
@@ -68,6 +73,11 @@ fun PublicEducationExperience(
         if (workspace != null) runCatching { workspace.all() }.onSuccess { notes = it }.onFailure { error = "个人记录读取失败：${it.message}" }
     }
     fun go(next: EducationPage, id: String = "") { page = next.name; selectedId = id }
+    LaunchedEffect(initialExperienceId, catalog) {
+        val experience = initialExperienceId?.let { id -> EducationExperienceDefinitions.all.firstOrNull { it.id == id } }
+        if (experience != null && catalog != null) go(EducationPage.EXPERIENCE, experience.id)
+        if (initialExperienceId != null) onInitialExperienceConsumed()
+    }
     fun back() {
         when (EducationPage.valueOf(page)) {
             EducationPage.HOME -> onBackToToday()
@@ -206,7 +216,7 @@ fun PublicEducationExperience(
                     })
                     Action("稍后复习", { go(EducationPage.REVIEW) })
                     Action("学习记录与笔记", { go(EducationPage.NOTES) })
-                    Text("学习不会解锁或启动 CBT-I 治疗；内容也不会读取睡眠日记来生成建议。", style = MaterialTheme.typography.bodySmall)
+                    Text("教育内容不会启动 CBT-I 治疗；日记只用于可关闭的本机中性内容匹配。", style = MaterialTheme.typography.bodySmall)
                 }
                 EducationPage.CHAPTER -> {
                     val chapter = catalog.node(selectedId)

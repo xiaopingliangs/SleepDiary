@@ -197,6 +197,8 @@ Today | Sleep | Education | Me
 
 Public Edition 的生产 `AppServices` 不应向 UI 暴露 TreatmentStateController。未来如启动 Treatment 产品，应建立单独能力装配和新的已批准合同，而不是从 Education 页面调用现有控制器。
 
+Public UX 2.0 allows a narrow read-only Diary → Education context path: a pure matcher receives diary rows plus a local opt-out preference and returns at most one pre-authored Experience identifier. See `CONTEXTUAL_EDUCATION_RULES.md`. The preference is local-only and not backup-critical. This path has no write access to Diary, Safety, Education user state, or Treatment and does not use Treatment metrics or controllers.
+
 ## 9. Treatment foundation compatibility
 
 现有 foundation 不要求删除：

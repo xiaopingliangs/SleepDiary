@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.dp
 import app.sleepdiary.offline.data.entity.SleepDiaryEntry
 import app.sleepdiary.offline.data.entity.WeeklySummarySnapshot
 import app.sleepdiary.offline.domain.model.AssessmentStatus
+import app.sleepdiary.offline.domain.education.ContextualEducationSuggestion
+import app.sleepdiary.offline.domain.education.ContextualEducationMatcher
 import app.sleepdiary.offline.domain.weekly.RecentAverageCalculator
 import app.sleepdiary.offline.ui.Action
 import app.sleepdiary.offline.ui.AverageDurationText
@@ -61,6 +63,9 @@ fun PublicBottomNavigation(currentRoute: String, onSelect: (PublicDestination) -
 fun PublicTodayScreen(
     state: DiaryUiState,
     onCreate: () -> Unit,
+    suggestion: ContextualEducationSuggestion? = null,
+    onContextWhy: () -> Unit = {},
+    onLearnSuggestion: (ContextualEducationSuggestion) -> Unit = {},
     onView: (SleepDiaryEntry) -> Unit
 ) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -71,6 +76,18 @@ fun PublicTodayScreen(
         } else {
             Text("昨晚的睡眠记录已保存")
             Action("查看记录", { state.today?.let(onView) })
+        }
+        suggestion?.let { value ->
+            Card(Modifier.fillMaxWidth().testTag("today_contextual_education")) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("也许可以想一想", style = MaterialTheme.typography.titleSmall)
+                    Text(value.question, style = MaterialTheme.typography.titleMedium)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TextButton(onClick = onContextWhy) { Text("为什么会看到这个？") }
+                        TextButton(onClick = { onLearnSuggestion(value) }) { Text("了解一下") }
+                    }
+                }
+            }
         }
     }
 }
@@ -154,10 +171,21 @@ fun PublicMeHome(
     onMethods: () -> Unit,
     onTerms: () -> Unit,
     onVersions: () -> Unit,
-    onUsageGuide: () -> Unit = {}
+    onUsageGuide: () -> Unit = {},
+    recordBasedMatchingEnabled: Boolean = true,
+    onRecordBasedMatchingChanged: (Boolean) -> Unit = {}
 ) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("我的", style = MaterialTheme.typography.headlineMedium)
+        Text("了解内容偏好", style = MaterialTheme.typography.titleMedium)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Column(Modifier.weight(1f)) {
+                Text("按本机日记显示相关内容")
+                Text("仅在本机匹配一条中性教育内容，不作诊断或治疗建议。", style = MaterialTheme.typography.bodySmall)
+            }
+            Switch(checked = recordBasedMatchingEnabled, onCheckedChange = onRecordBasedMatchingChanged, modifier = Modifier.testTag("record_based_matching_toggle"))
+        }
+        HorizontalDivider()
         Text("个人记录", style = MaterialTheme.typography.titleMedium)
         Action("个人记录", onWorkspace, modifier = Modifier.testTag("public_me_workspace"))
         Text("导出与恢复", style = MaterialTheme.typography.titleMedium)
@@ -178,6 +206,18 @@ fun PublicMeHome(
         Action("术语表", onTerms)
         Action("版本信息", onVersions)
     }
+}
+
+@Composable
+fun ContextualEducationExplanation(suggestion: ContextualEducationSuggestion, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("为什么会看到这个？") },
+        text = {
+            Text("这是根据本机保存的 ${suggestion.sourceSleepDate} 睡眠日记中“估计睡眠时长”的结果，与预先准备的教育内容对应显示的。匹配只在本机完成，不会上传。这不是诊断，也不是治疗建议。")
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("知道了") } }
+    )
 }
 
 @Composable
@@ -226,6 +266,9 @@ fun DiaryDetailScreen(entry: SleepDiaryEntry, onBack: () -> Unit, onCorrect: () 
         Text(entry.sleepDate, style = MaterialTheme.typography.titleMedium)
         val form = DiaryForm.from(entry)
         DiaryField.entries.forEach { Text(it.label + "：" + fieldValue(form, it)) }
+        ContextualEducationMatcher.estimatedSleepDurationMinutes(entry)?.let { minutes ->
+            Text("估计睡眠时长：${AverageDurationText.fromMinutes(minutes.toDouble())}")
+        }
         entry.comment?.takeIf(String::isNotBlank)?.let { Text("特殊情况"); Text(it) }
         TextButton(onClick = { confirmCorrection = true }, modifier = Modifier.heightIn(min = 48.dp)) { Text("更正明显错误") }
     }

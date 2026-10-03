@@ -329,3 +329,13 @@ P0：快照按命令 ID 保存/全字段回读、磁盘重开、旧日记编辑�
 ## SPEC-0.2.2 本机恢复边界
 
 P0：初始化/数据库重开代次稳定；四代备份均重新生成代次；恢复相同内容旧 token 仍失效；预览/导出不生成或改变代次；七业务表及本机状态在全部恢复检查点失败时共同回滚；首次恢复失败不残留元数据；伪造备份执行权限拒绝；损坏本机状态失败关闭；日记/Safety 变更使预检失效；缺失快照不能放行；Room 1/2/3/4→5 保留原始数据。
+
+## Public UX 2.0 — contextual education
+
+- Valid estimate uses `trySleepAtLocal` → `finalAwakeningAtLocal` minus SOL and WASO; invalid chronology or a negative result yields no suggestion.
+- Only the newest valid entry within the inclusive 7-local-date window is considered; output is zero or one pre-authored Experience.
+- The authored-content match boundary at 240 minutes is never shown as a health cutoff or diagnosis.
+- Today and Understand show at most one optional question; selecting it opens the mapped Experience.
+- The explanation identifies local-only matching and disclaims diagnosis/treatment; no diary mutation occurs.
+- The user can disable matching from Me; the local preference persists across app recreation and is excluded from Room and backup.
+- Matching does not mutate Diary, Safety, Education user state, Treatment episodes/audit, plan, or state. No SE or treatment window is calculated.

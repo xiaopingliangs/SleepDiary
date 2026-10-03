@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalContext
@@ -28,6 +29,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import app.sleepdiary.offline.domain.education.ContextualEducationMatcher
+import app.sleepdiary.offline.domain.education.ContextualEducationSuggestion
+import app.sleepdiary.offline.ui.publicnav.ContextualEducationPreference
 
 @Composable
 fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServices? = null) {
@@ -46,6 +50,13 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
     var weeklySummaries by remember { mutableStateOf(emptyList<WeeklySummarySnapshot>()) }
     var shareEntryId by rememberSaveable { mutableStateOf<String?>(null) }
     var includeSpecialSituation by rememberSaveable { mutableStateOf(false) }
+    val contextualEducationPreference = remember(context) { ContextualEducationPreference(context) }
+    var recordMatchingEnabled by remember { mutableStateOf(contextualEducationPreference.isEnabled()) }
+    var educationLaunchId by rememberSaveable { mutableStateOf<String?>(null) }
+    var showContextualEducationWhy by rememberSaveable { mutableStateOf(false) }
+    val contextualSuggestion = remember(state.entries, state.form.referenceDate, recordMatchingEnabled) {
+        ContextualEducationMatcher.match(state.form.referenceDate, state.entries, recordMatchingEnabled)
+    }
 
     fun operation(block: suspend () -> Unit) {
         if (busy) return
@@ -132,7 +143,10 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
         Column(Modifier.fillMaxSize()) {
             NavHost(navController = nav, startDestination = PublicDestination.TODAY.route, modifier = Modifier.weight(1f)) {
                 composable("today") {
-                    PublicTodayScreen(state, model::beginNewDiary) { entry ->
+                    PublicTodayScreen(state, model::beginNewDiary, contextualSuggestion, { showContextualEducationWhy = true }, { suggestion ->
+                        educationLaunchId = suggestion.experienceId
+                        navigateTop(PublicDestination.EDUCATION)
+                    }) { entry ->
                         editReturnRoute = "today"
                         nav.navigate("diaryDetail/${entry.id}")
                     }
@@ -144,7 +158,11 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
                     PublicEducationExperience(
                         services?.education,
                         services?.workspace,
-                        onBackToToday = { navigateTop(PublicDestination.TODAY) }
+                        onBackToToday = { navigateTop(PublicDestination.TODAY) },
+                        contextualSuggestion = contextualSuggestion,
+                        onContextWhy = { showContextualEducationWhy = true },
+                        initialExperienceId = educationLaunchId,
+                        onInitialExperienceConsumed = { educationLaunchId = null }
                     )
                 }
                 composable("me") {
@@ -160,7 +178,12 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
                         onMethods = { nav.navigate("methods") },
                         onTerms = { nav.navigate("terms") },
                         onVersions = { nav.navigate("versions") },
-                        onUsageGuide = { nav.navigate("usage") }
+                        onUsageGuide = { nav.navigate("usage") },
+                        recordBasedMatchingEnabled = recordMatchingEnabled,
+                        onRecordBasedMatchingChanged = { enabled ->
+                            contextualEducationPreference.setEnabled(enabled)
+                            recordMatchingEnabled = enabled
+                        }
                     )
                 }
                 composable("history") {
@@ -243,6 +266,9 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
     }
 
     if (busy) AlertDialog(onDismissRequest = {}, text = { Text("正在处理，请稍候…") }, confirmButton = {})
+    contextualSuggestion?.takeIf { showContextualEducationWhy }?.let { suggestion ->
+        ContextualEducationExplanation(suggestion) { showContextualEducationWhy = false }
+    }
     shareEntryId?.let { id ->
         val entry = state.entries.firstOrNull { it.id == id }
         if (entry != null) AlertDialog(

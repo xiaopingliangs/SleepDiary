@@ -8,7 +8,7 @@
 
 Education 系统提供低负担、可追溯、完全离线的睡眠知识和 CBT-I 概念教育。用户可以按需阅读、明确保存进度、标记稍后复习并写下自己的记录。
 
-Education 不根据个人日记生成内容，不判断治疗适用性，不改变 TreatmentState，不创建计划。
+Education 不判断治疗适用性，不改变 TreatmentState，不创建计划。Public UX 2.0 仅允许独立的窄范围本机规则读取有效日记中性事实，并匹配至预先写好的 Experience；规则不生成新内容或个人建议，详见 `CONTEXTUAL_EDUCATION_RULES.md`。
 
 ## 2. 内容层级
 
@@ -246,7 +246,7 @@ REVIEWED
 
 - 必须由用户明确设置；
 - 无记录表示未收藏；
-- 不根据时间、日记或统计自动加入复习；
+- 不根据时间、日记或统计自动加入复习；上下文教育匹配与复习队列完全独立；
 - 不产生推送或后台提醒；
 - “Review”仅指复习教育内容，不是临床审核。
 
@@ -370,3 +370,7 @@ The default Education landing page is a low-pressure “了解睡眠” home. It
 The authored renderer selects which existing fields to show and when. It does not display `classification`, node kind, schema labels, or raw JSON as user content. Professional detail and sources are revealed only when requested. The first three experiences use concise scenario explanations and optional reflection; the fourth uses the existing hypothetical V4 choice set and visibly states that it is not an individual schedule or instruction. Preview remains in-memory, gives neutral feedback, can be discarded/replaced, and is saved to `EducationCommittedChoice` only after “就是这个”. Explicit “完成” is the only progress-completion action; opening, scrolling, and resume-position updates do not complete content.
 
 This UX layer does not revise V4 text, registry IDs, hashes, sources, classification, schema, Room, or backup contracts. The legacy renderer remains reachable only through the optional Knowledge Map. V4 public release/licensing clearance remains separately blocked pending review.
+
+## 17. Contextual education boundary
+
+Today and Understand may show at most one optional pre-authored Experience suggestion derived from a recent valid diary estimate. The matcher is read-only and deterministic, has a local opt-out, and does not add review items or write Education progress. Exact matching behavior is in `CONTEXTUAL_EDUCATION_RULES.md`.

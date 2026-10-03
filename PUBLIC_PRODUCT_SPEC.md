@@ -179,7 +179,7 @@ Sleep 不提供月度疗效报告、改善百分比、TST、SE 或治疗窗口�
 - 药物建议；
 - AI 分析、聊天或医疗建议；
 - 云同步、账号、广告、分析、遥测和可穿戴设备；
-- 自动教育推荐、内容评分、学习连续打卡和奖励。
+- 无边界或 AI 自动教育推荐、内容评分、学习连续打卡和奖励；Public UX 2.0 仅保留 `CONTEXTUAL_EDUCATION_RULES.md` 定义的一条可关闭中性匹配。
 
 ## 9. 发布条件
 
@@ -194,6 +194,10 @@ Public Edition v1.0 发布前必须：
 - `CBT-I Protocol` 仍显示 `NONE`；
 - UI 中不存在任何可启动 Treatment 的入口。
 
+## Public UX 2.0 contextual education
+
+An optional, locally computed estimate derived from valid diary chronology may match one pre-authored Education Experience. It may be shown as `估计睡眠时长`; it is never called actual/measured sleep duration. The bounded rule, user opt-out, invalid-row behavior, and non-clinical content-match boundary are defined in `CONTEXTUAL_EDUCATION_RULES.md`. The estimate cannot feed treatment metrics, schedules, diagnosis, Safety, or Treatment state.
+
 ## Public UX 2.0 — 当前设备预览合同
 
 本节补充并覆盖与当前可用体验冲突的 P0 页面描述；Room 7、`BACKUP_3.1`、Education 持久状态及 `CBT-I Protocol = NONE` 不变。
@@ -205,3 +209,4 @@ Public Edition v1.0 发布前必须：
 - 日记以入床和最后醒来两个时钟为主，并以相对分钟输入上床到尝试入睡、最后醒来到离床的间隔；程序仅将其换算回原有绝对时间字段。
 - 分享 PNG 默认排除特殊情况 comment。分享前展示预览与“包含特殊情况”开关，只有用户明确开启后才附上已保存的 comment；Safety、治疗数据和独立个人记录始终不进入分享图。
 - “了解”默认展示四个 curated native Experiences，完整知识地图为可选入口；正常体验不展示候选分类、内部 schema 或课程负担数字。教育选择只有明确“就是这个”才写为 committed choice，只有明确“完成”才保存 completed progress。
+- Today 和“了解”最多展示一条可选的本机日记情境教育问题；用户可在“我的”关闭。只用有效日记估计匹配预先写好的内容，不是个人治疗建议。规则和隐私说明见 `CONTEXTUAL_EDUCATION_RULES.md`。
