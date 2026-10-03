@@ -219,6 +219,13 @@ gradlew.bat connectedDebugAndroidTest
 分别提交 S03=YES、UNSURE：验证先持久化 DRAFT、已答内容和至少 DELAY_AUTOMATED_TREATMENT，再立即显示帮助，不等待其余题目。
 选择退出后重开、或继续记录睡眠：日记始终可用；DRAFT/S03 信号保留；设置有中性继续入口。继续完成全部题后才变 COMPLETED。
 
+## 13. Public UX 2.0 — 旧数据与导出安全
+
+- `BACKUP_3.1` 对字段格式、数值范围、UUID、引用和格式版本保持校验；严格保留可解析的旧日记时间/日期字符串，即使当前 DiaryValidator 已拒绝其 chronology。导出/恢复不得规范化这些原值。
+- 用含旧 chronology 的数据库做 `BACKUP_3.1` export → preview → restore round-trip；恢复行仍被当前 7/14 日和周统计排除，直至用户明确更正。
+- stale current `WeeklySummarySnapshot` 被当前有效记录重新计算时，旧 revision 保留为 `isCurrent=false`，新 revision+1 指向旧 ID，统计只纳入当前有效行。
+- 完整备份必须在打开 SAF 目标前完成编码和校验；目标写入失败时尽可能删除部分文档；空 payload 不创建目标，也不显示成功。
+
 ### T-SAFE-006 明确分支
 S01 仅 YES/NO；YES 无额外 gate，NO 为 CLINICIAN_REVIEW，拒绝 UNSURE。
 S07=NO 无额外 gate且无 S07b；UNSURE 为 CLINICIAN_REVIEW且无 S07b；YES 才显示 S07b。

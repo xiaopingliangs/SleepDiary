@@ -143,7 +143,18 @@ object BackupCodec {
   require(d.workspaceRecords.map{it.id}.distinct().size==d.workspaceRecords.size)
   d.workspaceRecords.forEach(WorkspaceValidation::record)
   require(d.entries.map{it.id}.distinct().size==d.entries.size && d.entries.map{it.sleepDate}.distinct().size==d.entries.size)
-  d.entries.forEach {e->val v=DiaryValidator.validate(e);require(v.canSave);require(!v.consistencyWarning||e.consistencyWarning);require(Instant.parse(e.createdAtUtc)<=Instant.parse(e.updatedAtUtc))}
+  d.entries.forEach {e->
+   val v=DiaryValidator.validate(e)
+   // Strict validation belongs to current create/edit. A backup must remain lossless
+   // for parseable legacy chronology that an older release had already stored.
+   // Do not normalize the source row during export or restore.
+   val legacyChronologyErrors=setOf("sleepDate","timeOrder","timeDateRange","timeSpan")
+   require(v.errors.all { it in legacyChronologyErrors }) { "日记字段格式或数值损坏" }
+   LocalDate.parse(e.sleepDate)
+   LocalDateTime.parse(e.bedEnteredAtLocal);LocalDateTime.parse(e.trySleepAtLocal)
+   LocalDateTime.parse(e.finalAwakeningAtLocal);LocalDateTime.parse(e.outOfBedAtLocal)
+   require(Instant.parse(e.createdAtUtc)<=Instant.parse(e.updatedAtUtc))
+  }
   require(d.assessments.map{it.assessment.id}.distinct().size==d.assessments.size)
   val current=d.assessments.filter{it.assessment.isCurrent};require(current.size<=1)
   require(d.state.currentSafetyAssessmentId==current.singleOrNull()?.assessment?.id)

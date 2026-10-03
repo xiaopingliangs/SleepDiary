@@ -37,6 +37,7 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
     var exportKind by rememberSaveable { mutableStateOf<String?>(null) }
     var educationExportKind by rememberSaveable { mutableStateOf<String?>(null) }
     var pendingRestore by remember { mutableStateOf<String?>(null) }
+    var pendingBackupPath by rememberSaveable { mutableStateOf<String?>(null) }
     var restoreSummary by remember { mutableStateOf("") }
     var editReturnRoute by rememberSaveable { mutableStateOf("today") }
     var weeklySummaries by remember { mutableStateOf(emptyList<WeeklySummarySnapshot>()) }
@@ -54,11 +55,16 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
     }
 
     val exportBackup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
-        if (uri != null) operation {
-            val value = withContext(Dispatchers.IO) { checkNotNull(services).backup.export() }
-            withContext(Dispatchers.IO) { checkNotNull(context.contentResolver.openOutputStream(uri, "wt")).use { it.write(value.toByteArray(Charsets.UTF_8)) } }
-            message = "完整备份已导出"
-        }
+        val stagedPath = pendingBackupPath
+        pendingBackupPath = null
+        if (uri == null) app.sleepdiary.offline.data.backup.PreparedBackupStore.delete(context.cacheDir, stagedPath)
+        else if (stagedPath != null) operation {
+            try {
+                val bytes = withContext(Dispatchers.IO) { app.sleepdiary.offline.data.backup.PreparedBackupStore.read(context.cacheDir, stagedPath) }
+                withContext(Dispatchers.IO) { app.sleepdiary.offline.data.backup.SafDocumentWriter.write(uri, bytes, { context.contentResolver.openOutputStream(it, "wt") }, { context.contentResolver.delete(it, null, null) }) }
+                message = "完整备份已导出"
+            } finally { app.sleepdiary.offline.data.backup.PreparedBackupStore.delete(context.cacheDir, stagedPath) }
+        } else runCatching { context.contentResolver.delete(uri, null, null) }
     }
     val exportCsv = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
         if (uri != null) operation {
@@ -92,7 +98,10 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
         }
     }
 
-    LaunchedEffect(services) { weeklySummaries = runCatching { services?.weeklySummaries?.currentSummaries().orEmpty() }.getOrDefault(emptyList()) }
+    LaunchedEffect(services) {
+        app.sleepdiary.offline.data.backup.PreparedBackupStore.cleanupExpired(context.cacheDir)
+        weeklySummaries = runCatching { services?.weeklySummaries?.currentSummaries().orEmpty() }.getOrDefault(emptyList())
+    }
     fun navigateTop(destination: PublicDestination) {
         nav.navigate(destination.route) {
             popUpTo(nav.graph.findStartDestination().id) { saveState = true }
@@ -217,7 +226,7 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
     if (busy) AlertDialog(onDismissRequest = {}, text = { Text("正在处理，请稍候…") }, confirmButton = {})
     if (exportKind != null) AlertDialog(onDismissRequest = { exportKind = null }, title = { Text("导出明文文件") },
         text = { Text("睡眠日记和完整备份均为明文文件。完整备份还包含安全问询及个人记录。请只保存到你信任的位置。") },
-        confirmButton = { TextButton(onClick = { val kind = exportKind; exportKind = null; val stamp = java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")); if (kind == "json") exportBackup.launch("SleepDiary_backup_$stamp.json") else exportCsv.launch("SleepDiary_entries_$stamp.csv") }) { Text("选择保存位置") } },
+        confirmButton = { TextButton(onClick = { val kind = exportKind; exportKind = null; val stamp = java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")); if (kind == "json") operation { val prepared = withContext(Dispatchers.IO) { checkNotNull(services).backup.export() }; pendingBackupPath = withContext(Dispatchers.IO) { app.sleepdiary.offline.data.backup.PreparedBackupStore.create(context.cacheDir, prepared) }; exportBackup.launch("SleepDiary_backup_$stamp.json") } else exportCsv.launch("SleepDiary_entries_$stamp.csv") }) { Text("选择保存位置") } },
         dismissButton = { TextButton(onClick = { exportKind = null }) { Text("取消") } })
     if (educationExportKind != null) AlertDialog(onDismissRequest = { educationExportKind = null }, title = { Text("导出学习数据") },
         text = { Text("只导出你保存的学习数据和关联笔记，不包含课程正文。文件是明文，请保存到可信位置。") },

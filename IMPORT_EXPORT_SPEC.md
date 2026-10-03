@@ -1,6 +1,6 @@
 # IMPORT_EXPORT_SPEC.md — 导入、导出与分享
 
-> 当前执行基线（2026-10-03）：`BACKUP_3.0` / Room 6 / CBT-I Protocol `NONE`。下方既有各格式定义与样例说明作为其原版本合同保留；本文末尾 P2A addendum 是当前合同及未来 BACKUP_3.1 增量，不得据此改写 BACKUP_1.0–3.0 的 schema 或 sample。
+> 当前执行基线（2026-10-03）：`BACKUP_3.1` / Room 7 / CBT-I Protocol `NONE`。下方既有各格式定义与样例说明作为其原版本合同保留；本文末尾 P2A addendum 是当前合同及 BACKUP_3.1 增量，不得据此改写 BACKUP_1.0–3.0 的 schema 或 sample。
 
 ## 1. 目标
 
@@ -98,7 +98,7 @@ V0.1 的 JSON 导入只提供替换式完整恢复，不提供 merge、duplicate
 
 1. 用 Storage Access Framework 选择并读取 JSON。
 2. 完整 JSON Schema 校验：语法、格式版本、必填字段、类型、枚举、UUID、日期时间。
-3. 完整语义校验：时间顺序/数值、答案条件与版本、关系引用、AppState、周期起点与周报修订关系；备份内标识/关系必须能完整恢复。diaryEntries 有 sleepDate 早于 trackingStartDate 时失败。
+3. 完整语义校验：字段可解析性与技术范围、答案条件与版本、关系引用、AppState、周期起点与周报修订关系；备份内标识/关系必须能完整恢复。日记的严格时间顺序、sleepDate 对应离床日和最长 24 小时跨度用于当前新建/编辑校验，不得成为拒绝无损备份既有可解析历史行的理由。完整备份保留并恢复原始时间字符串，不自动规范化；恢复后的无效行仍排除在当前统计之外，只有用户明确更正后才会进入统计。diaryEntries 有 sleepDate 早于 trackingStartDate 时失败。
 4. 修改本地数据前显示恢复摘要。
 5. 本机已有数据时明确提示「恢复备份将替换本机现有 SleepDiary 数据。」
 6. 提供「先导出当前数据」「替换并恢复」「取消」；只有确认恢复才可修改。
@@ -152,8 +152,10 @@ Sharesheet 成功交给系统后：
 
 分享是用户主动行为。
 
-V0.1 分享图：
-- 不包含自由备注；
+Public UX 2.0 日记分享图：
+- 特殊情况备注默认不包含；
+- 分享前显示可见预览和“包含特殊情况”明确开关；
+- 仅用户主动开启后才把数据库已保存的 comment 加入本次 PNG；
 - 不包含安全问询；
 - 不包含设备 ID；
 - 不包含用户姓名/手机号；

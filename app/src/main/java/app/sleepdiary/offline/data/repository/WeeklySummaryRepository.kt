@@ -9,8 +9,22 @@ import java.time.LocalDate
 import java.util.UUID
 
 class WeeklySummaryRepository(private val database: SleepDiaryDatabase, private val clock: Clock = Clock.systemDefaultZone()) {
-    suspend fun currentSummaries(): List<WeeklySummarySnapshot> = database.stateAndSummaryDao().summaries()
-        .filter { it.isCurrent }.sortedByDescending { it.periodIndex }
+    /** Recomputes stale current snapshots under the current valid-entry rules while retaining prior revisions. */
+    suspend fun currentSummaries(): List<WeeklySummarySnapshot> = database.withTransaction {
+        val dao = database.stateAndSummaryDao()
+        val start = dao.state()?.trackingStartDate?.let(LocalDate::parse)
+        if (start != null) {
+            val today = LocalDate.now(clock)
+            dao.summaries().filter { it.isCurrent }.sortedBy { it.periodIndex }.forEach { existing ->
+                val period = PeriodCalculator.at(start, existing.periodIndex)
+                if (period.end <= today) {
+                    val fresh = WeeklySummaryCalculator.calculate(period, database.diaryDao().all())
+                    if (!matches(existing, period, fresh)) write(period, existing)
+                }
+            }
+        }
+        dao.summaries().filter { it.isCurrent }.sortedByDescending { it.periodIndex }
+    }
     /** Explicit generation for an ended period; presentation remains a later UI responsibility. */
     suspend fun generate(periodIndex: Int): WeeklySummarySnapshot = database.withTransaction {
         val start = LocalDate.parse(checkNotNull(database.stateAndSummaryDao().state()?.trackingStartDate))
@@ -57,5 +71,19 @@ class WeeklySummaryRepository(private val database: SleepDiaryDatabase, private 
         dao.insertSummary(snapshot)
         check(dao.summaryById(snapshot.id) == snapshot) { "Summary read-back mismatch" }
         return snapshot
+    }
+
+    private fun matches(snapshot: WeeklySummarySnapshot, period: DiaryPeriod, values: WeeklySummaryValues): Boolean {
+        val ids = runCatching { org.json.JSONArray(snapshot.sourceEntryIdsJson).let { a -> (0 until a.length()).map(a::getString) } }.getOrNull()
+        return snapshot.periodStartDate == period.start.toString() &&
+            snapshot.periodEndDate == period.end.toString() &&
+            snapshot.weeklySummaryRuleVersion == app.sleepdiary.offline.domain.model.Versions.WEEKLY_RULE &&
+            snapshot.validEntryCount == values.validEntryCount &&
+            snapshot.avgSolMin == values.avgSolMin &&
+            snapshot.avgAwakeningCount == values.avgAwakeningCount &&
+            snapshot.avgWasoMin == values.avgWasoMin &&
+            snapshot.avgTerminalWakefulnessMin == values.avgTerminalWakefulnessMin &&
+            snapshot.avgTibMin == values.avgTibMin &&
+            snapshot.avgSleepQuality == values.avgSleepQuality && ids == values.sourceEntryIds
     }
 }

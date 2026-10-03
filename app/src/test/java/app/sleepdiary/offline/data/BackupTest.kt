@@ -31,6 +31,16 @@ class BackupTest {
  @Test fun previousExamplePasses(){assertTrue(repo.preview(sample("v1.1")).state.hasCompletedOnboarding)}
  @Test fun legacyExampleDefaultsFalse(){assertFalse(repo.preview(sample("v1")).state.hasCompletedOnboarding)}
  @Test fun trueRoundTripReplacesData()=runBlocking{seed();val expected=repo.snapshot();val text=repo.export();assertEquals("BACKUP_3.1",JSONObject(text).getString("exportFormatVersion"));db.diaryDao().insert(diary("2026-09-10"));repo.restore(text);assertEquals(expected,repo.snapshot())}
+ @Test fun parseableLegacyChronologyRoundTripsWithoutNormalization()=runBlocking {
+  val legacy=diary("2026-09-09").copy(bedEnteredAtLocal="2026-09-08T00:00:00")
+  assertFalse(app.sleepdiary.offline.domain.validation.DiaryValidator.validate(legacy).canSave)
+  db.diaryDao().insert(legacy);db.stateAndSummaryDao().putState(AppState(trackingStartDate=legacy.sleepDate))
+  val text=repo.export();val preview=repo.preview(text)
+  assertEquals(legacy,preview.entries.single())
+  db.diaryDao().deleteAll();repo.restore(text)
+  assertEquals(legacy,db.diaryDao().byId(legacy.id))
+  assertFalse(app.sleepdiary.offline.domain.validation.DiaryValidator.validate(checkNotNull(db.diaryDao().byId(legacy.id))).canSave)
+ }
  @Test fun falseRoundTrip()=runBlocking{seed(false);val text=repo.export();db.stateAndSummaryDao().putState(checkNotNull(db.stateAndSummaryDao().state()).copy(hasCompletedOnboarding=true));repo.restore(text);assertFalse(repo.snapshot().state.hasCompletedOnboarding)}
  @Test fun legacyRestore()=runBlocking{seed();repo.restore(sample("v1"));assertEquals("2026-09-08",repo.snapshot().entries.single().sleepDate);assertFalse(repo.snapshot().state.hasCompletedOnboarding);assertEquals(AssessmentStatus.DRAFT,repo.snapshot().assessments.single().assessment.status)}
  @Test fun bothCorruptVersionsPreserveDatabase()=runBlocking{seed();val before=repo.snapshot();for(v in listOf("v1","v1.1")){val o=JSONObject(sample(v));o.getJSONArray("diaryEntries").getJSONObject(0).put("sleepQuality",9);assertTrue(runCatching{repo.restore(o.toString())}.isFailure);assertEquals(before,repo.snapshot())}}
