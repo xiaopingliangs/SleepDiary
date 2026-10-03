@@ -30,3 +30,14 @@ Status: automated/static RC checks complete; physical-device acceptance remains 
 The candidate is technically built and the full automated suite passes, but P5's physical-device acceptance is still blocked. Do not describe this as a fully accepted or final v1.0 release. Education redistribution/adaptation rights are separately unresolved, so content licensing is also blocked. The final report records ending Git HEAD and working-tree status; the Part B documentation is committed separately from the Part A correction.
 
 P5 does not authorize Treatment work. Current versions remain Room 7, BACKUP_3.1, EDUCATION_DATA_1.0, EDUCATION_EXPORT_1.0, and CBT-I Protocol `NONE`.
+
+## Part D — P5D Galaxy S24 physical-device acceptance — 2026-10-03
+
+Status: device was available and exercised, but technical device acceptance **FAILED**. The detailed evidence and per-flow disposition are recorded in [PUBLIC_EDITION_P5D_DEVICE_ACCEPTANCE.md](PUBLIC_EDITION_P5D_DEVICE_ACCEPTANCE.md).
+
+- Samsung Galaxy S24 (`SM-S9210`), Android 16/API 36, authorized ADB serial `RFCX10F9QVD`; all device operations used the specified Android SDK `adb.exe` path.
+- Update installation preserved existing data. Today, 7/14-day stats, Education reading, an Education summary PNG received by Samsung Messages, Education JSON/TXT SAF exports, and partial offline navigation were verified on device.
+- Critical failures: BACKUP_3.1 export returned an error after creating a 0-byte SAF document because two existing malformed date/time rows fail DiaryValidator semantic validation; an already persisted weekly snapshot displays `10小时36分钟` average TIB due to the September 25 malformed row.
+- No diary data was rewritten, no app data was cleared, and no unsafe restore was attempted. No code/specification change or physical-device fix commit was made.
+- Full unit tests were rerun: 452 passed, 0 failed/errors/skipped. `assembleDebug --offline` passed. The current APK hash is recorded in the device acceptance report.
+- Content licensing remains blocked. P6 and Treatment were not started.

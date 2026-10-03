@@ -41,3 +41,9 @@ Required closeout: rights-holder/authorized counsel review of the source materia
 ## Physical-device RC verification — outstanding
 
 P5 requested device evidence for daily routing and lifecycle, native Education and learning state, summary PNG/FileProvider/Sharesheet, BACKUP_3.1 round-trip, Education exports, offline operation, and Galaxy S24 layout/IME/accessibility. These checks remain open until executed on a connected physical device. Automated tests and APK construction do not replace them.
+
+## P5D Galaxy S24 execution — 2026-10-03
+
+The device became available and P5D was executed. Technical device acceptance is **FAIL**, not merely untested: BACKUP_3.1 export on the existing database produces a zero-byte SAF file, and an already persisted weekly summary shows an inflated average TIB. Both findings trace to two malformed historical diary rows rejected by the current structural validator. No raw data was rewritten and no restore was attempted. See [PUBLIC_EDITION_P5D_DEVICE_ACCEPTANCE.md](PUBLIC_EDITION_P5D_DEVICE_ACCEPTANCE.md) for per-test evidence and limitations.
+
+The earlier P5D items not exercised remain open, including a safe BACKUP_3.1 round-trip, Education note/IME and persistence flows, and full offline/accessibility checks. Keep Education licensing clearance **BLOCKED** as above. Do not begin P6 or Treatment from this checkpoint.
