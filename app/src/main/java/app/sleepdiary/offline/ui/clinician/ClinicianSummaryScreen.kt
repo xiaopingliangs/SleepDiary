@@ -84,7 +84,7 @@ class ClinicianPreviewModel : ViewModel() {
     }
     BackHandler(enabled = !enabled) {}
     SimplePage("就诊摘要") {
-        Action("返回设置", onBack, enabled)
+        Action("返回我的", onBack, enabled)
         Text("选择日期和要展示的信息，先在本机预览。只有你主动导出并选择保存位置，摘要才离开应用；不会自动发送给医生。")
         OutlinedTextField(from, { from = it; model.invalidate() }, label = { Text("开始日期 YYYY-MM-DD") },
             singleLine = true, enabled = enabled, modifier = Modifier.fillMaxWidth().testTag("summary_from"))

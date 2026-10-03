@@ -54,11 +54,11 @@ class SafFlowTest {
    check(model.state.value.message==null){"Initial load failed: ${model.state.value.message}"}
    model.state.value.page!=HomePage.LOADING
   }}
-  compose.onNodeWithText("设置").performScrollTo().performClick()
+  compose.onNodeWithTag("public_tab_me").performClick()
  }
  @After fun close(){db.close()}
  private fun deliver(ok:Boolean=true){compose.runOnUiThread{registry.dispatchResult(request,if(ok)Activity.RESULT_OK else Activity.RESULT_CANCELED,if(ok)Intent().setData(uri)else null)}}
- private fun waitText(text:String){compose.waitUntil(10000){compose.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()}}
+ private fun waitText(text:String){try{compose.waitUntil(10000){compose.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()}}catch(e:Throwable){throw AssertionError("Missing '$text'\n"+compose.onAllNodes(isRoot()).printToString(),e)}}
  private fun export(label:String){compose.onNodeWithText(label).performScrollTo().performClick();compose.onNodeWithText("选择保存位置").performClick();assertEquals(Intent.ACTION_CREATE_DOCUMENT,launched.action);assertTrue(launched.getStringExtra(Intent.EXTRA_TITLE)!!.startsWith("SleepDiary_"))}
  @Test fun jsonCreateDocumentWritesValidatedBackupWithComment() {
   val output=ByteArrayOutputStream();shadowOf(compose.activity.contentResolver).registerOutputStream(uri,output)
@@ -79,7 +79,19 @@ class SafFlowTest {
  @Test fun restoreRequiresConfirmationThenReplacesComment() {
   val text=runBlocking{services.backup.export()}.replace("English 123","updated 456")
   importText(text);waitText("替换并恢复");assertEquals(note,runBlocking{db.diaryDao().all().single().comment})
-  compose.onNodeWithText("替换并恢复").performClick();waitText("完整备份已恢复");assertEquals(note.replace("English 123","updated 456"),runBlocking{db.diaryDao().all().single().comment})
+  compose.onNodeWithText("替换并恢复").performClick();compose.waitUntil(10000){runBlocking{db.diaryDao().all().singleOrNull()?.comment==note.replace("English 123","updated 456")}};assertEquals(note.replace("English 123","updated 456"),runBlocking{db.diaryDao().all().single().comment})
+ }
+ @Test fun restorePreviewShowsEducationAndDormantTreatmentCountsWithoutControls() {
+  runBlocking {
+   services.education.markInProgress("PUBLIC_EDUCATION_CONTENT_1.0-CANDIDATE", "CHAPTER-PROLOGUE")
+   app.sleepdiary.offline.application.TreatmentStateController(db).startBaseline(java.util.UUID.randomUUID().toString(), app.sleepdiary.offline.domain.treatment.TreatmentMode.SELF_GUIDED, true)
+  }
+  importText(runBlocking { services.backup.export() })
+  waitText("替换并恢复")
+  compose.onNodeWithText("进度 1 项", substring = true).assertExists()
+  compose.onNodeWithText("1 个 episode，1 条审计记录", substring = true).assertExists()
+  compose.onAllNodes(hasClickAction() and hasText("Treatment", substring = true)).assertCountEquals(0)
+  compose.onNodeWithText("替换并恢复").assertExists()
  }
  @Test fun legacyBackupPreviewCanBeCancelledWithoutMutation() {
   val before=runBlocking{services.backup.snapshot()};importText(File("../samples/backup-v1.example.json").readText());waitText("替换并恢复");compose.onNodeWithText("取消").performClick();assertEquals(before,runBlocking{services.backup.snapshot()})

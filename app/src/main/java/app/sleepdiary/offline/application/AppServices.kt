@@ -12,4 +12,5 @@ class AppServices(context: Context, database: SleepDiaryDatabase) {
     val clinicianSummary = ClinicianSummaryService(database)
     val workspace = app.sleepdiary.offline.data.repository.WorkspaceRepository(database)
     val education = app.sleepdiary.offline.data.repository.EducationRepository(database, educationIndex)
+    val weeklySummaries = app.sleepdiary.offline.data.repository.WeeklySummaryRepository(database)
 }

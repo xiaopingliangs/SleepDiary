@@ -37,7 +37,7 @@ val TERMS=listOf(
 )
 @Composable fun MethodsScreen(onBack:()->Unit,onTerms:()->Unit,onLink:(String)->Unit) {
  SimplePage("方法与依据") {
-  Action("返回",onBack)
+  Action("← 返回",onBack)
   Action("术语表",onTerms)
   Text("本版本如何计算")
   Text("TIB = 真正离开睡觉位置时间 − 进入睡觉位置时间。\nTerminal Wakefulness = 真正离开睡觉位置时间 − 最后一次醒来时间。\n平均值只使用有记录的日期，缺失日期不按 0 计算。\nV0.1 不计算治疗用 TST / SE。当前 V0.1 不用于治疗计算或展示。")
@@ -50,7 +50,7 @@ val TERMS=listOf(
 @Composable fun VersionsScreen(onBack:()->Unit) {
  SimplePage("版本信息") {
   Text("Workspace schema: ${Versions.WORKSPACE_SCHEMA}")
-  Action("返回",onBack)
+  Action("← 返回",onBack)
   Text("App: ${Versions.APP}\nSPEC: ${Versions.SPEC}\nDiary schema: ${Versions.DIARY_SCHEMA}\nSafety schema: ${Versions.SAFETY_SCHEMA}\nSafety rule: ${Versions.SAFETY_RULE}\nWeekly rule: ${Versions.WEEKLY_RULE}\nBackup format: ${Versions.BACKUP_FORMAT}\nCBT-I Protocol: ${Versions.CBTI_PROTOCOL}\n医学内容最后复核日期：2026-09-08")
  }
 }

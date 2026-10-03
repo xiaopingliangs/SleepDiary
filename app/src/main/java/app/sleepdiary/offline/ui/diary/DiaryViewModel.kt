@@ -42,9 +42,7 @@ class DiaryViewModel(
                 !appState.hasCompletedOnboarding -> HomePage.INTRO
                 saved.get<Boolean>("safetyFromSettings")==true -> HomePage.valueOf(saved["safetyPage"] ?: "SAFETY")
                 saved.get<Boolean>("editing")==true -> HomePage.FORM
-                today!=null -> HomePage.TODAY
-                safety==null -> HomePage.SAFETY
-                else -> HomePage.FORM
+                else -> HomePage.TODAY
             }
             mutable.value=mutable.value.copy(page=page,entries=entries,today=today,safety=safety,message=null)
         } catch(c:CancellationException){throw c} catch(_:Exception){mutable.value=mutable.value.copy(message="读取记录失败，请重试")}
@@ -52,7 +50,7 @@ class DiaryViewModel(
     fun nextIntro() {
         if(mutable.value.introPage<2) { val page=mutable.value.introPage+1;saved["introPage"]=page;mutable.value=mutable.value.copy(introPage=page) }
         else { if(mutable.value.busy)return;mutable.value=mutable.value.copy(busy=true);viewModelScope.launch {
-            try {store.completeOnboarding();saved["introDone"]=true;mutable.value=mutable.value.copy(page=if(mutable.value.safety==null)HomePage.SAFETY else diaryPage(),busy=false)}
+            try {store.completeOnboarding();saved["introDone"]=true;mutable.value=mutable.value.copy(page=HomePage.TODAY,busy=false)}
             catch(c:CancellationException){throw c}catch(_:Exception){mutable.value=mutable.value.copy(busy=false,message="说明状态保存失败，请重试")}
         } }
     }
@@ -65,7 +63,7 @@ class DiaryViewModel(
         viewModelScope.launch {try {
             val current=store.currentSafety()
             clearSafetyOrigin()
-            mutable.value=mutable.value.copy(safety=current,page=diaryPage(),safetyFromSettings=false,busy=false,message=null)
+            mutable.value=mutable.value.copy(safety=current,page=HomePage.TODAY,safetyFromSettings=false,busy=false,message=null)
             onReturned()
         }catch(c:CancellationException){throw c}catch(_:Exception){mutable.value=mutable.value.copy(busy=false,message="读取安全问询失败，请重试")}}
     }
@@ -86,11 +84,36 @@ class DiaryViewModel(
         }catch(c:CancellationException){throw c}catch(_:Exception){mutable.value=mutable.value.copy(busy=false,message="安全问询保存失败，请重试")}}
     }
     fun edit(entry:SleepDiaryEntry){updateForm(DiaryForm.from(entry));mutable.value=mutable.value.copy(page=HomePage.FORM)}
+    fun beginNewDiary() {
+        if (mutable.value.busy) return
+        val now = LocalDate.now(clock)
+        val form = DiaryForm(referenceDate = now, zoneId = clock.zone.id)
+        saved["form"] = form; saved["editing"] = true
+        mutable.value = mutable.value.copy(form = form, page = HomePage.FORM, message = null, missing = null, warning = false)
+    }
     fun editToday() { mutable.value.today?.let { updateForm(DiaryForm.from(it));mutable.value=mutable.value.copy(page=HomePage.FORM) } }
     private fun updateForm(form:DiaryForm) {
         if(mutable.value.busy) return
         saved["form"]=form;saved["editing"]=true
         mutable.value=mutable.value.copy(form=form,message=null,missing=null,warning=false)
+    }
+    fun cancelForm() {
+        if (mutable.value.busy) return
+        saved.remove<Boolean>("editing"); saved.remove<DiaryForm>("form")
+        mutable.value = mutable.value.copy(page = HomePage.TODAY, message = null, missing = null, warning = false)
+    }
+    fun returnToToday(onReturned: () -> Unit = {}) {
+        if (mutable.value.page !in listOf(HomePage.SUCCESS, HomePage.WEEKLY) || mutable.value.busy) return
+        mutable.value = mutable.value.copy(busy = true)
+        viewModelScope.launch {
+            try {
+                mutable.value.weekly?.let { store.acknowledgeWeekly(it.periodIndex) }
+                if (mutable.value.firstSuccess) store.acknowledgeExplanation()
+                mutable.value = mutable.value.copy(page = HomePage.TODAY, busy = false)
+                onReturned()
+            } catch (c: CancellationException) { throw c }
+            catch (_: Exception) { mutable.value = mutable.value.copy(busy = false, message = "状态更新失败，请重试") }
+        }
     }
     fun answerTime(field:DiaryField,value:java.time.LocalDateTime)=updateForm(mutable.value.form.answerTime(field,value))
     fun answerNumber(field:DiaryField,value:Int)=updateForm(mutable.value.form.answerNumber(field,value))

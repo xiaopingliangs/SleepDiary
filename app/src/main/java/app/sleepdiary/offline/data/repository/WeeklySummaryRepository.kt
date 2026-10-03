@@ -9,6 +9,8 @@ import java.time.LocalDate
 import java.util.UUID
 
 class WeeklySummaryRepository(private val database: SleepDiaryDatabase, private val clock: Clock = Clock.systemDefaultZone()) {
+    suspend fun currentSummaries(): List<WeeklySummarySnapshot> = database.stateAndSummaryDao().summaries()
+        .filter { it.isCurrent }.sortedByDescending { it.periodIndex }
     /** Explicit generation for an ended period; presentation remains a later UI responsibility. */
     suspend fun generate(periodIndex: Int): WeeklySummarySnapshot = database.withTransaction {
         val start = LocalDate.parse(checkNotNull(database.stateAndSummaryDao().state()?.trackingStartDate))
