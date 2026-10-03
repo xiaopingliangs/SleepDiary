@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.sleepdiary.offline.data.entity.EducationRecord
+import app.sleepdiary.offline.data.entity.EducationCommittedChoice
 import app.sleepdiary.offline.data.entity.WorkspaceRecord
 import app.sleepdiary.offline.data.repository.EducationChoicePreview
 import app.sleepdiary.offline.data.repository.EducationRepository
@@ -32,7 +33,7 @@ import java.time.Instant
 import java.util.UUID
 
 private const val VERSION = "PUBLIC_EDUCATION_CONTENT_1.0-CANDIDATE"
-private enum class EducationPage { MAP, CHAPTER, SCENE, REVIEW, NOTES, NOTE_EDITOR, SUMMARY_IMAGE }
+private enum class EducationPage { HOME, EXPERIENCE, MAP, CHAPTER, SCENE, REVIEW, NOTES, NOTE_EDITOR, SUMMARY_IMAGE }
 
 @Composable
 fun PublicEducationExperience(
@@ -44,7 +45,7 @@ fun PublicEducationExperience(
     val context = LocalContext.current
     val catalog = remember { runCatching { PublicEducationCatalog.fromAssets(context.assets) }.getOrNull() }
     val scope = rememberCoroutineScope()
-    var page by rememberSaveable { mutableStateOf(EducationPage.MAP.name) }
+    var page by rememberSaveable { mutableStateOf(EducationPage.HOME.name) }
     var selectedId by rememberSaveable { mutableStateOf("") }
     var selectedNoteId by rememberSaveable { mutableStateOf("") }
     var selectedSummaryIds by rememberSaveable { mutableStateOf(emptyList<String>()) }
@@ -53,6 +54,8 @@ fun PublicEducationExperience(
     var revision by remember { mutableIntStateOf(0) }
     var message by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
+    var experiencePreview by remember { mutableStateOf<EducationChoicePreview?>(null) }
+    var experiencePreviewChoiceId by remember { mutableStateOf<String?>(null) }
 
     fun openOfficialSource(source: PublicEducationSource) {
         val url = source.url ?: source.doi?.let { "https://doi.org/$it" }
@@ -67,7 +70,9 @@ fun PublicEducationExperience(
     fun go(next: EducationPage, id: String = "") { page = next.name; selectedId = id }
     fun back() {
         when (EducationPage.valueOf(page)) {
-            EducationPage.MAP -> onBackToToday()
+            EducationPage.HOME -> onBackToToday()
+            EducationPage.EXPERIENCE -> { experiencePreview = null; experiencePreviewChoiceId = null; go(EducationPage.HOME) }
+            EducationPage.MAP -> go(EducationPage.HOME)
             EducationPage.CHAPTER -> go(EducationPage.MAP)
             EducationPage.SCENE -> go(EducationPage.CHAPTER, catalog?.node(selectedId)?.parentId ?: "")
             EducationPage.REVIEW, EducationPage.NOTES -> go(EducationPage.MAP)
@@ -87,6 +92,7 @@ fun PublicEducationExperience(
         return
     }
     val currentPage = EducationPage.valueOf(page)
+    remember(catalog) { EducationExperienceDefinitions.validate(catalog) }
     val statusById = remember(snapshot) { snapshot?.progress.orEmpty().associate { it.contentId to it.state } }
     val reviewById = remember(snapshot) { snapshot?.reviewStates.orEmpty().associateBy { it.contentId } }
     val savedChoiceByPrompt = remember(snapshot) { snapshot?.committedChoices.orEmpty().associateBy { it.promptContentId } }
@@ -95,10 +101,67 @@ fun PublicEducationExperience(
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
             TextButton(onClick = ::back, modifier = Modifier.heightIn(min = 48.dp).testTag("education_back")) { Text("← 返回") }
-            Text("一般睡眠教育", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 14.dp))
+            Text(if (currentPage == EducationPage.HOME) "随时可以停下" else "按自己的节奏了解", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 14.dp))
         }
         Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             when (currentPage) {
+                EducationPage.HOME -> {
+                    Text("了解睡眠", style = MaterialTheme.typography.headlineMedium)
+                    Text("想看一点就看一点。这里介绍睡眠知识和 CBT-I 概念，不会诊断或替你制定治疗安排。")
+                    val position = snapshot?.positions?.firstOrNull { it.contentVersionId == VERSION }
+                    if (position != null) Action("继续上次", {
+                        val experience = EducationExperienceDefinitions.all.firstOrNull { it.sceneId == position.sceneContentId }
+                        if (experience != null) go(EducationPage.EXPERIENCE, experience.id)
+                        else if (catalog.nodes[position.sceneContentId]?.kind == "SCENE") go(EducationPage.SCENE, position.sceneContentId)
+                        else error = "保存的学习位置在当前课程清单中不可用。请更新应用后重试。"
+                    })
+                    if (snapshot?.reviewStates.orEmpty().any { it.reviewState == "SAVED_FOR_REVIEW" }) Action("稍后再看", { go(EducationPage.REVIEW) })
+                    Text("随便了解", style = MaterialTheme.typography.titleLarge)
+                    EducationExperienceDefinitions.all.forEach { experience ->
+                        OutlinedButton(onClick = {
+                            experiencePreview = null; experiencePreviewChoiceId = null
+                            go(EducationPage.EXPERIENCE, experience.id)
+                            scope.launch { runCatching { repository?.updatePosition(VERSION, catalog.nodes.values.first { it.kind == "COURSE" }.id, experience.sceneId) }.onFailure { error = it.message } }
+                        }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).testTag("experience_${experience.id}")) { Text(experience.title) }
+                    }
+                    Action("看看完整知识地图", { go(EducationPage.MAP) })
+                    Action("学习记录与笔记", { go(EducationPage.NOTES) })
+                }
+                EducationPage.EXPERIENCE -> {
+                    val experience = checkNotNull(EducationExperienceDefinitions.all.firstOrNull { it.id == selectedId })
+                    EducationExperienceScreen(
+                        experience = experience,
+                        catalog = catalog,
+                        progress = statusById[experience.sceneId],
+                        reviewState = reviewById[experience.sceneId]?.reviewState,
+                        savedReflection = snapshot?.records.orEmpty().firstOrNull { it.contentId == experience.sceneId && it.recordKind == "REFLECTION" && it.promptId == null }
+                            ?.let { link -> notes.firstOrNull { it.id == link.workspaceRecordId } },
+                        previewFeedback = experiencePreview?.let { catalog.nodes[it.choiceContentId] },
+                        preview = experiencePreview,
+                        committedChoice = experience.choicePromptId?.let { savedChoiceByPrompt[it] },
+                        onPreview = { choice ->
+                            try {
+                                val prompt = checkNotNull(experience.choicePromptId)
+                                experiencePreview = checkNotNull(repository).previewChoice(VERSION, prompt, choice.id, choice.payload.getString("choiceId"))
+                                experiencePreviewChoiceId = choice.id
+                            } catch (failure: Exception) { error = failure.message ?: "无法预览这个选项" }
+                        },
+                        onClearPreview = { experiencePreview = null; experiencePreviewChoiceId = null },
+                        onCommit = { value -> scope.launch { runCatching { repository?.commitChoice(value); refresh(); experiencePreview = null }.onFailure { error = it.message } } },
+                        onComplete = { scope.launch { runCatching { if (statusById[experience.sceneId] == "COMPLETED") repository?.reopen(VERSION, experience.sceneId) else repository?.completeContent(VERSION, experience.sceneId); refresh() }.onFailure { error = it.message } } },
+                        onReview = { scope.launch { runCatching { val current = reviewById[experience.sceneId]; if (current?.reviewState == "SAVED_FOR_REVIEW") repository?.removeReviewState(VERSION, experience.sceneId) else repository?.saveForReview(VERSION, experience.sceneId); refresh() }.onFailure { error = it.message } } },
+                        onSaveReflection = { text -> scope.launch { runCatching {
+                            require(text.isNotBlank())
+                            val oldLink = snapshot?.records.orEmpty().firstOrNull { it.contentId == experience.sceneId && it.recordKind == "REFLECTION" && it.promptId == null }
+                            val old = oldLink?.let { link -> notes.firstOrNull { it.id == link.workspaceRecordId } }
+                            val now = Instant.now().toString(); val id = old?.id ?: java.util.UUID.randomUUID().toString()
+                            val record = WorkspaceRecord(id, old?.kind ?: "REFLECTION", "今天有没有发现自己其实仍然做成了一些事情？", text, old?.createdAtUtc ?: now, now, (old?.revision ?: 0) + 1)
+                            val link = oldLink ?: EducationRecord(workspaceRecordId = id, contentVersionId = VERSION, contentId = experience.sceneId, promptId = null, recordKind = "REFLECTION", createdAtUtc = now)
+                            checkNotNull(repository).saveAuthoredRecord(record, link); refresh()
+                        }.onFailure { error = it.message ?: "这条反思没有保存" } } },
+                        onSource = ::openOfficialSource
+                    )
+                }
                 EducationPage.MAP -> {
                     val course = catalog.nodes.values.first { it.kind == "COURSE" }
                     Text("知识地图", style = MaterialTheme.typography.headlineMedium)
@@ -434,6 +497,115 @@ private fun EducationNotePrompt(
         }
     } }
 }
+
+@Composable
+private fun EducationExperienceScreen(
+    experience: EducationExperienceDefinition,
+    catalog: PublicEducationCatalog,
+    progress: String?,
+    reviewState: String?,
+    savedReflection: WorkspaceRecord?,
+    previewFeedback: PublicEducationNode?,
+    preview: EducationChoicePreview?,
+    committedChoice: EducationCommittedChoice?,
+    onPreview: (PublicEducationNode) -> Unit,
+    onClearPreview: () -> Unit,
+    onCommit: (EducationChoicePreview) -> Unit,
+    onComplete: () -> Unit,
+    onReview: () -> Unit,
+    onSaveReflection: (String) -> Unit,
+    onSource: (PublicEducationSource) -> Unit
+) {
+    var deeper by rememberSaveable(experience.id) { mutableStateOf(false) }
+    var sourceExpanded by rememberSaveable(experience.id) { mutableStateOf(false) }
+    val main = catalog.node(experience.sceneId)
+    val payload = main.payload
+    val knowledge = experience.contentIds.firstOrNull { it.startsWith("KNOWLEDGE-") }?.let(catalog::node)
+    val detail = experience.contentIds.firstOrNull { it.startsWith("CONTENT-BLOCK-") }?.let(catalog::node)
+    val answer = payload.optString("perspective").ifBlank { payload.optString("text") }
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(experience.title, style = MaterialTheme.typography.headlineSmall)
+        if (experience.id == "cbti_basics") {
+            Text(catalog.node("SCENE-PROLOGUE-WHAT").payload.optString("perspective"))
+            Text(knowledge?.payload?.optString("why").orEmpty())
+        } else {
+            Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("想一想", style = MaterialTheme.typography.labelLarge)
+                Text(payload.optString("belief"), style = MaterialTheme.typography.titleMedium)
+                Text(answer, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text(payload.optString("plain"))
+            } }
+            OutlinedButton(onClick = { deeper = !deeper }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                Text(if (deeper) "收起这段说明" else "慢慢拆开看看")
+            }
+            if (deeper) {
+                val exercise = catalog.node(experience.contentIds.first { it.startsWith("COGNITIVE-EXERCISE-") }).payload
+                val steps = listOf(
+                    "先留意冒出的想法" to exercise.optString("belief"),
+                    "承认真实的部分" to exercise.optString("realPart"),
+                    "看看中间多推了哪一步" to exercise.optString("hiddenStep"),
+                    "试着换一种说法" to exercise.optString("reframe")
+                )
+                steps.filter { it.second.isNotBlank() }.forEachIndexed { index, step ->
+                    Text("${index + 1}. ${step.first}", style = MaterialTheme.typography.titleSmall)
+                    Text(step.second)
+                }
+                if (detail != null) {
+                    TextButton(onClick = { deeper = false; deeper = true }, modifier = Modifier.heightIn(min = 48.dp)) { Text("这在 CBT-I 里怎么理解？") }
+                    Text(detail.payload.optString("body"))
+                    SourceList(detail, catalog)
+                }
+            }
+        }
+
+        if (experience.id == "bad_night") {
+            var reflection by rememberSaveable(experience.id, savedReflection?.id, savedReflection?.updatedAtUtc) { mutableStateOf(savedReflection?.body.orEmpty()) }
+            Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("如果愿意，也可以想一想")
+                Text("今天有没有发现自己其实仍然做成了一些事情？")
+                OutlinedTextField(reflection, { reflection = it }, label = { Text("可选，不写也可以") }, minLines = 2, modifier = Modifier.fillMaxWidth().testTag("experience_reflection"))
+                if (reflection.isNotBlank()) OutlinedButton(onClick = { onSaveReflection(reflection) }, modifier = Modifier.heightIn(min = 48.dp).testTag("experience_save_reflection")) { Text("保存这条反思") }
+            } }
+        }
+
+        if (experience.choicePromptId != null) {
+            Text("这是一个假设情境，只用来理解一般概念，不是给你安排个人作息。")
+            Text("在这个情境里，哪项更贴近上面的解释？没有分数或标准答案。")
+            val choices = catalog.children(experience.choicePromptId).filter { it.kind == "CHOICE" && it.id in setOf("CHOICE-CH01-PLAN-EARLY", "CHOICE-CH01-PLAN-REST", "CHOICE-CH01-PLAN-FIXED") }
+            choices.forEach { choice ->
+                OutlinedButton(onClick = { onPreview(choice) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("experience_choice_${choice.id}")) { Text(choice.title) }
+            }
+            val value = previewFeedback
+            if (value != null) Card(Modifier.fillMaxWidth().testTag("experience_preview")) { Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("先看看这个想法", style = MaterialTheme.typography.titleMedium)
+                Text(value.title)
+                Text(main.payload.optString("perspective"))
+                Text("这是临时预览，还没有保存到学习记录。")
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = onClearPreview, modifier = Modifier.weight(1f).heightIn(min = 48.dp)) { Text("换一个看看") }
+                    Button(onClick = { preview?.let(onCommit) }, enabled = preview != null, modifier = Modifier.weight(1f).heightIn(min = 48.dp).testTag("experience_commit")) { Text("就是这个") }
+                }
+            } }
+            committedChoice?.let { saved -> Text("已明确保存的选择：${catalog.nodes[saved.choiceContentId]?.title.orEmpty()}") }
+        }
+
+        Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("带走一句", style = MaterialTheme.typography.titleSmall)
+            Text(if (experience.id == "cbti_basics") knowledge?.payload?.optString("plain").orEmpty() else payload.optString("reframe").ifBlank { answer })
+        } }
+        HorizontalDivider()
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = onReview, modifier = Modifier.weight(1f).heightIn(min = 48.dp)) { Text(if (reviewState == "SAVED_FOR_REVIEW") "移出稍后再看" else "稍后再看") }
+            Button(onClick = onComplete, modifier = Modifier.weight(1f).heightIn(min = 48.dp).testTag("experience_complete_${experience.id}")) { Text(if (progress == "COMPLETED") "重新打开" else "完成") }
+        }
+        TextButton(onClick = { sourceExpanded = !sourceExpanded }, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (sourceExpanded) "收起依据与来源" else "依据与来源") }
+        if (sourceExpanded) {
+            if (experience.id == "cbti_basics") knowledge?.let { SourceList(it, catalog, onSource) }
+            else SourceList(main, catalog, onSource)
+        }
+    }
+}
+
 
 @Composable
 private fun renderPayload(payload: JSONObject, kind: String) {

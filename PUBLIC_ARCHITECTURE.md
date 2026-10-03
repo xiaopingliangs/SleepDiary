@@ -258,3 +258,7 @@ Public Edition 必须具备以下架构断言：
 P2B 增加严格的 `backup-v3.1.schema.json` 并保留 `backup-v3.schema.json` 原字节不变。
 
 历史 schema、样例和历史说明不得覆盖或改写。
+
+## Public UX 2.0 Education presentation
+
+The packaged V4 registry remains immutable and is the source for content, stable IDs, and sources. A small curated Experience layer composes selected existing IDs into the default native user flow. It controls presentation only; it neither duplicates the registry corpus nor changes content classification. The complete Knowledge Map remains an optional route. `EducationRepository` still owns explicit progress, review, authored reflection, choice commit, and resume-position persistence. Preview is transient and never reaches Room until explicit confirmation. The Experience layer does not call Treatment, Diary, or Safety repositories.

@@ -32,12 +32,13 @@ class EducationExperienceTest {
         services = AppServices(compose.activity, db)
         catalog = PublicEducationCatalog.fromAssets(compose.activity.assets)
         compose.setContent { SleepDiaryTheme { PublicEducationExperience(services.education, services.workspace, onShareSummary = { sharedSummaryTitles += it }) } }
-        compose.waitUntil(5000) { compose.onAllNodesWithText("知识地图").fetchSemanticsNodes().isNotEmpty() }
+        compose.waitUntil(5000) { compose.onAllNodesWithText("了解睡眠").fetchSemanticsNodes().isNotEmpty() }
     }
 
     @After fun close() = db.close()
 
     private fun openScene(id: String) {
+        compose.onNodeWithText("看看完整知识地图").performScrollTo().performClick()
         val scene = catalog.node(id)
         val chapter = catalog.node(checkNotNull(scene.parentId))
         compose.onNodeWithText("${chapter.title}　·　未开始", substring = true).performScrollTo().performClick()
@@ -61,9 +62,11 @@ class EducationExperienceTest {
         compose.onNodeWithText("← 返回").performClick()
         compose.activityRule.scenario.recreate()
         compose.setContent { SleepDiaryTheme { PublicEducationExperience(services.education, services.workspace) } }
-        compose.waitUntil(5000) { compose.onAllNodesWithText("知识地图").fetchSemanticsNodes().isNotEmpty() }
-        compose.onNodeWithText("继续上次学习").performScrollTo().performClick()
-        compose.waitUntil(5000) { compose.onAllNodesWithText(scene.title).fetchSemanticsNodes().isNotEmpty() }
+        compose.waitUntil(5000) { compose.onAllNodesWithText("了解睡眠").fetchSemanticsNodes().isNotEmpty() }
+        compose.waitUntil(5000) { compose.onAllNodesWithText("继续上次").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithText("继续上次").performScrollTo().performClick()
+        val resumedTitle = EducationExperienceDefinitions.all.firstOrNull { it.sceneId == scene.id }?.title ?: scene.title
+        compose.waitUntil(5000) { compose.onAllNodesWithText(resumedTitle).fetchSemanticsNodes().isNotEmpty() }
         val afterReopen = runBlocking { services.education.snapshot() }
         assertEquals(scene.id, afterReopen.positions.single { it.courseId == "COURSE-V4" }.sceneContentId)
         assertEquals(beforeClose.progress, afterReopen.progress)
@@ -152,13 +155,72 @@ class EducationExperienceTest {
         openScene(scene.id)
         compose.activityRule.scenario.recreate()
         compose.setContent { SleepDiaryTheme { PublicEducationExperience(services.education, services.workspace) } }
-        compose.waitUntil(5000) { compose.onAllNodesWithText("知识地图").fetchSemanticsNodes().isNotEmpty() }
-        compose.onNodeWithText("继续上次学习").performScrollTo().performClick()
-        compose.waitUntil(5000) { compose.onAllNodesWithText(scene.title).fetchSemanticsNodes().isNotEmpty() }
+        compose.waitUntil(5000) { compose.onAllNodesWithText("了解睡眠").fetchSemanticsNodes().isNotEmpty() }
+        compose.waitUntil(5000) { compose.onAllNodesWithText("继续上次").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithText("继续上次").performScrollTo().performClick()
+        val resumedTitle = EducationExperienceDefinitions.all.firstOrNull { it.sceneId == scene.id }?.title ?: scene.title
+        compose.waitUntil(5000) { compose.onAllNodesWithText(resumedTitle).fetchSemanticsNodes().isNotEmpty() }
         assertEquals(scene.id, runBlocking { services.education.snapshot().positions.single().sceneContentId })
     }
 
+    @Test fun understandHomeStartsWithFourCuratedExperiencesAndKeepsKnowledgeMapOptional() = runBlocking<Unit> {
+        assertEquals(4, EducationExperienceDefinitions.all.size)
+        EducationExperienceDefinitions.validate(catalog)
+        assertEquals(listOf("CBT-I 到底是什么？", "一晚睡差，第二天真的一定完了吗？", "为什么越努力睡，反而越清醒？", "为什么固定起床时间这么重要？"), EducationExperienceDefinitions.all.map { it.title })
+        compose.onNodeWithText("了解睡眠").assertExists()
+        EducationExperienceDefinitions.all.forEach { compose.onNodeWithTag("experience_${it.id}").assertExists() }
+        compose.onAllNodesWithText("一般睡眠教育").assertCountEquals(0)
+        compose.onAllNodesWithText("11 章").assertCountEquals(0)
+        assertTrue(services.education.snapshot().progress.isEmpty())
+    }
+
+    @Test fun firstFourExperiencesRenderAuthoredScreensAndReuseValidatedV4Ids() {
+        EducationExperienceDefinitions.all.forEach { experience ->
+            experience.contentIds.forEach(catalog::node)
+            compose.onNodeWithTag("experience_${experience.id}").performScrollTo().performClick()
+            compose.onNodeWithText(experience.title).assertExists()
+            compose.onAllNodesWithText("PUBLIC_WITH_PRESENTATION_ADAPTATION").assertCountEquals(0)
+            compose.onAllNodesWithText("一般睡眠教育").assertCountEquals(0)
+            compose.onNodeWithText("← 返回").performClick()
+        }
+    }
+
+    @Test fun previewIsTransientUntilUserConfirmsAndExplicitCompletePersists() = runBlocking<Unit> {
+        compose.onNodeWithTag("experience_morning_time").performScrollTo().performClick()
+        val prompt = checkNotNull(EducationExperienceDefinitions.all.first { it.id == "morning_time" }.choicePromptId)
+        val fixed = catalog.children(prompt).first { it.id == "CHOICE-CH01-PLAN-FIXED" }
+        compose.onNodeWithTag("experience_choice_${fixed.id}").performScrollTo().performClick()
+        compose.onNodeWithTag("experience_preview").assertExists()
+        assertTrue(services.education.snapshot().committedChoices.isEmpty())
+        assertTrue(services.education.snapshot().progress.isEmpty())
+        compose.onNodeWithTag("experience_commit").performScrollTo().performClick()
+        compose.waitUntil(5000) { runBlocking { services.education.snapshot().committedChoices.any { it.promptContentId == prompt && it.choiceContentId == fixed.id } } }
+        assertEquals(1, services.education.snapshot().committedChoices.size)
+        assertTrue(services.education.snapshot().progress.isEmpty())
+        compose.onNodeWithTag("experience_complete_morning_time").performScrollTo().performClick()
+        compose.waitUntil(5000) { runBlocking { services.education.snapshot().progress.any { it.contentId == "SCENE-CH01-WHY-MORNING" && it.state == "COMPLETED" } } }
+        assertEquals("NONE", Versions.CBTI_PROTOCOL)
+        assertTrue(db.treatmentDao().episodes().isEmpty())
+        assertTrue(db.diaryDao().all().isEmpty())
+        assertTrue(db.safetyDao().all().isEmpty())
+    }
+
+    @Test fun optionalReflectionIsOnlySavedOnItsExplicitSaveAction() = runBlocking<Unit> {
+        compose.onNodeWithTag("experience_bad_night").performScrollTo().performClick()
+        val body = "今天仍然完成了一件事"
+        compose.onNodeWithTag("experience_reflection").performTextInput(body)
+        assertTrue(services.workspace.all().isEmpty())
+        assertTrue(services.education.snapshot().records.isEmpty())
+        compose.onNodeWithTag("experience_save_reflection").performScrollTo().performClick()
+        compose.waitUntil(5000) { runBlocking { services.workspace.all().any { it.body == body } } }
+        val record = services.workspace.all().single { it.body == body }
+        val link = services.education.snapshot().records.single()
+        assertEquals(record.id, link.workspaceRecordId)
+        assertEquals("SCENE-CH05-CARD1", link.contentId)
+    }
+
     @Test fun summaryImageFlowSharesOnlyExplicitlySelectedTopicTitles() {
+        compose.onNodeWithText("看看完整知识地图").performScrollTo().performClick()
         compose.onNodeWithText("学习总结图片").performScrollTo().performClick()
         compose.onNodeWithTag("education_summary_share").assertIsNotEnabled()
         val first = catalog.nodes.values.filter { it.kind == "CHAPTER" }.minBy { it.payload.optInt("order", Int.MAX_VALUE) }

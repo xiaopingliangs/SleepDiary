@@ -54,6 +54,7 @@ class LearningFlowTest {
         compose.onNodeWithTag("public_tab_education").performClick()
     }
     private fun openScene(id: String) {
+        compose.onNodeWithText("看看完整知识地图").performScrollTo().performClick()
         val scene = catalog.node(id)
         val chapter = catalog.node(checkNotNull(scene.parentId))
         compose.onNodeWithText("${chapter.title}　·　未开始", substring = true).performScrollTo().performClick()

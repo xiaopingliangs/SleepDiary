@@ -353,3 +353,20 @@ Course → KnowledgeMap → Chapter → Scene
 Education 的静态版本描述、持久用户状态、用户自由文本和非必要遥测相互分离。P2A 冻结合同中的 Room 字段/键、Preview → Commit、版本演进、复位/删除、EducationExport_1.0 与 BACKUP_3.1 语义，见 `EDUCATION_USER_DATA_CONTRACT.md`。实现中不得将 P1.5 的逻辑 `persistedAs` 字段解释为单一物理表。
 
 冻结的 P2B 目标为 Room 7 中五张教育用户状态表；EducationContentVersion 仍为 packaged registry 描述符，EducationExport 为临时投影。BACKUP_3.1 兼容导入 BACKUP_1.0–3.0；旧格式中的教育状态恢复为空，绝不从 WorkspaceRecord 推断。未知版本 ID 与已知 ID 的 manifest hash 不匹配须在写库前分别报兼容 App 错误和内容版本不兼容，不能误报损坏。CBT-I Protocol 继续 `NONE`，Education 不触发治疗或个性化建议。
+
+## 16. Public UX 2.0 Experience presentation
+
+The default Education landing page is a low-pressure “了解睡眠” home. It offers four authored native Experiences, an optional Knowledge Map, saved review, and resume only when a packaged resume position exists. The home does not show chapter/scene/node counts, completion percentages, streaks, or mastery scores.
+
+`EducationExperienceDefinitions` is a presentation-only composition layer over the unchanged packaged registry. Initial mappings are:
+
+| Experience | Existing registry IDs |
+|---|---|
+| CBT-I 到底是什么？ | `SCENE-PROLOGUE-WHAT`, `KNOWLEDGE-VAULT-WHAT-IS-CBTI` |
+| 一晚睡差，第二天真的一定完了吗？ | `SCENE-CH05-CARD1`, `COGNITIVE-EXERCISE-CH05-CARD1`, `CONTENT-BLOCK-CH05-CARD1-DETAIL` |
+| 为什么越努力睡，反而越清醒？ | `SCENE-CH05-CARD8`, `COGNITIVE-EXERCISE-CH05-CARD8`, `CONTENT-BLOCK-CH05-CARD8-DETAIL` |
+| 为什么固定起床时间这么重要？ | `SCENE-CH01-WHY-MORNING`, `COGNITIVE-EXERCISE-CH01-WHY-MORNING`, `CONTENT-BLOCK-CH01-WHY-MORNING-DETAIL`, `SCENE-CH01-PLAN` |
+
+The authored renderer selects which existing fields to show and when. It does not display `classification`, node kind, schema labels, or raw JSON as user content. Professional detail and sources are revealed only when requested. The first three experiences use concise scenario explanations and optional reflection; the fourth uses the existing hypothetical V4 choice set and visibly states that it is not an individual schedule or instruction. Preview remains in-memory, gives neutral feedback, can be discarded/replaced, and is saved to `EducationCommittedChoice` only after “就是这个”. Explicit “完成” is the only progress-completion action; opening, scrolling, and resume-position updates do not complete content.
+
+This UX layer does not revise V4 text, registry IDs, hashes, sources, classification, schema, Room, or backup contracts. The legacy renderer remains reachable only through the optional Knowledge Map. V4 public release/licensing clearance remains separately blocked pending review.
