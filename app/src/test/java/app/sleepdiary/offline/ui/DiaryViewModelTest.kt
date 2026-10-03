@@ -81,15 +81,11 @@ class DiaryViewModelTest {
         val next=vm(handle=SavedStateHandle(mapOf("form" to restored,"editing" to true)))
         advanceUntilIdle();assertEquals(HomePage.FORM,next.state.value.page);assertEquals(m.state.value.form,next.state.value.form)
     }
-    @Test fun settingsSafetyOriginSurvivesRecreationAndReturnReloadsCurrentAssessment()=runTest(dispatcher) {
-        val s=Store();val handle=SavedStateHandle();val m=vm(s,handle);advanceUntilIdle()
-        m.openSafety(newAssessment=true,fromSettings=true)
-        assertNull(m.state.value.safety)
+    @Test fun legacySafetyRouteSavedStateIsIgnoredWhileHistoricalDataRemainsReadable()=runTest(dispatcher) {
+        val s=Store();val handle=SavedStateHandle(mapOf("safetyFromSettings" to true,"safetyPage" to "SAFETY"));val expected=s.safety
         val next=vm(s,handle);advanceUntilIdle()
-        assertTrue(next.state.value.safetyFromSettings);assertEquals(HomePage.SAFETY,next.state.value.page)
-        var returned=false;next.returnFromSafety{returned=true};advanceUntilIdle()
-        assertTrue(returned);assertFalse(next.state.value.safetyFromSettings);assertEquals(s.safety,next.state.value.safety)
-        assertNull(handle.get<Boolean>("safetyFromSettings"))
+        assertEquals(HomePage.TODAY,next.state.value.page)
+        assertEquals(expected,next.state.value.safety)
     }
 
 }

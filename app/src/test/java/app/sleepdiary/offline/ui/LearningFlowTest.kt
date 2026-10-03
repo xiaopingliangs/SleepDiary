@@ -59,8 +59,7 @@ class LearningFlowTest {
         compose.onNodeWithText("${chapter.title}　·　未开始", substring = true).performScrollTo().performClick()
         compose.onNodeWithTag("education_scene_${scene.id}").performScrollTo().performClick()
         compose.waitUntil(5000) { runBlocking {
-            db.educationDao().position(catalog.versionId, "COURSE-V4")?.sceneContentId == id &&
-                db.educationDao().progress(catalog.versionId, id)?.state == "IN_PROGRESS"
+            db.educationDao().position(catalog.versionId, "COURSE-V4")?.sceneContentId == id
         } }
     }
     @Test fun readingCandidateSceneOnlyCreatesPositionAndInProgressState() = runBlocking<Unit> {
@@ -73,7 +72,7 @@ class LearningFlowTest {
         compose.onNodeWithText("← 返回").performClick(); compose.onNodeWithText("← 返回").performClick()
         assertEquals(diaryBefore, db.diaryDao().all()); assertEquals(safetyBefore, db.safetyDao().all())
         assertEquals(treatmentBefore, db.treatmentDao().episodes()); assertEquals(workspaceBefore, services.workspace.all())
-        assertEquals("IN_PROGRESS", services.education.snapshot().progress.single { it.contentId == scene.id }.state)
+        assertTrue(services.education.snapshot().progress.none { it.contentId == scene.id })
         assertEquals(scene.id, services.education.snapshot().positions.single().sceneContentId)
         assertTrue(services.education.snapshot().committedChoices.isEmpty())
         assertNull(db.localExecutionDao().state())

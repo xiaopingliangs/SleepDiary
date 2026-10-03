@@ -30,3 +30,13 @@ Status: implemented and verified; committed separately after P3A.
 Final verification for both P3 checkpoints: `testDebugUnitTest` passed (439 tests, 0 failures); `assembleDebug` passed; merged Manifest contains no INTERNET, ACCESS_NETWORK_STATE, or MANAGE_EXTERNAL_STORAGE permission; `version.properties` remains `cbtiProtocolVersion=NONE`; public navigation contains no Treatment destination or action. APK: `app/build/outputs/apk/debug/app-debug.apk`, SHA-256 `50810bf0b6034d3f7b399d6af2298661524b0de9ef57afeba9f7b95bdd97c1a`. Untracked `meditation/` was left untouched and unstaged.
 
 P3B targeted education/shell regression: 32 tests passed after stabilizing selectors for a review-state button. Full suite: 439 passed, 0 failed. `assembleDebug`: passed. Content licensing review and the unimplemented summary-image export remain release follow-ups; no Treatment or P4 work was started.
+
+## P3 corrective checkpoint — 2026-10-03
+
+Status: implemented and targeted regression verified; committed independently before P4.
+
+- Corrected Education semantics: opening/navigating/resuming a scene updates only `EducationPosition`; it no longer creates or changes `EducationProgress`. The explicit completion action continues to write `COMPLETED`. Regression coverage opens a scene, navigates away, recreates the Activity, resumes by position, and verifies the progress collection remains unchanged/empty.
+- Removed Safety questionnaire/history actions and the active Safety screen from the Public shell. Legacy Safety page state is no longer restored into a visible Public overlay. Safety entities, repositories, migration history and BACKUP_3.1 compatibility are unchanged; an existing Safety draft remains intact and visible counts in backup restore preview remain supported.
+- Targeted corrective UI/Education tests passed: 32 tests, 0 failures. No Room schema or backup contract changes.
+
+Next: P4 first-open routing and Public Edition product integration. Treatment remains dormant; no medical rules were changed.

@@ -42,23 +42,31 @@ class EducationExperienceTest {
         compose.onNodeWithText("${chapter.title}　·　未开始", substring = true).performScrollTo().performClick()
         compose.onNodeWithTag("education_scene_${scene.id}").performScrollTo().performClick()
         compose.waitUntil(5000) { runBlocking {
-            db.educationDao().position(catalog.versionId, "COURSE-V4")?.sceneContentId == scene.id &&
-                db.educationDao().progress(catalog.versionId, scene.id)?.state == "IN_PROGRESS"
+            db.educationDao().position(catalog.versionId, "COURSE-V4")?.sceneContentId == scene.id
         } }
     }
 
     private fun sceneWith(kind: String, predicate: (List<PublicEducationNode>) -> Boolean = { it.isNotEmpty() }): PublicEducationNode =
         catalog.nodes.values.filter { it.kind == "SCENE" }.first { scene -> predicate(catalog.children(scene.id).filter { it.kind == kind }) }
 
-    @Test fun openingSceneUpdatesResumePositionButNeverMarksItCompleted() {
+    @Test fun openingNavigatingAndResumingSceneOnlyChangesPosition() {
         val scene = sceneWith("CONTENT_BLOCK")
         openScene(scene.id)
         assertTrue(compose.onAllNodesWithText(scene.title).fetchSemanticsNodes().isNotEmpty())
-        val state = runBlocking { services.education.snapshot() }
-        assertEquals(scene.id, state.positions.single { it.courseId == "COURSE-V4" }.sceneContentId)
-        assertTrue(state.progress.none { it.contentId == scene.id && it.state == "COMPLETED" })
-        assertFalse(state.progress.any { it.contentId == scene.id && it.state == "COMPLETED" })
-        assertTrue(state.progress.any { it.contentId == scene.id && it.state == "IN_PROGRESS" })
+        val beforeClose = runBlocking { services.education.snapshot() }
+        assertEquals(scene.id, beforeClose.positions.single { it.courseId == "COURSE-V4" }.sceneContentId)
+        assertTrue(beforeClose.progress.isEmpty())
+        compose.onNodeWithText("← 返回").performClick()
+        compose.onNodeWithText("← 返回").performClick()
+        compose.activityRule.scenario.recreate()
+        compose.setContent { SleepDiaryTheme { PublicEducationExperience(services.education, services.workspace) } }
+        compose.waitUntil(5000) { compose.onAllNodesWithText("知识地图").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithText("继续上次学习").performScrollTo().performClick()
+        compose.waitUntil(5000) { compose.onAllNodesWithText(scene.title).fetchSemanticsNodes().isNotEmpty() }
+        val afterReopen = runBlocking { services.education.snapshot() }
+        assertEquals(scene.id, afterReopen.positions.single { it.courseId == "COURSE-V4" }.sceneContentId)
+        assertEquals(beforeClose.progress, afterReopen.progress)
+        assertTrue(afterReopen.progress.isEmpty())
     }
 
     @Test fun completionHasExplicitMilestoneAndContinueMovesPosition() {
@@ -82,7 +90,12 @@ class EducationExperienceTest {
         openScene(scene.id)
         val beforePreview = runBlocking { services.education.snapshot() }
         compose.onNodeWithText(first.title).performScrollTo().performClick()
-        assertEquals(beforePreview, runBlocking { services.education.snapshot() })
+        val afterPreview = runBlocking { services.education.snapshot() }
+        assertEquals(beforePreview.progress, afterPreview.progress)
+        assertEquals(beforePreview.committedChoices, afterPreview.committedChoices)
+        assertEquals(beforePreview.reviewStates, afterPreview.reviewStates)
+        assertEquals(beforePreview.records, afterPreview.records)
+        assertEquals(scene.id, afterPreview.positions.single().sceneContentId)
         compose.onNodeWithText("尚未写入学习记录", substring = true).assertExists()
         val reviewItem = catalog.children(first.id).first { it.kind == "REVIEW_ITEM" }
         compose.onNodeWithText(reviewItem.title).assertExists()
@@ -120,6 +133,7 @@ class EducationExperienceTest {
         compose.waitUntil(5000) { runBlocking { db.workspaceDao().all().any { it.body == "我的学习记录" } } }
         val note = runBlocking { db.workspaceDao().all().single { it.body == "我的学习记录" } }
         assertEquals(note.id, runBlocking { db.educationDao().record(note.id)!!.workspaceRecordId })
+        compose.waitUntil(5000) { compose.onAllNodesWithText("编辑这条个人记录：${prompt.title}").fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithText("编辑这条个人记录：${prompt.title}").performScrollTo().performClick()
         compose.onNodeWithTag("education_note_${prompt.id}").performTextReplacement("修改后的个人记录")
         compose.onNodeWithText("保存修改").performScrollTo().performClick()

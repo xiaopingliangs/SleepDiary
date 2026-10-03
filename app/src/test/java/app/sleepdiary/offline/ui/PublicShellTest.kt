@@ -26,9 +26,11 @@ class PublicShellTest {
     @get:Rule val compose=createAndroidComposeRule<ComponentActivity>()
 
     private class Store:StoreContract {
+        var safetySaveCalls = 0
         override suspend fun entries()=emptyList<SleepDiaryEntry>()
         override suspend fun state()=AppState(hasCompletedOnboarding=true)
         override suspend fun currentSafety():AssessmentWithAnswers?=null
+        override suspend fun saveSafety(id:String,answers:List<SafetyAnswer>,completed:Boolean):AssessmentWithAnswers { safetySaveCalls++; error("Public UI must not save Safety") }
         override suspend fun completeOnboarding(){}
         override suspend fun save(entry:SleepDiaryEntry,confirmed:Boolean):SaveResult=SaveResult.Success(entry,null)
         override suspend fun acknowledgeExplanation(){}
@@ -60,5 +62,21 @@ class PublicShellTest {
         compose.onNodeWithText("隐私说明").assertExists()
         compose.onNodeWithTag("public_tab_today").performClick()
         compose.onNodeWithText("记录今天的睡眠").assertExists()
+    }
+
+    @Test fun publicNavigationHasNoSafetyWorkflowOrAssessmentWriteAction(){
+        val store=Store()
+        lateinit var model:DiaryViewModel
+        compose.runOnUiThread{model=DiaryViewModel(store,SavedStateHandle(),clockOn("2026-09-09"))}
+        compose.setContent{SleepDiaryTheme{SleepDiaryApp(model,{})}}
+        compose.waitUntil(5000){model.state.value.page!=HomePage.LOADING}
+        for(tag in listOf("public_tab_today","public_tab_sleep","public_tab_education","public_tab_me")) {
+            compose.onNodeWithTag(tag).performClick()
+            compose.onAllNodesWithText("重新填写安全问询").assertCountEquals(0)
+            compose.onAllNodesWithText("查看当前安全问询").assertCountEquals(0)
+            compose.onAllNodesWithText("继续未完成的安全问询").assertCountEquals(0)
+            compose.onAllNodesWithText("安全问询 ·",substring=true).assertCountEquals(0)
+        }
+        assertEquals(0,store.safetySaveCalls)
     }
 }

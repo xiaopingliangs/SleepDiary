@@ -93,7 +93,6 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
     }
 
     LaunchedEffect(services) { weeklySummaries = runCatching { services?.weeklySummaries?.currentSummaries().orEmpty() }.getOrDefault(emptyList()) }
-    LaunchedEffect(state.safetyFromSettings) { if (state.safetyFromSettings) nav.navigate("me") { launchSingleTop = true } }
     fun navigateTop(destination: PublicDestination) {
         nav.navigate(destination.route) {
             popUpTo(nav.graph.findStartDestination().id) { saveState = true }
@@ -111,7 +110,7 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
 
     val currentRoute = nav.currentBackStackEntryAsState().value?.destination?.route.orEmpty()
     val topRoutes = PublicDestination.entries.map { it.route }.toSet()
-    val overlay = state.page in setOf(HomePage.LOADING, HomePage.INTRO, HomePage.SAFETY, HomePage.HELP, HomePage.SAFETY_RESULT, HomePage.FORM, HomePage.SUCCESS, HomePage.WEEKLY)
+    val overlay = state.page in setOf(HomePage.LOADING, HomePage.INTRO, HomePage.FORM, HomePage.SUCCESS, HomePage.WEEKLY)
 
     Surface(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize()) {
@@ -137,11 +136,7 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
                         onPrivacy = { nav.navigate("privacy") },
                         onMethods = { nav.navigate("methods") },
                         onTerms = { nav.navigate("terms") },
-                        onVersions = { nav.navigate("versions") },
-                        onSafety = model::viewSafety,
-                        onRepeatSafety = { model.openSafety(newAssessment = true, fromSettings = true) },
-                        onResumeSafety = { model.openSafety(fromSettings = true) },
-                        hasDraftSafety = state.safety?.assessment?.status == AssessmentStatus.DRAFT
+                        onVersions = { nav.navigate("versions") }
                     )
                 }
                 composable("history") {
@@ -168,28 +163,7 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
         if (overlay && state.page != HomePage.LOADING) {
             when (state.page) {
                 HomePage.INTRO -> { IntroScreen(state.introPage, model::nextIntro, !state.busy); state.message?.let { Text(it) } }
-                HomePage.SAFETY -> {
-                    BackHandler(enabled = state.safetyFromSettings) { if (!state.busy) model.returnFromSafety {} }
-                    Column(Modifier.fillMaxSize()) {
-                        if (state.safetyFromSettings) TextButton(onClick = { model.returnFromSafety {} }, enabled = !state.busy, modifier = Modifier.heightIn(min = 48.dp)) { Text("← 返回我的") }
-                        Box(Modifier.weight(1f)) { SafetyScreen(model, state) }
-                    }
-                }
-                HomePage.HELP -> SimplePage("请优先联系现实世界的帮助") {
-                    Text(ACUTE_HELP); Action("退出应用", onExit)
-                    Action("返回我的", { if (state.safetyFromSettings) model.returnFromSafety {} else model.continueDiary() })
-                }
-                HomePage.SAFETY_RESULT -> SimplePage("历史安全问询") {
-                    Action("← 返回我的", { if (state.safetyFromSettings) model.returnFromSafety {} else model.continueDiary() })
-                    val safety = state.safety
-                    Text(if (safety?.assessment?.status == AssessmentStatus.DRAFT) "安全问询尚未完成" else "安全问询已完成")
-                    Text(when (safety?.assessment?.derivedGate) {
-                        SafetyGate.CLINICIAN_REVIEW -> "问询中记录的部分情况，在未来如考虑治疗时可以与医生讨论。此处不是诊断；当前版本不启用 CBT-I 治疗。"
-                        SafetyGate.DELAY_AUTOMATED_TREATMENT -> "历史数据含有未来治疗需要先由专业人员处理或确认的标记。此处不是诊断；当前版本不启用 CBT-I 治疗。"
-                        else -> "此处只回看历史问询，不代表医学诊断或确认适合任何治疗。"
-                    })
-                    safety?.answers?.forEach { answer -> Text((SAFETY_QUESTIONS.firstOrNull { it.id == answer.questionId }?.text ?: "S07b 控制情况") + "\n" + safetyAnswerLabel(answer.answerCode) + (answer.detailJson?.let { "\n" + safetyDetailLabel(it) } ?: "")) }
-                }
+                HomePage.SAFETY, HomePage.HELP, HomePage.SAFETY_RESULT -> Unit
                 HomePage.FORM -> {
                     BackHandler(enabled = !state.busy) { model.cancelForm(); nav.navigate(editReturnRoute) { launchSingleTop = true } }
                     Column(Modifier.fillMaxSize()) {

@@ -40,7 +40,6 @@ class DiaryViewModel(
             val today=entries.firstOrNull { it.sleepDate==LocalDate.now(clock).toString() }
             val page=when {
                 !appState.hasCompletedOnboarding -> HomePage.INTRO
-                saved.get<Boolean>("safetyFromSettings")==true -> HomePage.valueOf(saved["safetyPage"] ?: "SAFETY")
                 saved.get<Boolean>("editing")==true -> HomePage.FORM
                 else -> HomePage.TODAY
             }

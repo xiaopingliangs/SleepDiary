@@ -149,7 +149,6 @@ fun PublicEducationExperience(repository: EducationRepository?, workspace: Works
                     LaunchedEffect(scene.id) {
                         runCatching {
                             repository?.updatePosition(VERSION, "COURSE-V4", scene.id)
-                            if (statusById[scene.id] == null) repository?.markInProgress(VERSION, scene.id)
                         }.onFailure { error = it.message }
                     }
                     Text(scene.title, style = MaterialTheme.typography.headlineSmall)

@@ -163,11 +163,7 @@ fun PublicMeHome(
     onPrivacy: () -> Unit,
     onMethods: () -> Unit,
     onTerms: () -> Unit,
-    onVersions: () -> Unit,
-    onSafety: () -> Unit,
-    onRepeatSafety: () -> Unit,
-    onResumeSafety: () -> Unit,
-    hasDraftSafety: Boolean
+    onVersions: () -> Unit
 ) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("我的", style = MaterialTheme.typography.headlineMedium)
@@ -185,10 +181,6 @@ fun PublicMeHome(
         Action("方法与依据", onMethods)
         Action("术语表", onTerms)
         Action("版本信息", onVersions)
-        Text("历史安全问询", style = MaterialTheme.typography.titleMedium)
-        Action("查看当前安全问询", onSafety)
-        Action("重新填写安全问询", onRepeatSafety)
-        if (hasDraftSafety) Action("继续未完成的安全问询", onResumeSafety)
     }
 }
 
