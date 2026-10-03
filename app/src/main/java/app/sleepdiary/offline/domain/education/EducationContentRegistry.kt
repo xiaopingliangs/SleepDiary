@@ -14,6 +14,11 @@ object EducationContentRegistry {
     const val RELEASED_AT_UTC = "2026-09-30T00:00:00Z"
     const val PUBLIC_BOUNDARY = "用于一般学习；不构成诊断、个人建议或可执行治疗计划。"
     const val EXPECTED_VERSION_HASH_SHA256 = "b988e5d87f6a3ffc0c6963b6b6fc4350dc92012aa13c7b6cc64ddecc1eaa514c"
+    const val STRUCTURED_SCHEMA_VERSION = "EDUCATION_CONTENT_SCHEMA_1.1"
+    const val PUBLIC_CANDIDATE_CONTENT_VERSION = "PUBLIC_EDUCATION_CONTENT_1.0-CANDIDATE"
+    const val PUBLIC_MANIFEST_RESOURCE = "/education/public_education_manifest_1_1.json"
+    const val PUBLIC_MANIFEST_CONTENT_HASH_SHA256 = "7cdd0009ac4b8953c6af51ccae52398a5ce7b191fb50181988695c478b4b5c7a"
+    const val PUBLIC_MANIFEST_FILE_SHA256 = "0d9d19992ea080a4b024cb7a910bf1972b043988166343a1a19732997afad443"
 
     val primarySource = EducationSource(
         sourceId = "VA-CBTI-2014",

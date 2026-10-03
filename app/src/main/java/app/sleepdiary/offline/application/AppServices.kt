@@ -10,5 +10,4 @@ class AppServices(context: Context, database: SleepDiaryDatabase) {
     val share = DiaryShare(context.applicationContext, database)
     val clinicianSummary = ClinicianSummaryService(database)
     val workspace = app.sleepdiary.offline.data.repository.WorkspaceRepository(database)
-    val treatmentState = TreatmentStateController(database)
 }

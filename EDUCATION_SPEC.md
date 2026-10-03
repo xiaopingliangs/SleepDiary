@@ -1,6 +1,6 @@
 # SleepDiary Public Edition v1.0 — Education Specification
 
-状态：P0 FROZEN
+状态：P0 FROZEN；P1.5 内容模型补充见第 14 节
 边界：Education only；不是诊断或治疗
 目标数据版本：`EDUCATION_DATA_1.0`
 
@@ -311,3 +311,38 @@ educationRecords joined with WorkspaceRecord content
 - Education export 精确范围、escaping、取消和失败；
 - 大字体、TalkBack、返回和配置变化；
 - Manifest 继续无禁止权限。
+
+## 14. P1.5 V4 覆盖与静态交互模型补充
+
+本节补充静态内容表达能力，不改变 P0 用户状态、Room、导航或备份约束。
+
+### 14.1 内容层级
+
+静态 registry 必须能表达：
+
+```text
+Course → KnowledgeMap → Chapter → Scene
+                                  ├── CONTENT_BLOCK / layered explanation
+                                  ├── CHOICE: transient Preview → explicit Commit
+                                  ├── SIMULATOR / ANALYZER / CHECKLIST child units
+                                  ├── COGNITIVE_EXERCISE (five steps)
+                                  ├── REFLECTION / NOTE_PROMPT
+                                  ├── REVIEW_ITEM / BOOKMARK concept
+                                  └── sourceRefs / claimRefs
+```
+
+内容节点有稳定 ID、不可变内容版本、locale、顺序、父子关系、来源与 claim 引用、payload 和逐节点 SHA-256。manifest 另有 schemaVersion、contentVersionId、sourceRegistryVersion、node 列表及规范化内容 hash。每个 locale 独立校验；翻译不隐式改变原语言版本。
+
+### 14.2 交互内容边界
+
+- 选择内容的 Preview 只能是临时展示；离开、返回或重新打开不得视为用户已选择。
+- 只有明确 Commit 操作才能形成未来的 EducationRecord；P1.5 不实现写入。
+- Commit 仅记录用户在教育场景中的明确选择，不驱动个性化推荐、处方、睡眠时程或 Treatment 状态。
+- 展开通俗/专业解释、知识地图定位、场景顺序、现实例子、复习和书签概念可作为静态结构表达；只有满足 Public 内容分类和来源审查的单元才可进入候选清单。
+- 五步认知结构和用户自写提示可以作为通用学习/反思界面；不得自动判断答案正确性或推断疾病。
+
+### 14.3 P1.5 候选记录
+
+`V4_PUBLIC_CONTENT_MATRIX.md` 是逐逻辑单元的审查记录。由 `CBTI-Learning-Game-V4.html` 静态迁移出的候选 manifest 使用 `EDUCATION_CONTENT_SCHEMA_1.1`；完整计数、分类、hash 和排除理由见该矩阵及 `EDUCATION_CONTENT_ARCHITECTURE.md` 第 11 节。
+
+候选不等于公开发布许可。不得将未通过来源许可、临床边界和逐条内容审查的节点标为发布完成；被排除单元不得以隐藏入口或导出包形式提供。

@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "app.sleepdiary.offline/education/EDUCATION_CONTENT_SCHEMA_1.1",
+  "title": "SleepDiary Public Education Content Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contentVersionId",
+    "locale",
+    "sourceArtifact",
+    "publicBoundary",
+    "classificationCounts",
+    "inventoryUnitCount",
+    "publicContentCount",
+    "sourceRegistry",
+    "inventory",
+    "contentNodes",
+    "contentHashSha256"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "EDUCATION_CONTENT_SCHEMA_1.1" },
+    "contentVersionId": { "const": "PUBLIC_EDUCATION_CONTENT_1.0-CANDIDATE" },
+    "locale": { "const": "zh-CN" },
+    "sourceArtifact": {
+      "type": "object",
+      "required": ["name", "sha256", "contentRevision"],
+      "properties": {
+        "name": { "const": "CBTI-Learning-Game-V4.html" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "contentRevision": { "type": "string", "minLength": 1 }
+      }
+    },
+    "publicBoundary": { "type": "string", "minLength": 1 },
+    "classificationCounts": {
+      "type": "object",
+      "required": ["PUBLIC_AS_IS", "PUBLIC_WITH_PRESENTATION_ADAPTATION", "PUBLIC_CONCEPT_ONLY", "FUTURE_TREATMENT_ONLY", "BLOCKED"],
+      "additionalProperties": false,
+      "properties": {
+        "PUBLIC_AS_IS": { "type": "integer", "minimum": 0 },
+        "PUBLIC_WITH_PRESENTATION_ADAPTATION": { "type": "integer", "minimum": 0 },
+        "PUBLIC_CONCEPT_ONLY": { "type": "integer", "minimum": 0 },
+        "FUTURE_TREATMENT_ONLY": { "type": "integer", "minimum": 0 },
+        "BLOCKED": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "inventoryUnitCount": { "type": "integer", "minimum": 1 },
+    "publicContentCount": { "type": "integer", "minimum": 1 },
+    "sourceRegistry": { "type": "array", "items": { "$ref": "#/$defs/source" } },
+    "inventory": { "type": "array", "items": { "$ref": "#/$defs/inventoryUnit" } },
+    "contentNodes": { "type": "array", "items": { "$ref": "#/$defs/contentNode" } },
+    "contentHashSha256": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "stableId": { "type": "string", "pattern": "^[A-Z][A-Z0-9_-]{2,127}$" },
+    "nodeKind": {
+      "enum": ["COURSE", "MAP_ENTRY", "MAP_GROUP", "MAP_BRANCH", "CHAPTER", "SCENE", "CONTENT_BLOCK", "CHOICE", "SIM_METER", "SIM_STAGE", "SIM_OUTCOME", "ANALYZER_DIMENSION", "ANALYZER_LEVEL", "ANALYZER_CASE", "CHECKLIST_GROUP", "CHECKLIST_ITEM", "COGNITIVE_EXERCISE", "REFLECTION", "NOTE_PROMPT", "REVIEW_ITEM", "KNOWLEDGE_ENTRY", "EVIDENCE_CLAIM", "SAFETY_NOTICE", "SOURCE", "EXPORT_ELEMENT", "SPECIAL_BLOCK", "USER_STATE_TYPE"]
+    },
+    "classification": {
+      "enum": ["PUBLIC_AS_IS", "PUBLIC_WITH_PRESENTATION_ADAPTATION", "PUBLIC_CONCEPT_ONLY", "FUTURE_TREATMENT_ONLY", "BLOCKED"]
+    },
+    "sourceRef": {
+      "type": "object",
+      "required": ["sourceId", "locator", "textRelation"],
+      "properties": {
+        "sourceId": { "type": "string", "minLength": 1 },
+        "locator": { "type": "string", "minLength": 1 },
+        "textRelation": { "enum": ["PARAPHRASE", "PARAPHRASE_WITH_SOURCE_EXCERPT_IN_V4"] }
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": ["sourceId", "sourceType", "title", "officialUrl", "usage", "rightsStatus"],
+      "properties": {
+        "sourceId": { "type": "string", "minLength": 1 },
+        "sourceType": { "enum": ["GUIDELINE", "THERAPIST_MANUAL", "SYSTEMATIC_REVIEW"] },
+        "title": { "type": "string", "minLength": 1 },
+        "officialUrl": { "type": "string", "pattern": "^https://" },
+        "usage": { "type": "string", "minLength": 1 },
+        "rightsStatus": { "enum": ["PARAPHRASE_METADATA_ONLY", "RIGHTS_REVIEW_REQUIRED"] }
+      }
+    },
+    "inventoryUnit": {
+      "type": "object",
+      "required": ["v4UnitId", "kind", "title", "classification", "contentEligible", "publicContentId", "claimRefs", "sourceRefs", "reason"],
+      "properties": {
+        "v4UnitId": { "type": "string", "minLength": 1 },
+        "kind": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "classification": { "$ref": "#/$defs/classification" },
+        "contentEligible": { "type": "boolean" },
+        "publicContentId": { "anyOf": [{ "$ref": "#/$defs/stableId" }, { "type": "null" }] },
+        "claimRefs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "sourceRefs": { "type": "array", "items": { "$ref": "#/$defs/sourceRef" } },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "contentNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contentId", "kind", "parentContentId", "sourceV4UnitId", "classification", "locale", "title", "payload", "claimRefs", "sourceRefs", "boundaryNotice", "contentHashSha256"],
+      "properties": {
+        "contentId": { "$ref": "#/$defs/stableId" },
+        "kind": { "$ref": "#/$defs/nodeKind" },
+        "parentContentId": { "anyOf": [{ "$ref": "#/$defs/stableId" }, { "type": "null" }] },
+        "sourceV4UnitId": { "type": "string", "minLength": 1 },
+        "classification": { "enum": ["PUBLIC_AS_IS", "PUBLIC_WITH_PRESENTATION_ADAPTATION", "PUBLIC_CONCEPT_ONLY"] },
+        "locale": { "type": "string", "pattern": "^[a-z]{2}-[A-Z]{2}$" },
+        "title": { "type": "string", "minLength": 1 },
+        "payload": { "type": "object" },
+        "claimRefs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "sourceRefs": { "type": "array", "items": { "$ref": "#/$defs/sourceRef" } },
+        "boundaryNotice": { "type": "string", "minLength": 1 },
+        "nextContentId": { "anyOf": [{ "$ref": "#/$defs/stableId" }, { "type": "null" }] },
+        "contentHashSha256": { "$ref": "#/$defs/sha256" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "CHOICE" } }, "required": ["kind"] },
+          "then": { "properties": { "payload": { "$ref": "#/$defs/choicePayload" } } }
+        }
+      ]
+    },
+    "choicePayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["choiceId", "label", "preview", "commit", "reviewEligible"],
+      "properties": {
+        "choiceId": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "preview": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["persistence", "feedback"],
+          "properties": {
+            "persistence": { "const": "TRANSIENT_ONLY" },
+            "feedback": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["perspective", "plainExplanation", "educationalBoundary"],
+              "properties": {
+                "perspective": { "type": "string" },
+                "plainExplanation": { "type": "string" },
+                "educationalBoundary": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
+        },
+        "commit": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["requiredAction", "commitValueId", "persistedAs"],
+          "properties": {
+            "requiredAction": { "const": "EXPLICIT_USER_CONFIRMATION" },
+            "commitValueId": { "$ref": "#/$defs/stableId" },
+            "persistedAs": { "const": "EducationRecord" }
+          }
+        },
+        "reviewEligible": { "type": "boolean" }
+      }
+    }
+  }
+}

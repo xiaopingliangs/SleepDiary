@@ -10,6 +10,14 @@
 
 定向测试：DiaryValidatorTest、WeeklyTest、RecentAverageCalculatorTest、ReliabilityTest、DiaryFormTest、AverageDurationTextTest 共 71 项全部通过。本轮整体全量测试及 assembleDebug 尚未运行，计划在 Part B 完成后运行。Part A 独立提交；教育 P1.5 未提交改动继续留在工作树，未与 Part A 一同提交；独立 `meditation/` 未改、未暂存。
 
+## 2026-10-03 Part B Public Edition Education P1.5
+
+Full static inventory of `CBTI-Learning-Game-V4.html` (SHA-256 `7028c44b2f4fa4863625a4332dee67ba9667c31ab101182e949e3752b45d0af5`) contains 562 classified inventory units and a 462-node internal Public candidate manifest. Classification counts: 146 `PUBLIC_AS_IS`, 178 `PUBLIC_WITH_PRESENTATION_ADAPTATION`, 144 `PUBLIC_CONCEPT_ONLY`, 40 `FUTURE_TREATMENT_ONLY`, 54 `BLOCKED`. Added schema 1.1 and static Education contracts for hierarchy, layered explanations, transient Preview / explicit Commit, five-step reflection, review/bookmark concepts, sources and claims. Updated `EDUCATION_SPEC.md`, architecture, requirements matrix and V4 matrix. No Room, backup, navigation or user-persistence implementation.
+
+Removed the unused Treatment controller property from `AppServices` (no callers existed), with a regression assertion; the UI graph has no Treatment route. This keeps the dormant Treatment foundation out of the Public UI service surface. Education tests passed: 17 total (6 legacy registry + 11 P1.5), zero failures. Candidate content is not release-cleared: V4 redistribution/source reuse permissions remain unresolved, and blocked units stay out. CBT-I Protocol remains `NONE`; no treatment behavior was enabled.
+
+Part B has its own commit, `feat: freeze V4 public education candidate manifest`. Post-commit full `testDebugUnitTest` passed: 414 tests, zero failures/errors/skips; `assembleDebug` passed. APK: `D:/Projects/SleepDiary/app/build/outputs/apk/debug/app-debug.apk`, 11,138,657 bytes, SHA-256 `22c31f39343077262ffb90e087246f7c93cc1283c43b3adac42d38a8fdaebad7`. Git HEAD is Part B; tracked worktree and index are clean. The only status item is unrelated untracked `meditation/`, untouched and unstaged. CBT-I Protocol is `NONE`; no Public UI Treatment route or AppServices controller remains. The stored Treatment foundation is dormant and unchanged. Manifest permission audit found none of INTERNET, ACCESS_NETWORK_STATE or MANAGE_EXTERNAL_STORAGE. No connected-device validation was requested or run.
+
 ## 2026-09-30 Public Edition P1 Education Content Foundation
 
 接续 Public Edition P0 提交 `1f9acf0`。新增纯静态 Education registry、schema 模型、来源 registry、规范化 SHA-256、manifest 与边界 validator；现有 `EDUCATION_TEXT_1.0` 六项内容原文迁移为不可变 `EDUCATION_CONTENT_1.0`，版本 hash 为 `b988e5d87f6a3ffc0c6963b6b6fc4350dc92012aa13c7b6cc64ddecc1eaa514c`。原 `LearningContent` 只改为兼容投影，页面布局和导航未变。

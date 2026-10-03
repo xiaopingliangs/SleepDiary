@@ -1,13 +1,13 @@
 # SleepDiary Public Edition v1.0 — Education Content Architecture
 
-状态：P1 IMPLEMENTED
+状态：P1.5 完成（V4 内容候选，不代表公开发布许可已完成）
 
 范围：静态 Education 内容基础；无用户数据、无 Room、无导航、无 Treatment 入口
 
-内容 schema：`EDUCATION_CONTENT_SCHEMA_1.0`
+既有六项静态内容继续使用 `EDUCATION_CONTENT_SCHEMA_1.0`；新增 V4 结构候选使用 `EDUCATION_CONTENT_SCHEMA_1.1`
 
 来源 registry：`EDUCATION_SOURCES_1.0`
-首个内容版本：`EDUCATION_CONTENT_1.0`
+既有六项版本：`EDUCATION_CONTENT_1.0`；V4 候选版本：`PUBLIC_EDUCATION_CONTENT_1.0-CANDIDATE`
 
 ## 1. 输入与边界
 
@@ -139,7 +139,9 @@ b988e5d87f6a3ffc0c6963b6b6fc4350dc92012aa13c7b6cc64ddecc1eaa514c
 
 原有 `LearningContent` 现在只作为兼容投影读取 registry，页面布局、导航和持久化行为没有变化。
 
-## 7. V4 prototype boundary review
+## 7. V4 prototype boundary review — P1 historical snapshot
+
+> 本节记录 P1 初始审查状态。完整分类和候选 manifest 已由文末的 P1.5 复核覆盖；请以 `V4_PUBLIC_CONTENT_MATRIX.md` 为当前逐项清单。
 
 V4 章节清单已完成结构级审查，但没有整体导入：
 
@@ -190,4 +192,66 @@ Validator 对上述四类表达提供自动防线。自动检查只能发现明�
 
 ## 10. 下一阶段建议
 
-下一阶段应先冻结 Education 用户数据合同和迁移计划，再实现 `EducationProgress`、`EducationRecord`、`EducationReviewState` 及 Education export。该阶段需要单独批准 Room migration 与 Backup 演进；内容展示和导航应在数据合同完成后进行。
+P1.5 已形成静态内容候选和 P2 状态边界。下一阶段可以实现 Education 用户状态持久化，但不得顺带做最终导航或 Treatment。P2 数据类型见文末合同；Room migration 与 BACKUP_3.1 仍按 `EDUCATION_SPEC.md` 的版本要求实现。
+
+## 11. P1.5 V4 内容候选与冻结边界
+
+### 来源与版本
+
+- 输入文件：`D:\DeepSeek project\CBTI game\dist\CBTI-Learning-Game-V4.html`
+- 输入 SHA-256：`7028c44b2f4fa4863625a4332dee67ba9667c31ab101182e949e3752b45d0af5`
+- 静态盘点：11 章（开场 + ch01–ch10）、106 场景、22 选择、59 个原型知识条目、5 组地图 / 20 分支、106 条证据声明、8 个来源；加入 56 个可展开说明、12 个五步练习、1 个反思、1 个安全提示等子单元后，共 562 个 inventory unit。
+- 分类：`PUBLIC_AS_IS` 146；`PUBLIC_WITH_PRESENTATION_ADAPTATION` 178；`PUBLIC_CONCEPT_ONLY` 144；`FUTURE_TREATMENT_ONLY` 40；`BLOCKED` 54。
+- 候选内容节点 462。6 个可公开的 `USER_STATE_TYPE` 只留在 inventory，不进入可显示的 `contentNodes`；被阻塞的 telemetry 定义同样不进入内容。
+- Schema：`EDUCATION_CONTENT_SCHEMA_1.1`；候选 content version：`PUBLIC_EDUCATION_CONTENT_1.0-CANDIDATE`；locale `zh-CN`。
+- Manifest：`app/src/main/resources/education/public_education_manifest_1_1.json`；语义内容 hash `7cdd0009ac4b8953c6af51ccae52398a5ce7b191fb50181988695c478b4b5c7a`；文件 SHA-256 `0d9d19992ea080a4b024cb7a910bf1972b043988166343a1a19732997afad443`。
+- 全量分类、稳定 ID、claim/source 关系与每项理由见根目录 `V4_PUBLIC_CONTENT_MATRIX.md`。manifest 是候选数据；本阶段未接 UI、Room、Backup 或导航。
+
+### 结构模型
+
+```text
+Course → Knowledge Map → Chapter → Scene
+                                  ├─ ContentBlock / layered explanation
+                                  ├─ Choice (transient Preview → explicit Commit contract)
+                                  ├─ SIM / Analyzer / Checklist child units
+                                  ├─ CognitiveExercise (五步结构)
+                                  ├─ Reflection / NotePrompt
+                                  ├─ ReviewItem / Bookmark concept
+                                  └─ Source / claim references
+```
+
+`EducationStructuredModels.kt` 只定义静态 Education 结构与未来记录合同，不依赖 Room 或 Treatment。`CHOICE` 内容的 Preview 标记 `TRANSIENT_ONLY`，Commit 要求 `EXPLICIT_USER_CONFIRMATION` 并指向稳定 commitValueId；点击、浏览或看到反馈不会在 P1 写入用户状态。所有原型的 `adjustment` 处置段不进入公开选择预览；有反馈调整段的选项归为 `PUBLIC_CONCEPT_ONLY`，矩阵保留原始 V4 单元、分类原因与原始来源定位。
+
+### 来源和版权复核
+
+截至 2026-10-03，只确认 bibliographic metadata、稳定链接及 V4 内嵌来源关系；这不等于获得内容复用许可，也不等于逐句重新核实全部临床主张。
+
+- AASM 2021：Springer/JCSM 页面提供临床建议摘要，同时提供 reprints/permissions 入口；候选 registry 只收录文献元数据与项目自己的表述，不复制论文段落。公开分发前仍需确认使用范围。
+- 中国 2023 指南页面显示全文受账号/机构访问限制，并提供向 CCC 申请许可入口；本候选不复制全文或长段原文。任何继续改写使用须保留单独许可审查。
+- VA/DoD 2025 官方页面将指南定位为供临床专业人员辅助判断的工具，并说明不可替代临床判断。它可作书目来源，但不授权 App 将内容转换成个人治疗决定。
+- VA CBT-I Therapist Manual 的 V4 元数据明确标出 Sleep Need Questionnaire 来自经许可转载的未发表工作。问卷题目、计分和使用功能均为 `BLOCKED`；手册来源仍标记 rights review，不据网页托管推断全本可自由复用。
+- 四篇 PubMed 系统评价仅以引文元数据 / 摘要链接作出处；PubMed 可访问不表示文章全文许可。候选未复制摘要、表格、图像或量表题目。
+- V4 自身的再分发授权和所有改编文字的来源链没有随 HTML 提供可验证的许可证，因此本 manifest 是内部候选，公开上架前仍需完成 V4 与来源许可审查。
+
+来源页面：AASM/JCSM `https://doi.org/10.5664/jcsm.8986`；中国指南 `https://rs.yiigle.com/cmaid/1512022`；VA/DoD 2025 `https://www.healthquality.va.gov/guidelines/CD/insomnia/`；VA 手册 `https://www.mirecc.va.gov/visn19/treatmentworksforvets/docs/CBT-I-Therapist-Manual.pdf`。
+
+### 仍排除 / 需审查的内容
+
+完整原因逐项见矩阵。重点包括：
+
+- 40 个治疗执行或依赖治疗状态的单元，包括初始卧床窗口、周度规则、直接刺激控制步骤、可执行的起床/午睡规则与调整情景；只可在未来经独立 Treatment 规格批准后处理。
+- 54 个 `BLOCKED` 单元，包括未经许可的 Sleep Need Questionnaire、混合式就医 / 自伤 / 呼吸 / 神经安全问卷、证据范围过宽的共病和职业措辞、绝对嗜睡文案、无来源服务保证、来源冲突或 AI 医疗提示词。
+- V4 的 SOURCE/mapping 与运行时 SOURCE 序列化对 8 个来源均有元数据漂移；AI 知识包会混入治疗阈值，所有 AI prompt / pack 均不进入 Public Edition。
+- 个别认知练习里的具体 `adjustment` 指令被留在原型审计与分类原因中，未复制进候选 Preview payload；候选保留假设场景和概念解释，不能据此对用户做行为建议。
+
+### P2 所需用户状态类型
+
+静态 content version 与以下本地用户状态是不同模型：
+
+1. `EducationProgress`：用户明确保存的进度；唯一键 contentId + contentVersionId；
+2. `EducationRecord`：结构化关联，正文仍存 `WorkspaceRecord`，包含用户明确 Commit 的学习选择及自写反思/问题；
+3. `EducationReviewState`：用户明确收藏或标记稍后复习；无自动间隔调度；
+4. `EducationExport`：临时、导出专用快照；不持久化为治疗状态；
+5. `EducationContentVersion`：静态不可变发布描述符，不是用户行。
+
+P2 可实现上述状态与 BACKUP_3.1/独立 Education export 契约；不因此增加 Treatment route、每日提醒、AI 或个性化建议。CBT-I Protocol 保持 `NONE`。

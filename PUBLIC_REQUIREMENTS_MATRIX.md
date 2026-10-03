@@ -141,3 +141,20 @@ P0 完成条件：
 - Education 与 Treatment 的依赖禁止项明确；
 - Room 7/BACKUP_3.1 只作为后续实现目标，本阶段不落库；
 - 未解决内容项单独列出，不用代码默认值替代。
+
+## P1.5 V4 education coverage checkpoint
+
+以下是 P1.5 静态内容基础验收项；这些状态不表示 Public release 完成。逐单元分类和理由见 `V4_PUBLIC_CONTENT_MATRIX.md`。
+
+| ID | Requirement | Acceptance evidence | P1.5 status |
+|---|---|---|---|
+| PUB-E15-001 | V4 每个逻辑教育单元均进入可追踪 inventory，并带稳定来源定位与分类 | V4 matrix completeness/count tests | PASS |
+| PUB-E15-002 | 候选 manifest 保留课程、知识地图、章节、场景和内容子节点，不扁平为少量长文 | schema and manifest hierarchy tests | PASS |
+| PUB-E15-003 | 静态 schema 表达分层解释、五步认知练习、情境、记录提示和复习概念 | model/schema tests | PASS |
+| PUB-E15-004 | 选择内容严格分开 transient Preview 与明确 Commit 合同 | candidate manifest tests | PASS |
+| PUB-E15-005 | 候选内容通过 ID、引用、完整性、hash 和治疗边界自动校验 | Education unit tests | PASS |
+| PUB-E15-006 | 未解决许可、量表权利、医疗边界和 AI 越界内容清楚标为 BLOCKED 并排除于 manifest | matrix + negative manifest tests | PASS |
+| PUB-E15-007 | Registry 仍是静态内容；不引入 Room、用户进度持久化、导航或 Treatment | diff and dependency audit | PASS |
+| PUB-E15-008 | V4 及其来源的公开复用授权完成逐项核实 | written rights/reuse review | BLOCKED |
+
+P1.5 的 `PUBLIC_AS_IS` / `PUBLIC_WITH_PRESENTATION_ADAPTATION` / `PUBLIC_CONCEPT_ONLY` 表示内容适配候选类别，不是许可结论。来源核准前不得将候选 manifest 视作公开发布包。
