@@ -16,6 +16,7 @@ import app.sleepdiary.offline.domain.model.Versions
 import app.sleepdiary.offline.share.DiaryShare
 import app.sleepdiary.offline.ui.diary.*
 import app.sleepdiary.offline.ui.learning.*
+import app.sleepdiary.offline.ui.education.PublicEducationCatalog
 import app.sleepdiary.offline.ui.theme.SleepDiaryTheme
 import kotlinx.coroutines.runBlocking
 import org.junit.*
@@ -30,9 +31,11 @@ class LearningFlowTest {
     @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()
     private lateinit var db: SleepDiaryDatabase
     private lateinit var services: AppServices
+    private lateinit var catalog: PublicEducationCatalog
     @Before fun setup() {
         db = Room.inMemoryDatabaseBuilder(compose.activity, SleepDiaryDatabase::class.java).build()
         services = AppServices(compose.activity, db)
+        catalog = PublicEducationCatalog.fromAssets(compose.activity.assets)
         runBlocking {
             db.diaryDao().insert(diary())
             db.stateAndSummaryDao().putState(AppState(hasCompletedOnboarding = true, trackingStartDate = "2026-09-09"))
@@ -48,65 +51,81 @@ class LearningFlowTest {
         compose.runOnUiThread { model = DiaryViewModel(RoomDiaryUiStore(db), clock = clockOn("2026-09-09")) }
         compose.setContent { SleepDiaryTheme { SleepDiaryApp(model, {}, services) } }
         compose.waitUntil(5000) { compose.runOnIdle { model.state.value.page != HomePage.LOADING } }
-        click("设置"); click("睡眠学习")
+        compose.onNodeWithTag("public_tab_education").performClick()
     }
-    @Test fun readingEveryCardAndBackLeavesAllDataUnchanged() = runBlocking<Unit> {
-        val before = services.backup.snapshot()
+    private fun openScene(id: String) {
+        val scene = catalog.node(id)
+        val chapter = catalog.node(checkNotNull(scene.parentId))
+        compose.onNodeWithText("${chapter.title}　·　未开始", substring = true).performScrollTo().performClick()
+        compose.onNodeWithTag("education_scene_${scene.id}").performScrollTo().performClick()
+        compose.waitUntil(5000) { runBlocking {
+            db.educationDao().position(catalog.versionId, "COURSE-V4")?.sceneContentId == id &&
+                db.educationDao().progress(catalog.versionId, id)?.state == "IN_PROGRESS"
+        } }
+    }
+    @Test fun readingCandidateSceneOnlyCreatesPositionAndInProgressState() = runBlocking<Unit> {
+        val diaryBefore = db.diaryDao().all(); val safetyBefore = db.safetyDao().all()
+        val treatmentBefore = db.treatmentDao().episodes(); val workspaceBefore = services.workspace.all()
         start()
-        LearningContent.cards.forEach {
-            click(it.title)
-            compose.onNodeWithText(it.body).assertExists()
-            click("返回学习目录")
-        }
-        click("返回设置")
-        compose.onNodeWithText("导出完整备份 JSON").assertExists()
-        assertEquals(before, services.backup.snapshot())
+        val scene = catalog.nodes.values.first { it.kind == "SCENE" && catalog.children(it.id).any { child -> child.kind == "CONTENT_BLOCK" } }
+        openScene(scene.id)
+        assertTrue(compose.onAllNodesWithText(scene.title).fetchSemanticsNodes().isNotEmpty())
+        compose.onNodeWithText("← 返回").performClick(); compose.onNodeWithText("← 返回").performClick()
+        assertEquals(diaryBefore, db.diaryDao().all()); assertEquals(safetyBefore, db.safetyDao().all())
+        assertEquals(treatmentBefore, db.treatmentDao().episodes()); assertEquals(workspaceBefore, services.workspace.all())
+        assertEquals("IN_PROGRESS", services.education.snapshot().progress.single { it.contentId == scene.id }.state)
+        assertEquals(scene.id, services.education.snapshot().positions.single().sceneContentId)
+        assertTrue(services.education.snapshot().committedChoices.isEmpty())
         assertNull(db.localExecutionDao().state())
         assertEquals("NONE", Versions.CBTI_PROTOCOL)
     }
     @Test fun realNotesRouteSavesAndEditsWithBackupAndPrivacyPreserved() = runBlocking<Unit> {
-        start(); click("留下自己的提醒"); click("打开个人记录")
-        waitText("新建想法记录"); click("新建想法记录")
+        start()
+        val prompt = catalog.nodes.values.first { it.kind == "NOTE_PROMPT" }
+        val scene = catalog.node(checkNotNull(prompt.parentId))
+        openScene(scene.id)
+        compose.onNodeWithTag("education_note_toggle_${prompt.id}").performScrollTo().performClick()
         val body = "我的提醒 中文 English 123,\"原文\"\n下一行"
-        compose.onNodeWithTag("workspace_title").performTextInput("我的提醒")
-        compose.onNodeWithTag("workspace_body").performTextInput(body)
-        click("保存个人记录"); waitText("个人记录已保存")
+        compose.onNodeWithTag("education_note_${prompt.id}").performTextInput(body)
+        click("保存到我的学习记录")
+        compose.waitUntil(5000) { runBlocking { services.workspace.all().any { it.body == body } } }
+        compose.waitUntil(5000) { compose.onAllNodesWithTag("education_note_toggle_${prompt.id}").fetchSemanticsNodes().isNotEmpty() }
         val first = services.workspace.all().single()
         assertEquals(body, first.body)
         val text = services.backup.export()
         assertEquals(listOf(first), services.backup.preview(text).workspaceRecords)
         assertFalse(services.backup.csv().toString(Charsets.UTF_8).contains("我的提醒"))
         assertFalse(DiaryShare.lines(db.diaryDao().all().single()).joinToString().contains("我的提醒"))
-        click("我的提醒")
-        compose.onNodeWithTag("workspace_body").assertTextContains(body)
-        compose.onNodeWithTag("workspace_body").performTextReplacement("我修改后的提醒")
-        click("保存个人记录"); waitText("个人记录已保存")
+        compose.onNodeWithTag("education_note_toggle_${prompt.id}").performScrollTo().performClick()
+        compose.onNodeWithTag("education_note_${prompt.id}").assertTextContains(body)
+        compose.onNodeWithTag("education_note_${prompt.id}").performTextReplacement("我修改后的提醒")
+        click("保存修改")
+        compose.waitUntil(5000) { runBlocking { services.workspace.all().singleOrNull()?.body == "我修改后的提醒" } }
         assertEquals(first.id, services.workspace.all().single().id)
         assertEquals("我修改后的提醒", services.workspace.all().single().body)
         services.backup.restore(text)
         assertEquals(listOf(first), services.workspace.all())
-        click("返回学习内容")
-        compose.onNodeWithText(LearningContent.byId("COG-03")!!.body).assertExists()
-        click("返回学习目录"); click("返回设置")
-        compose.onNodeWithText("导出完整备份 JSON").assertExists()
+        compose.onNodeWithText("← 返回").performClick(); compose.onNodeWithText("← 返回").performClick()
+        compose.onNodeWithTag("public_tab_me").performClick(); compose.onNodeWithTag("public_me_workspace").performScrollTo().performClick()
+        click(prompt.title)
+        compose.onNodeWithTag("workspace_body").assertTextContains(body)
     }
     @Test fun notesCancellationDoesNotCreateAnAnswerOrLoseTheSourcePage() = runBlocking<Unit> {
-        val before = services.backup.snapshot()
-        start(); click("认识睡眠担忧"); click("打开个人记录")
-        waitText("新建学习笔记"); click("新建学习笔记")
-        compose.onNodeWithTag("workspace_body").performTextInput("尚未保存")
-        click("返回记录列表"); compose.onNodeWithText("继续编辑").performClick()
-        compose.onNodeWithTag("workspace_body").assertTextContains("尚未保存")
-        click("返回记录列表"); compose.onNodeWithText("放弃编辑").performClick(); click("返回学习内容")
-        compose.onNodeWithText(LearningContent.SAFETY_TEXT).assertExists()
-        assertEquals(before, services.backup.snapshot())
+        start()
+        val prompt = catalog.nodes.values.first { it.kind == "NOTE_PROMPT" }
+        val scene = catalog.node(checkNotNull(prompt.parentId)); openScene(scene.id)
+        compose.onNodeWithTag("education_note_toggle_${prompt.id}").performScrollTo().performClick()
+        compose.onNodeWithTag("education_note_${prompt.id}").performTextInput("尚未保存")
+        click("收起"); assertTrue(compose.onAllNodesWithText(scene.title, substring = true).fetchSemanticsNodes().isNotEmpty())
+        compose.onNodeWithText("← 返回").performClick(); compose.onNodeWithText("← 返回").performClick()
+        compose.onNodeWithText("← 返回").performClick()
+        assertTrue(services.workspace.all().isEmpty())
+        assertTrue(services.education.snapshot().records.isEmpty())
     }
-    @Test fun systemBackReturnsFromDetailThenToSettings() {
-        start(); click("认识睡眠担忧")
+    @Test fun systemBackReturnsFromEducationToToday() {
+        start()
         compose.waitForIdle(); compose.runOnUiThread { compose.activity.onBackPressedDispatcher.onBackPressed() }
-        compose.onNodeWithText("返回设置").assertExists()
-        compose.waitForIdle(); compose.runOnUiThread { compose.activity.onBackPressedDispatcher.onBackPressed() }
-        compose.onNodeWithText("导出完整备份 JSON").assertExists()
+        compose.onNodeWithTag("public_tab_today").assertIsSelected()
     }
     @Test fun selectedContentSurvivesSavedStateRestorationWithoutWriting() = runBlocking<Unit> {
         val tester = StateRestorationTester(compose)

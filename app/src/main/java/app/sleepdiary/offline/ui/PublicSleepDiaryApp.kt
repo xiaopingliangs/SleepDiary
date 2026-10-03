@@ -18,6 +18,7 @@ import app.sleepdiary.offline.domain.model.*
 import app.sleepdiary.offline.share.DiaryShare
 import app.sleepdiary.offline.ui.diary.*
 import app.sleepdiary.offline.ui.publicnav.*
+import app.sleepdiary.offline.ui.education.PublicEducationExperience
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -119,10 +120,10 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
                     PublicTodayScreen(state, model::beginNewDiary, model::editToday, { navigateTop(PublicDestination.EDUCATION) }, { navigateTop(PublicDestination.SLEEP) })
                 }
                 composable("sleep") {
-                    PublicSleepScreen(weeklySummaries, { nav.navigate("history") }, { exportKind = "csv" })
+                    PublicSleepScreen(state.entries, state.form.referenceDate.toString(), weeklySummaries, { nav.navigate("history") }, { exportKind = "csv" })
                 }
                 composable("education") {
-                    PublicEducationHome({ nav.navigate("educationMap") }, { nav.navigate("educationContinue") }, { nav.navigate("educationReview") }, { nav.navigate("educationNotes") })
+                    PublicEducationExperience(services?.education, services?.workspace) { navigateTop(PublicDestination.TODAY) }
                 }
                 composable("me") {
                     PublicMeHome(
@@ -159,10 +160,6 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
                 composable("versions") { VersionsScreen { nav.popBackStack() } }
                 composable("terms") { SimplePage("术语表") { Action("← 返回", { nav.popBackStack() }); TERMS.forEach { (title, body) -> Text(title); Text(body) } } }
                 composable("privacy") { SimplePage("隐私说明") { Action("← 返回", { nav.popBackStack() }); Text("数据仅保存在应用私有存储。无账号、广告、分析或后台联网。只有你主动导出或分享时，记录才离开应用。备份、CSV 和学习导出是明文，请保存到可信位置。") } }
-                composable("educationMap") { SimplePage("知识地图") { Action("← 返回学习", { nav.popBackStack() }); Text("本地课程内容将在学习体验中呈现。") } }
-                composable("educationContinue") { SimplePage("继续学习") { Action("← 返回学习", { nav.popBackStack() }); Text("还没有学习位置。") } }
-                composable("educationReview") { SimplePage("稍后复习") { Action("← 返回学习", { nav.popBackStack() }); Text("还没有保存为稍后复习的内容。") } }
-                composable("educationNotes") { app.sleepdiary.offline.ui.workspace.WorkspaceScreen(services?.workspace, "返回学习") { nav.popBackStack() } }
             }
             if (!overlay && currentRoute in topRoutes) PublicBottomNavigation(currentRoute, ::navigateTop)
         }

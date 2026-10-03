@@ -65,7 +65,7 @@ class ClinicianSummaryScreenTest {
     @Test fun defaultsArePrivateAndBackWorks() {
         compose.onNodeWithTag("summary_comments").assertIsOff()
         compose.onNodeWithTag("summary_safety").assertIsOff()
-        compose.onNodeWithText("返回设置").performClick(); assertTrue(back)
+        compose.onNodeWithText("返回我的").performClick(); assertTrue(back)
     }
     @Test fun previewChangesOnlyAfterExplicitSelectionAndRegeneration() {
         dates(); prepare()

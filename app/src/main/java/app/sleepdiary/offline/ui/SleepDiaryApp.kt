@@ -33,7 +33,7 @@ const val FIRST_SAVE_EXPLANATION="为了让记录尽量简单，也减少对单�
  SimplePage(titles[page]){Text(bodies[page]);Action(if(page==2)"开始使用"else"下一页",onNext,enabled)}
 }
 @Composable fun SimplePage(title:String,content:@Composable ColumnScope.()->Unit){Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){Text(title,style=MaterialTheme.typography.headlineSmall);content()}}
-@Composable fun Action(label:String,action:()->Unit,enabled:Boolean=true){Button(onClick=action,enabled=enabled,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)){Text(label)}}
+@Composable fun Action(label:String,action:()->Unit,enabled:Boolean=true,modifier:Modifier=Modifier){Button(onClick=action,enabled=enabled,modifier=modifier.fillMaxWidth().heightIn(min=48.dp)){Text(label)}}
 
 @Composable fun TodayScreen(state:DiaryUiState,onExit:()->Unit,onEdit:()->Unit,onHistory:()->Unit,onSettings:()->Unit) {
  var showAverages by rememberSaveable{mutableStateOf(false)}

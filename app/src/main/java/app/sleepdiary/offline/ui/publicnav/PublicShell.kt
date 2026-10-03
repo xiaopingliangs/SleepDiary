@@ -86,15 +86,33 @@ fun PublicTodayScreen(
 
 @Composable
 fun PublicSleepScreen(
+    entries: List<SleepDiaryEntry>,
+    referenceDate: String,
     summaries: List<WeeklySummarySnapshot>,
     onHistory: () -> Unit,
     onCsvExport: () -> Unit
 ) {
+    var days by rememberSaveable { mutableIntStateOf(7) }
+    val averages = remember(referenceDate, days, entries) { RecentAverageCalculator.calculate(LocalDate.parse(referenceDate), days, entries) }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("睡眠", style = MaterialTheme.typography.headlineMedium)
         Text("查看原始日记和一段时间内的中性统计。数据来自你的主观估计。")
         Action("日记历史", onHistory)
         Action("导出睡眠日记 CSV", onCsvExport)
+        HorizontalDivider()
+        Text("最近平均数据", style = MaterialTheme.typography.titleLarge)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(selected = days == 7, onClick = { days = 7 }, label = { Text("最近 7 天") }, modifier = Modifier.heightIn(min = 48.dp))
+            FilterChip(selected = days == 14, onClick = { days = 14 }, label = { Text("最近 14 天") }, modifier = Modifier.heightIn(min = 48.dp))
+        }
+        Text("有记录的天数：${averages.validEntryCount} / $days")
+        val averageLabels = listOf("平均估计入睡耗时（分钟）", "平均夜醒次数", "平均夜间清醒总时长（分钟）", "平均最后醒来到离床时长（分钟）", "平均在睡觉位置总时长 TIB", "平均主观睡眠质量（1 很差 — 5 很好）")
+        val averageValues = listOf(averages.avgSolMin, averages.avgAwakeningCount, averages.avgWasoMin, averages.avgTerminalWakefulnessMin, averages.avgTibMin, averages.avgSleepQuality)
+        averageLabels.zip(averageValues).forEachIndexed { index, (label, value) ->
+            HorizontalDivider()
+            val shown = value?.let { if (index == 4) AverageDurationText.fromMinutes(it) else String.format(Locale.ROOT, "%.1f", it) } ?: "无记录"
+            Text("$label：$shown")
+        }
         HorizontalDivider()
         Text("周总结", style = MaterialTheme.typography.titleLarge)
         if (summaries.isEmpty()) Text("还没有已生成的周总结。")
@@ -154,7 +172,7 @@ fun PublicMeHome(
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("我的", style = MaterialTheme.typography.headlineMedium)
         Text("个人记录", style = MaterialTheme.typography.titleMedium)
-        Action("个人记录", onWorkspace)
+        Action("个人记录", onWorkspace, modifier = Modifier.testTag("public_me_workspace"))
         Text("导出与恢复", style = MaterialTheme.typography.titleMedium)
         Action("导出完整备份 JSON", onBackupExport)
         Action("导入完整备份", onBackupImport)
