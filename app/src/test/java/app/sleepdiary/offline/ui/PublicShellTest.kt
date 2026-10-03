@@ -38,7 +38,7 @@ class PublicShellTest {
 
     @Test fun onlyFourPublicDestinationsExistAndNoTreatmentTabIsRegistered(){
         assertEquals(listOf("today","sleep","education","me"),PublicDestination.entries.map{it.route})
-        assertEquals(listOf("今天","睡眠","学习","我的"),PublicDestination.entries.map{it.label})
+        assertEquals(listOf("今日","历史","了解","我的"),PublicDestination.entries.map{it.label})
         assertFalse(PublicDestination.entries.any{it.route.contains("treatment",ignoreCase=true)})
     }
 
@@ -49,19 +49,19 @@ class PublicShellTest {
         compose.waitUntil(5000){model.state.value.page!=HomePage.LOADING}
         compose.onNodeWithTag("public_tab_today").assertIsSelected()
         compose.onNodeWithTag("public_tab_sleep").performClick()
-        compose.onNodeWithText("日记历史").assertExists()
+        compose.onNodeWithTag("public_tab_sleep").assertIsSelected()
         compose.onNodeWithText("最近平均数据").assertExists()
         compose.onNodeWithText("最近 14 天").performClick()
         compose.onNodeWithText("有记录的天数：0 / 14").assertExists()
         compose.onNodeWithTag("public_tab_education").performClick()
-        compose.onNodeWithText("知识地图").assertExists()
+        compose.onNodeWithTag("public_tab_education").assertIsSelected()
         compose.onNodeWithText("← 返回").performClick()
         compose.onNodeWithTag("public_tab_today").assertIsSelected()
         compose.onNodeWithTag("public_tab_education").performClick()
         compose.onNodeWithTag("public_tab_me").performClick()
         compose.onNodeWithText("隐私说明").assertExists()
         compose.onNodeWithTag("public_tab_today").performClick()
-        compose.onNodeWithText("记录今天的睡眠").assertExists()
+        compose.onNodeWithText("记录昨晚睡眠").assertExists()
     }
 
     @Test fun publicNavigationHasNoSafetyWorkflowOrAssessmentWriteAction(){

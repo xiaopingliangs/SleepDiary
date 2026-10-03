@@ -61,6 +61,7 @@ dependencies {
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons.core)
     implementation(libs.room.runtime)
     implementation(libs.coroutines.core)
     ksp(libs.room.compiler)

@@ -5,6 +5,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -24,11 +30,11 @@ import app.sleepdiary.offline.ui.diary.fieldValue
 import java.time.LocalDate
 import java.util.Locale
 
-enum class PublicDestination(val route: String, val label: String, val symbol: String) {
-    TODAY("today", "今天", "今"),
-    SLEEP("sleep", "睡眠", "眠"),
-    EDUCATION("education", "学习", "学"),
-    ME("me", "我的", "我")
+enum class PublicDestination(val route: String, val label: String) {
+    TODAY("today", "今日"),
+    SLEEP("sleep", "历史"),
+    EDUCATION("education", "了解"),
+    ME("me", "我的")
 }
 
 @Composable
@@ -38,7 +44,12 @@ fun PublicBottomNavigation(currentRoute: String, onSelect: (PublicDestination) -
             NavigationBarItem(
                 selected = currentRoute == destination.route,
                 onClick = { onSelect(destination) },
-                icon = { Text(destination.symbol, style = MaterialTheme.typography.titleMedium) },
+                icon = { Icon(when (destination) {
+                    PublicDestination.TODAY -> Icons.Filled.Home
+                    PublicDestination.SLEEP -> Icons.Filled.List
+                    PublicDestination.EDUCATION -> Icons.Filled.Info
+                    PublicDestination.ME -> Icons.Filled.AccountBox
+                }, contentDescription = null) },
                 label = { Text(destination.label) },
                 modifier = Modifier.testTag("public_tab_${destination.route}")
             )
@@ -50,37 +61,17 @@ fun PublicBottomNavigation(currentRoute: String, onSelect: (PublicDestination) -
 fun PublicTodayScreen(
     state: DiaryUiState,
     onCreate: () -> Unit,
-    onEdit: () -> Unit,
-    onEducation: () -> Unit,
-    onSleep: () -> Unit
+    onView: (SleepDiaryEntry) -> Unit
 ) {
-    val reference = state.form.referenceDate
-    var days by rememberSaveable { mutableIntStateOf(7) }
-    val averages = remember(reference, days, state.entries) {
-        RecentAverageCalculator.calculate(reference, days, state.entries)
-    }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("今天", style = MaterialTheme.typography.headlineMedium)
-        Text(if (state.today == null) "今天还没有睡眠记录。记录主观估计即可，不必精确。" else "今天的睡眠记录已保存。你可以查看或修改。")
-        Action(if (state.today == null) "记录今天的睡眠" else "查看或修改今天记录", if (state.today == null) onCreate else onEdit)
-        HorizontalDivider()
-        Text("最近平均数据", style = MaterialTheme.typography.titleMedium)
-        Text("只汇总已有记录，不评价好坏，也不生成建议。")
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = days == 7, onClick = { days = 7 }, label = { Text("最近 7 天") }, modifier = Modifier.heightIn(min = 48.dp))
-            FilterChip(selected = days == 14, onClick = { days = 14 }, label = { Text("最近 14 天") }, modifier = Modifier.heightIn(min = 48.dp))
+        Text("今日", style = MaterialTheme.typography.headlineMedium)
+        if (state.today == null) {
+            Text("按记忆大概填写即可，不需要为了几分钟的精确度去查手表或反复校准。")
+            Action("记录昨晚睡眠", onCreate)
+        } else {
+            Text("昨晚的睡眠记录已保存")
+            Action("查看记录", { state.today?.let(onView) })
         }
-        Text("有记录的天数：${averages.validEntryCount} / $days")
-        val labels = listOf("平均估计入睡耗时（分钟）", "平均夜醒次数", "平均夜间清醒总时长（分钟）", "平均最后醒来到离床时长（分钟）", "平均在睡觉位置总时长 TIB", "平均主观睡眠质量（1 很差 — 5 很好）")
-        val values = listOf(averages.avgSolMin, averages.avgAwakeningCount, averages.avgWasoMin, averages.avgTerminalWakefulnessMin, averages.avgTibMin, averages.avgSleepQuality)
-        labels.zip(values).forEachIndexed { index, (label, value) ->
-            HorizontalDivider()
-            val display = value?.let { if (index == 4) AverageDurationText.fromMinutes(it) else String.format(Locale.ROOT, "%.1f", it) } ?: "无记录"
-            Text("$label：$display")
-        }
-        HorizontalDivider()
-        OutlinedButton(onClick = onEducation, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("阅读睡眠与 CBT-I 知识") }
-        OutlinedButton(onClick = onSleep, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("查看睡眠历史与总结") }
     }
 }
 
@@ -89,17 +80,15 @@ fun PublicSleepScreen(
     entries: List<SleepDiaryEntry>,
     referenceDate: String,
     summaries: List<WeeklySummarySnapshot>,
-    onHistory: () -> Unit,
-    onCsvExport: () -> Unit
+    onHistory: () -> Unit
 ) {
     var days by rememberSaveable { mutableIntStateOf(7) }
     val averages = remember(referenceDate, days, entries) { RecentAverageCalculator.calculate(LocalDate.parse(referenceDate), days, entries) }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("睡眠", style = MaterialTheme.typography.headlineMedium)
+        Text("历史", style = MaterialTheme.typography.headlineMedium)
         Text("查看原始日记和一段时间内的中性统计。数据来自你的主观估计。")
         if (entries.isEmpty()) Text("还没有睡眠日记记录。完成一条记录后，历史会显示在这里。")
         Action("日记历史", onHistory)
-        Action("导出睡眠日记 CSV", onCsvExport)
         HorizontalDivider()
         Text("最近平均数据", style = MaterialTheme.typography.titleLarge)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -172,11 +161,15 @@ fun PublicMeHome(
         Text("个人记录", style = MaterialTheme.typography.titleMedium)
         Action("个人记录", onWorkspace, modifier = Modifier.testTag("public_me_workspace"))
         Text("导出与恢复", style = MaterialTheme.typography.titleMedium)
-        Action("导出完整备份 JSON", onBackupExport)
+        Action("完整备份", onBackupExport)
+        Text("用于换手机或恢复全部数据")
         Action("导入完整备份", onBackupImport)
-        Action("导出睡眠日记 CSV", onCsvExport)
-        Action("导出学习数据 JSON", onEducationJson)
-        Action("导出学习数据 TXT", onEducationText)
+        Action("睡眠记录表", onCsvExport)
+        Text("适合用 Excel / WPS 查看 · CSV")
+        Action("可阅读的学习记录", onEducationText)
+        Text("普通文本，方便直接查看或保存 · TXT")
+        Action("学习数据导出", onEducationJson)
+        Text("保存互动记录、选择和个人记录 · JSON")
         Action("就诊摘要", onClinicianSummary)
         Text("隐私与说明", style = MaterialTheme.typography.titleMedium)
         Action("隐私说明", onPrivacy)
@@ -218,8 +211,28 @@ fun DiaryHistoryScreen(
         if (entry == null) Text(HISTORY_EMPTY_TEXT) else {
             val form = DiaryForm.from(entry)
             DiaryField.entries.forEach { Text(it.label + "：" + fieldValue(form, it)) }
-            entry.comment?.takeIf { it.isNotBlank() }?.let { Text("特殊情况\n$it") }
-            Action("修改这条记录", { onEdit(entry) })
+            entry.comment?.takeIf { it.isNotBlank() }?.let { Text("特殊情况"); Text(it) }
+            Action("查看详情", { onEdit(entry) })
         }
     }
+}
+
+@Composable
+fun DiaryDetailScreen(entry: SleepDiaryEntry, onBack: () -> Unit, onCorrect: () -> Unit) {
+    var confirmCorrection by rememberSaveable { mutableStateOf(false) }
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text("睡眠记录", style = MaterialTheme.typography.headlineSmall)
+        TextButton(onClick = onBack, modifier = Modifier.heightIn(min = 48.dp)) { Text("← 返回") }
+        Text(entry.sleepDate, style = MaterialTheme.typography.titleMedium)
+        val form = DiaryForm.from(entry)
+        DiaryField.entries.forEach { Text(it.label + "：" + fieldValue(form, it)) }
+        entry.comment?.takeIf(String::isNotBlank)?.let { Text("特殊情况"); Text(it) }
+        TextButton(onClick = { confirmCorrection = true }, modifier = Modifier.heightIn(min = 48.dp)) { Text("更正明显错误") }
+    }
+    if (confirmCorrection) AlertDialog(
+        onDismissRequest = { confirmCorrection = false },
+        text = { Text("睡眠日记记录的是大致情况，不需要因为几分钟的差异反复修改。只有明显填错或漏记重要情况时才需要更正。") },
+        confirmButton = { TextButton(onClick = { confirmCorrection = false; onCorrect() }) { Text("继续更正") } },
+        dismissButton = { TextButton(onClick = { confirmCorrection = false }) { Text("取消") } }
+    )
 }

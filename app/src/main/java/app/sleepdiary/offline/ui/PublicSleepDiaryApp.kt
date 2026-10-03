@@ -122,13 +122,17 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
     val overlay = state.page in setOf(HomePage.LOADING, HomePage.FORM, HomePage.SUCCESS, HomePage.WEEKLY)
 
     Surface(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing), color = MaterialTheme.colorScheme.background) {
+      if (!overlay) {
         Column(Modifier.fillMaxSize()) {
             NavHost(navController = nav, startDestination = PublicDestination.TODAY.route, modifier = Modifier.weight(1f)) {
                 composable("today") {
-                    PublicTodayScreen(state, model::beginNewDiary, model::editToday, { navigateTop(PublicDestination.EDUCATION) }, { navigateTop(PublicDestination.SLEEP) })
+                    PublicTodayScreen(state, model::beginNewDiary) { entry ->
+                        editReturnRoute = "today"
+                        nav.navigate("diaryDetail/${entry.id}")
+                    }
                 }
                 composable("sleep") {
-                    PublicSleepScreen(state.entries, state.form.referenceDate.toString(), weeklySummaries, { nav.navigate("history") }, { exportKind = "csv" })
+                    PublicSleepScreen(state.entries, state.form.referenceDate.toString(), weeklySummaries, { nav.navigate("history") })
                 }
                 composable("education") {
                     PublicEducationExperience(
@@ -155,7 +159,15 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
                 }
                 composable("history") {
                     DiaryHistoryScreen(state.entries, state.form.referenceDate.toString(), { nav.popBackStack() }) { entry ->
-                        editReturnRoute = "history"
+                        nav.navigate("diaryDetail/${entry.id}")
+                    }
+                }
+                composable("diaryDetail/{entryId}") { backStackEntry ->
+                    val id = backStackEntry.arguments?.getString("entryId")
+                    val entry = state.entries.firstOrNull { it.id == id }
+                    if (entry == null) SimplePage("睡眠记录") { Text("找不到这条记录"); Action("返回", { nav.popBackStack() }) }
+                    else DiaryDetailScreen(entry, { nav.popBackStack() }) {
+                        editReturnRoute = if (nav.previousBackStackEntry?.destination?.route == "history") "history" else "today"
                         model.edit(entry)
                     }
                 }
@@ -180,6 +192,7 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
             }
             if (!overlay && currentRoute in topRoutes) PublicBottomNavigation(currentRoute, ::navigateTop)
         }
+      }
 
         if (state.page == HomePage.LOADING) SimplePage("SleepDiary") { Text(state.message ?: "正在读取本机记录…"); Action("重试", model::start) }
         if (overlay && state.page != HomePage.LOADING) {

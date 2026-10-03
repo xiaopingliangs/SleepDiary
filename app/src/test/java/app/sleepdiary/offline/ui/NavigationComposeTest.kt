@@ -45,7 +45,7 @@ class NavigationComposeTest {
     compose.onNodeWithTag("public_tab_me").performClick()
     compose.onNodeWithText("就诊摘要").performScrollTo().performClick()
     compose.onNodeWithText("返回我的").performClick()
-    compose.onNodeWithText("导出完整备份 JSON").assertExists()
+    compose.onNodeWithText("完整备份").assertExists()
  }
     @Test fun optionalUsageGuideAndSettingsAndHistoryAreNavigable() {
         val store=Store().also{it.app=AppState()}
@@ -57,10 +57,10 @@ class NavigationComposeTest {
         compose.onNodeWithText("下一页").performClick();compose.onNodeWithText("数据留在本机").assertIsDisplayed()
         compose.onNodeWithText("下一页").performClick();compose.onNodeWithText("SleepDiary Public Edition").assertIsDisplayed()
         compose.onNodeWithText("完成查看").performClick();compose.waitUntil(5000){store.app.hasCompletedOnboarding}
-    compose.onNodeWithText("导出完整备份 JSON").assertIsEnabled()
+        compose.onNodeWithText("完整备份").assertIsEnabled()
     compose.onNodeWithTag("public_tab_sleep").performClick();compose.onNodeWithText("日记历史").performClick();compose.onNodeWithText(HISTORY_EMPTY_TEXT).assertIsDisplayed()
     compose.onNodeWithText("← 返回睡眠").performClick();compose.onNodeWithTag("public_tab_today").performClick()
-    compose.onNodeWithText("记录今天的睡眠").assertExists()
+    compose.onNodeWithText("记录昨晚睡眠").assertExists()
     }
     @Test fun failedSaveStaysInFormAndVerifiedSuccessShowsExit() {
         val store=Store().also {it.fail=true};var exited=false;start(store,onExit={exited=true})
@@ -79,8 +79,11 @@ class NavigationComposeTest {
     }
     @Test fun todayEntryCanBeLoadedForEditingWithoutAnotherUuid() {
         val entry=diary();start(Store().also {it.rows=listOf(entry)})
-        compose.onNodeWithText("查看或修改今天记录").assertIsDisplayed()
-        compose.onNodeWithText("查看或修改今天记录").performClick()
+        compose.onNodeWithText("查看记录").assertIsDisplayed()
+        compose.onNodeWithText("查看记录").performClick()
+        compose.onNodeWithText("更正明显错误").assertExists()
+        compose.onNodeWithText("更正明显错误").performClick()
+        compose.onNodeWithText("继续更正").performClick()
         compose.onNodeWithTag("time_BED").assertTextContains("09-08 23:00")
         compose.runOnIdle {assertEquals(entry.id,model.state.value.form.id);assertEquals(entry.createdAtUtc,model.state.value.form.createdAtUtc)}
     }
