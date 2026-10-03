@@ -77,6 +77,7 @@ Education boundary 由四部分组成：
 2. **Progress Store**：只保存用户明确提交的学习进度。
 3. **Record Link Store**：把 WorkspaceRecord 关联到具体内容，不复制正文。
 4. **Review/Bookmark Store**：保存用户主动选择的稍后复习状态。
+5. **Resume Position Store**：每课程/内容版本仅保存一个稳定场景指针；不保存滚动或浏览轨迹。
 
 依赖方向：
 
@@ -205,12 +206,7 @@ Public Edition 的生产 `AppServices` 不应向 UI 暴露 TreatmentStateControl
 - 医学转换已经失败关闭；
 - 旧数据可以继续 round-trip。
 
-需要在 Public Core 实现中收紧：
-
-- 移除 Public AppServices 对 Treatment controller 的暴露；
-- 增加无 Treatment route 的架构测试；
-- 增加 Education 写入不改变 episode/audit 的测试；
-- 备份预览显示休眠 Treatment 数据数量，避免隐式替换。
+P1.5 已移除 Public AppServices 对 Treatment controller 的暴露，并以反射回归测试保护该边界；当前 Public navigation 无 Treatment route。P2B 继续增加 Education 写入前后 Treatment episode/audit 不变的集成测试。完整备份仍显示休眠 Treatment 数据数量，避免隐式替换。
 
 ## 10. Data and migration target
 
@@ -223,15 +219,17 @@ EDUCATION_DATA_1.0
 CBT-I Protocol = NONE
 ```
 
-Room 7 最小新增：
+P2A 已冻结的 Room 7 目标新增五张 Education 用户状态表：
 
 - education_progress；
+- education_committed_choice；
+- education_review_state；
 - education_record；
-- education_review_state。
+- education_position。
 
 EducationContentVersion 保存在不可变内容 registry/assets 中，不需要复制整份内容到 Room。EducationExport 是运行时投影，不是表。
 
-迁移只新增空表并保留现有十表。不得推断旧学习进度、书签、内容关联或治疗状态。
+迁移 6→7 只新增上述空表并保留现有十表；只将 AppState 的技术 backup format 标记更新到 BACKUP_3.1。不得推断旧学习进度、书签、内容关联或治疗状态。精确字段、键、状态机、删除、导出与兼容语义见 `EDUCATION_USER_DATA_CONTRACT.md`。
 
 ## 11. Enforcement tests
 
@@ -249,12 +247,14 @@ Public Edition 必须具备以下架构断言：
 
 ## 12. Existing specification reconciliation
 
-当前代码已经使用 Room 6/BACKUP_3.0，但部分根规格仍显示较早备份版本。Public Core 实现前必须在单独规格同步阶段统一：
+当前代码使用 Room 6/BACKUP_3.0。P2A 将相关规格从旧 BACKUP_2.1 当前摘要同步到 3.0，并冻结 P2B 的 3.1 合同；历史 backup schema/sample 不改写。同步范围：
 
 - VERSIONING_AND_TRACEABILITY；
 - IMPORT_EXPORT_SPEC；
 - DATA_SCHEMA 的当前版本摘要；
 - TEST_PLAN；
 - SELF_CHECK 和 SPEC_MANIFEST。
+
+P2B 增加严格的 `backup-v3.1.schema.json` 并保留 `backup-v3.schema.json` 原字节不变。
 
 历史 schema、样例和历史说明不得覆盖或改写。

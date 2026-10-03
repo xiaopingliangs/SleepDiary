@@ -1,5 +1,7 @@
 # DATA_SCHEMA.md — V0.1 数据模型
 
+> 当前执行基线（2026-10-03）：Room 6、`BACKUP_3.0`、CBT-I Protocol `NONE`。本文既有历史领域定义保留；末尾 P2A addendum 仅冻结未来 Room 7 / `BACKUP_3.1` Education 数据目标，不代表已实现。历史 backup 格式定义不变。
+
 ## 1. 总原则
 
 - 原始记录优先于派生数据。
@@ -17,7 +19,7 @@ diary_schema_version        = "DIARY_1.0"
 safety_schema_version       = "SAFETY_1.0"
 safety_rule_version         = "SAFETY_RULE_1.0"
 weekly_summary_rule_version = "WEEKLY_1.0"
-backup_format_version       = "BACKUP_1.1"
+backup_format_version       = "BACKUP_3.0"
 cbti_protocol_version       = "NONE"
 ```
 
@@ -188,7 +190,7 @@ S09 的 detailJson：NONE / UNSURE 必须为 null；FLAGS_PRESENT 必须是含�
 
 ## 8. TrackingState
 
-使用 Room 单例/键值 AppState 表保存，随完整备份在同一 Room 事务中恢复。表本身保存对应 backupFormatVersion（当前 BACKUP_2.1）；JSON 根 exportFormatVersion 表示其备份格式版本。JSON 对外仍使用 trackingState 对象名；下列六个键在完整备份中均必填。尚无日记时 trackingStartDate 为 null，尚无当前问询时 currentSafetyAssessmentId 为 null。
+使用 Room 单例/键值 AppState 表保存，随完整备份在同一 Room 事务中恢复。历史 0.1–0.2.2 定义保留其原有版本记录；当前表的技术 backupFormatVersion 为 `BACKUP_3.0`，JSON 根 exportFormatVersion 表示实际文件格式。JSON 对外仍使用 trackingState 对象名；原六个键在当前完整备份中均必填。尚无日记时 trackingStartDate 为 null，尚无当前问询时 currentSafetyAssessmentId 为 null。
 
 保存：
 
@@ -241,3 +243,19 @@ Room 技术版本由 1 升为 2，新增 hasCompletedOnboarding NOT NULL DEFAULT
 ## SPEC-0.2.2 本机恢复边界
 
 新增 local_execution_state 单例技术元数据表（LOCAL_EXECUTION_1），字段/唯一允许状态/生成与失效规则见 docs/LOCAL_EXECUTION_INCREMENT.md。旧七张业务表定义不变。该表不是原始数据或用户设置，不进入完整备份；每次替换恢复与业务数据在同事务内重新生成，不接受文件里的执行许可。
+
+## 15. P2A Public Education data target — `EDUCATION_DATA_1.0`
+
+P2A 冻结合同，供未来 Room 6→7 无损迁移实现；**当前仍是 Room 6 / `BACKUP_3.0`**。Room 7 只新增以下五张空表；不得更改现有 Diary、Safety、Weekly、Treatment、WorkspaceRecord 或 LocalExecutionState 字段/含义。所有五表行均带 `educationDataSchemaVersion = EDUCATION_DATA_1.0`，并以精确 packaged `contentVersionId` 和稳定 content ID 引用不可变 registry：
+
+| Table | Key / relation | Required state |
+|---|---|---|
+| `education_progress` | PK `(contentVersionId, contentId)` | `IN_PROGRESS` / `COMPLETED`, `updatedAtUtc`, nullable `completedAtUtc` |
+| `education_committed_choice` | PK `(contentVersionId, promptContentId)` | stable `choiceContentId`, `optionId`, committed/updated UTC |
+| `education_review_state` | PK `(contentVersionId, contentId)` | `SAVED_FOR_REVIEW` / `REVIEWED`, created/updated UTC, nullable reviewed UTC |
+| `education_record` | PK + FK `workspaceRecordId` → `workspace_record.id`, `ON DELETE CASCADE` | version/content/prompt IDs, record kind, created UTC; one-to-one only; note text remains solely in WorkspaceRecord |
+| `education_position` | PK `(contentVersionId, courseId)` | one `sceneContentId` resume pointer and updated UTC |
+
+`EducationContentVersion` is a static packaged registry descriptor, not a Room table. `EducationExport` is a temporary projection, not a Room table. Preview never persists; only explicit Commit stores one current choice per prompt/version. Explicit actions with clear learning-milestone semantics may write progress; opening, scrolling, automatic navigation and position updates alone never create `COMPLETED`. No dwell, scroll history/percentage, click trail, streak or engagement score is stored. Education cannot write or affect Diary, Safety or Treatment.
+
+Room 6→7 creates exactly these five empty tables, preserves all existing rows, and may update only the technical AppState backup marker to `BACKUP_3.1`. Existing Room migrations and exported schema history remain unchanged. Complete field/delete/validation semantics are frozen in `EDUCATION_USER_DATA_CONTRACT.md`.

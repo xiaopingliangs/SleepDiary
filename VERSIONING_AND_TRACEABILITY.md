@@ -1,5 +1,7 @@
 # VERSIONING_AND_TRACEABILITY.md — 版本与可追溯性
 
+> 当前执行基线（2026-10-03）：App 0.2.2 / Room 6 / `BACKUP_3.0` / CBT-I Protocol `NONE`。下方 dated P2A addendum 指明当前及未来目标；既有历史格式定义均保持原义、不可覆盖。
+
 ## 1. 为什么单独版本化
 
 App 版本、数据字段、计算规则、医学安全规则、未来治疗协议不是一回事。
@@ -47,7 +49,7 @@ App 版本、数据字段、计算规则、医学安全规则、未来治疗协�
 - 展示派生指标定义改变。
 
 ### Backup format
-`BACKUP_2.1`
+`BACKUP_3.0`
 
 变更条件：
 - JSON 根结构或恢复语义改变。
@@ -149,3 +151,11 @@ SELF_CHECK 只声明本轮实际执行的规格与完整性检查，不沿用历
 ## 14. SPEC-0.2.2 本机执行检查
 
 2026-09-14：App 0.2.2 / versionCode 4、Room 5、LOCAL_EXECUTION_1。新增仅本机技术代次与待复核状态，恢复时重新生成，不作为恢复的历史业务数据。BACKUP_2.1 及其 schema/示例保持；其他领域版本和 CBT-I Protocol NONE 不变。合同见 docs/LOCAL_EXECUTION_INCREMENT.md。不是临床协议更新。
+
+## 15. Public Edition P2A current and target baseline (2026-10-03)
+
+Current actual baseline is App `0.2.2`, Room `6`, `BACKUP_3.0`, and CBT-I Protocol `NONE`. Diary/Safety/Safety Rule/Weekly remain `DIARY_1.0`, `SAFETY_1.0`, `SAFETY_RULE_1.0`, `WEEKLY_1.0`; Treatment remains disabled and the protocol remains `NONE`.
+
+P2A freezes the future additive Education data versions: Room `7`, `EDUCATION_DATA_1.0`, `BACKUP_3.1`, and `EDUCATION_EXPORT_1.0`. These targets do not describe already-running code. `BACKUP_1.0`, `BACKUP_1.1`, `BACKUP_2.0`, `BACKUP_2.1`, and `BACKUP_3.0` remain immutable historic definitions and remain import-compatible. P2B must add new schema/sample files rather than overwrite those history artifacts.
+
+Education's five persisted concepts are `EducationProgress`, `EducationCommittedChoice`, `EducationReviewState`, the one-to-one `EducationRecord → WorkspaceRecord` association, and `EducationPosition`. `EducationContentVersion` stays in the packaged static registry; `EducationExport` is a temporary projection. Preview is transient and only explicit Commit persists a choice. A clear milestone action may commit progress; opening, scrolling or automatic navigation may not mark completion. Education may not write or affect Diary, Safety or Treatment and collects no dwell time, scroll history/percentage, click trail, streak or engagement score. Full row and compatibility semantics are in `EDUCATION_USER_DATA_CONTRACT.md`.

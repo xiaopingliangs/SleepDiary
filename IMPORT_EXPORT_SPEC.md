@@ -1,5 +1,7 @@
 # IMPORT_EXPORT_SPEC.md — 导入、导出与分享
 
+> 当前执行基线（2026-10-03）：`BACKUP_3.0` / Room 6 / CBT-I Protocol `NONE`。下方既有各格式定义与样例说明作为其原版本合同保留；本文末尾 P2A addendum 是当前合同及未来 BACKUP_3.1 增量，不得据此改写 BACKUP_1.0–3.0 的 schema 或 sample。
+
 ## 1. 目标
 
 - 完整备份可恢复；
@@ -172,3 +174,15 @@ inputSnapshots 使用 RAW_INPUT_CAPTURE_1，含规范 Base64 原始输入与 SHA
 ## SPEC-0.2.2 本机恢复边界
 
 BACKUP_2.1 对外结构不变。业务历史仍完整恢复；本机 local_execution_state 不是可携带的历史数据或授权，不导出、不导入。成功恢复同时生成新代次和 REQUIRES_REVIEW，失败一并回滚，提交后回读。旧 token 即使对应相同备份内容也失效；预览/导出/取消不改变代次。见 docs/LOCAL_EXECUTION_INCREMENT.md。
+
+## P2A current contract and P2B target (2026-10-03)
+
+Current format is `BACKUP_3.0`; its immutable schema/example are `schemas/backup-v3.schema.json` and `samples/backup-v3.example.json`. Current Room is 6. P2B target is `BACKUP_3.1`, with additive Education state only. `BACKUP_1.0`, `1.1`, `2.0`, `2.1`, and `3.0` remain immutable historical contracts; P2B adds a new schema/sample and does not replace any of them.
+
+`BACKUP_3.1` keeps every `BACKUP_3.0` root field and adds `educationDataSchemaVersion = EDUCATION_DATA_1.0`, `educationContentVersions[]` (packaged registry descriptors only), `educationProgress[]`, `educationCommittedChoices[]`, `educationReviewStates[]`, `educationRecords[]` (one-to-one links by WorkspaceRecord ID), and `educationPositions[]`. `EducationContentVersion` is not copied as course content and is not a Room table. Preview is never exported or persisted. Legacy `BACKUP_1.0–3.0` restore Education collections empty and never infer associations from WorkspaceRecords.
+
+Before any database mutation, import validates each exact Education `contentVersionId` and manifest hash against packaged compatible registries. An unknown version ID produces a clear “需要兼容/更新版本的 App” error; a known ID with a different hash produces a clear Education content-version incompatibility error. Neither is mislabeled as ordinary data corruption, and no title/near-ID guessing is permitted. Other malformed or dangling references fail normal semantic validation. A rejected file leaves the current database unchanged.
+
+`EDUCATION_EXPORT_1.0` is a separate, non-restorable user-data projection. JSON contains `exportFormatVersion`, `educationDataSchemaVersion`, exact packaged version descriptors, `progress[]`, `committedChoices[]`, `reviewStates[]`, and Education records joined to their WorkspaceRecord title/body/revision. TXT is a deterministic readable projection of the same included state. Both omit course bodies/explanations/source excerpts, previews, EducationPosition, Diary, Safety, Treatment, InputSnapshot, LocalExecutionState and telemetry. Export uses user-selected SAF destination; it has no import path in P2B.
+
+Full BACKUP_3.1 replacement restore remains prevalidated, user-confirmed, one Room transaction, rollback on any write failure and complete post-commit read-back. AppState backup marker becomes 3.1. CBT-I Protocol remains `NONE`.

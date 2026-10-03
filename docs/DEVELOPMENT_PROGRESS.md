@@ -2,6 +2,14 @@
 
 更新时间：2026-10-03。本文件记录实际进度，不替代冻结规格。
 
+## 2026-10-03 Public Edition P2A contract checkpoint
+
+P2A contract is frozen as a separate documentation checkpoint; P2B is the next authorized checkpoint. Recovery check confirmed repository HEAD `1ab6226a1e84efaa88bfe964f475449fe662228a` before this work and found the existing draft changes intact; unrelated untracked `meditation/` was preserved untouched. Current baseline: Room 6 / BACKUP_3.0 / CBT-I Protocol NONE.
+
+Synchronized the three explicitly authorized version/data/backup specs and related Education/Public docs. Frozen exactly five durable Education state tables, packaged-only EducationContentVersion, transient EducationExport, one-to-one EducationRecord→WorkspaceRecord, transient Preview / explicit Commit, explicit milestone progress, backup content registry validation before mutation, legacy backups restoring Education empty, and strict no-telemetry / Diary / Safety / Treatment isolation. BACKUP_1.0 / 1.1 / 2.0 / 2.1 / 3.0 definitions remain historical and immutable. Future target: Room 7 / EDUCATION_DATA_1.0 / EDUCATION_EXPORT_1.0 / BACKUP_3.1.
+
+P2A static contract checks and separate docs commit are recorded below when completed. P1.5 verified baseline was 414 unit tests and assembleDebug PASS; those results are historical and are not P2B verification. `meditation/` remains untouched and unstaged.
+
 ## 2026-10-03 Part A 日记午夜日期与 TIB 完整性热修复
 
 根因：新建日记的床上时间选择器默认锚定在 sleepDate 前一日 22:00；未填写字段选到 00:00 时，旧逻辑只替换时分并保留前一日日期。于是 00:00→07:00 可被保存成 31 小时。旧校验只检查各时间先后，没有校验事件日期范围或整段 TIB 上限。修复后未回答 BED/TRY 的午夜选择跨到 sleepDate；已回答字段仍保留明确日期。结构校验要求四个时间都处于 sleepDate 当日或前一日，且 BED→OUT 不超过 24 小时。

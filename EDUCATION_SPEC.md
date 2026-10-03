@@ -56,7 +56,7 @@ contentHashSha256
 
 ## 3. Content IDs
 
-- ID 全局稳定、区分大小写、发布后不得复用；
+- ID 全局稳定、区分大小写、发布后不得复用；P1.5 结构 manifest 的格式为 `[A-Z][A-Z0-9_-]{2,127}`。历史 1.0 ID 继续有效，不重写。
 - 同一主题的非语义性文字修正可以保留 contentId 并升级 content version；
 - 医学含义、目标或适用范围改变时创建新 contentId；
 - 删除的 ID 永久保留在历史 registry，标记 retired，不分配给其他内容；
@@ -340,9 +340,16 @@ Course → KnowledgeMap → Chapter → Scene
 - Commit 仅记录用户在教育场景中的明确选择，不驱动个性化推荐、处方、睡眠时程或 Treatment 状态。
 - 展开通俗/专业解释、知识地图定位、场景顺序、现实例子、复习和书签概念可作为静态结构表达；只有满足 Public 内容分类和来源审查的单元才可进入候选清单。
 - 五步认知结构和用户自写提示可以作为通用学习/反思界面；不得自动判断答案正确性或推断疾病。
+- P1.5 manifest 的 `commit.persistedAs = EducationRecord` 是 Education 逻辑记录类别，不是 Room 表名；CHOICE 实际持久化为 `EducationCommittedChoice`，用户文字才由 WorkspaceRecord + EducationRecord 关联保存。
 
 ### 14.3 P1.5 候选记录
 
 `V4_PUBLIC_CONTENT_MATRIX.md` 是逐逻辑单元的审查记录。由 `CBTI-Learning-Game-V4.html` 静态迁移出的候选 manifest 使用 `EDUCATION_CONTENT_SCHEMA_1.1`；完整计数、分类、hash 和排除理由见该矩阵及 `EDUCATION_CONTENT_ARCHITECTURE.md` 第 11 节。
 
 候选不等于公开发布许可。不得将未通过来源许可、临床边界和逐条内容审查的节点标为发布完成；被排除单元不得以隐藏入口或导出包形式提供。
+
+## 15. P2A durable user data — frozen contract
+
+Education 的静态版本描述、持久用户状态、用户自由文本和非必要遥测相互分离。P2A 冻结合同中的 Room 字段/键、Preview → Commit、版本演进、复位/删除、EducationExport_1.0 与 BACKUP_3.1 语义，见 `EDUCATION_USER_DATA_CONTRACT.md`。实现中不得将 P1.5 的逻辑 `persistedAs` 字段解释为单一物理表。
+
+冻结的 P2B 目标为 Room 7 中五张教育用户状态表；EducationContentVersion 仍为 packaged registry 描述符，EducationExport 为临时投影。BACKUP_3.1 兼容导入 BACKUP_1.0–3.0；旧格式中的教育状态恢复为空，绝不从 WorkspaceRecord 推断。未知版本 ID 与已知 ID 的 manifest hash 不匹配须在写库前分别报兼容 App 错误和内容版本不兼容，不能误报损坏。CBT-I Protocol 继续 `NONE`，Education 不触发治疗或个性化建议。

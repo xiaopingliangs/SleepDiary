@@ -1,35 +1,46 @@
 {
-  "status": "PASS_PHASE_1_NOT_FULL_CBTI_RELEASE",
+  "status": "PASS_P2A_DOCUMENTATION_ONLY_P2B_NOT_STARTED",
   "specVersion": "SPEC-0.2.2",
-  "scope": "Treatment episode, audit, non-prescriptive state controller, Room 6 and BACKUP_3.0",
-  "checks": {
+  "scope": "P2A Education user-data, migration and backup contract freeze only",
+  "currentBaseline": {
     "roomTechnicalVersion": 6,
-    "roomTableCount": 10,
-    "roomMigrationPathsTested": ["1->2->3->4->5->6", "2->3->4->5->6", "3->4->5->6", "4->5->6", "5->6"],
-    "roomSchemaExported": true,
-    "treatmentDataSchemaVersion": "TREATMENT_DATA_1.0",
-    "backupExportVersion": "BACKUP_3.0",
-    "backupImportVersions": ["BACKUP_1.0", "BACKUP_1.1", "BACKUP_2.0", "BACKUP_2.1", "BACKUP_3.0"],
-    "episodeAndAuditRoundTrip": true,
-    "restoreAtomicallyRotatesLocalGeneration": true,
-    "restoreFailureRollsBackBusinessAndLocalState": true,
-    "medicalTransitionsFailClosed": true,
-    "cbtiProtocolVersion": "NONE",
-    "manifestForbiddenPermissionsAbsent": true,
-    "physicalDeviceValidationCompleted": false
+    "backupFormatVersion": "BACKUP_3.0",
+    "cbtiProtocolVersion": "NONE"
   },
-  "medicalRuleBlockers": ["M-BASELINE", "M-METRICS", "M-SAFETY", "M-WINDOW", "M-EXCEPTION", "M-CONTENT", "SNQ_RIGHTS"],
-  "execution": {
-    "unitTests": {"tests": 382, "failures": 0, "errors": 0, "skipped": 0},
-    "addedUnitTests": 13,
+  "frozenTargets": {
+    "roomTechnicalVersion": 7,
+    "educationDataSchemaVersion": "EDUCATION_DATA_1.0",
+    "educationExportVersion": "EDUCATION_EXPORT_1.0",
+    "backupFormatVersion": "BACKUP_3.1",
+    "educationRoomTableCount": 5,
+    "educationContentVersionIsPackagedOnly": true,
+    "previewIsTransient": true,
+    "educationRecordWorkspaceAssociation": "one-to-one",
+    "legacyBackupVersionsRemainImmutable": ["BACKUP_1.0", "BACKUP_1.1", "BACKUP_2.0", "BACKUP_2.1", "BACKUP_3.0"],
+    "legacyBackupsRestoreEducationEmpty": true,
+    "unknownOrMismatchedContentRejectedBeforeMutation": true,
+    "educationDiarySafetyTreatmentIsolation": true,
+    "educationTelemetry": "prohibited"
+  },
+  "documentationChecks": {
+    "authorizedSpecsSynchronized": true,
+    "educationUserDataContractStatus": "FROZEN",
+    "historicalBackupContractsOverwritten": false,
+    "cbtiProtocolVersion": "NONE",
+    "treatmentEnabled": false,
+    "p2bImplementationStarted": false
+  },
+  "lastPreviouslyVerifiedBuild": {
+    "stage": "P1.5",
+    "unitTests": {"tests": 414, "failures": 0, "errors": 0, "skipped": 0},
     "testDebugUnitTest": "PASS",
     "assembleDebug": "PASS",
-    "assembleDebugAndroidTest": "PASS",
-    "connectedDebugAndroidTest": "NOT_RUN",
-    "physicalDeviceValidation": "NOT_RUN",
-    "log": "work/full-app-phase1-20260922.log",
-    "apkPath": "D:/Projects/SleepDiary/app/build/outputs/apk/debug/app-debug.apk",
-    "apkSha256": "b0252ae7cf88d639c56211a8a202ce42a48b4981eacfcc664685150bb42dd09c"
+    "appliesToP2AChanges": false
   },
-  "next": "Phase 2 treatment metrics and baseline contracts; undefined medical rules remain blocked."
+  "executionThisCheckpoint": {
+    "unitTests": "NOT_RUN_DOCUMENTATION_STATIC_CHECK_ONLY",
+    "assembleDebug": "NOT_RUN",
+    "apkGenerated": false
+  },
+  "next": "P2B: Room 6 to 7 Education persistence and BACKUP_3.1 implementation"
 }

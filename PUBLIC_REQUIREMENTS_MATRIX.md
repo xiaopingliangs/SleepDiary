@@ -158,3 +158,23 @@ P0 完成条件：
 | PUB-E15-008 | V4 及其来源的公开复用授权完成逐项核实 | written rights/reuse review | BLOCKED |
 
 P1.5 的 `PUBLIC_AS_IS` / `PUBLIC_WITH_PRESENTATION_ADAPTATION` / `PUBLIC_CONCEPT_ONLY` 表示内容适配候选类别，不是许可结论。来源核准前不得将候选 manifest 视作公开发布包。
+
+## P2A Education user-data contract checkpoint
+
+P2A means contract frozen; it does not mean Room/backup implementation has passed.
+
+| ID | Requirement | Acceptance evidence | P2A status |
+|---|---|---|---|
+| PUB-E2A-001 | Content versions/body remain immutable packaged static assets; no Room copy | registry/data model boundary review | FROZEN |
+| PUB-E2A-002 | Progress is explicit and version-bound; clear milestone action may commit completion; no implicit completion | Education user-data contract | FROZEN |
+| PUB-E2A-003 | V4 Preview is transient; explicit Commit stores one stable option per prompt/version | manifest-to-row mapping contract | FROZEN |
+| PUB-E2A-004 | Review/bookmark state is user controlled and has no due scheduling | state/deletion contract | FROZEN |
+| PUB-E2A-005 | EducationRecord links WorkspaceRecord one-to-one without duplicating text; legacy notes remain unassociated | FK, uniqueness and legacy semantics | FROZEN |
+| PUB-E2A-006 | Resume uses one stable position pointer per course/version, distinct from progress | position contract | FROZEN |
+| PUB-E2A-007 | Dwell, click, scroll, trail, score, streak and inferred interest telemetry are not collected | data-boundary contract | FROZEN |
+| PUB-E2A-008 | EducationExport_1.0 contains user Education data, not course body or other domains | exact fields and exclusions | FROZEN |
+| PUB-E2A-009 | BACKUP_3.1 preserves BACKUP_3.0 and carries all durable Education state atomically | version/migration/restore contract | FROZEN |
+| PUB-E2A-010 | Room 6→7 adds exactly five Education tables and preserves existing user state | migration contract | FROZEN |
+| PUB-E2A-011 | Pre-Education backups restore Education state empty without inference | compatibility contract | FROZEN |
+
+The frozen fields, keys, transition/deletion behavior, content-version evolution, migration and test contract are in `EDUCATION_USER_DATA_CONTRACT.md`. P2B implementation acceptance remains PLANNED until automated tests/build run.
