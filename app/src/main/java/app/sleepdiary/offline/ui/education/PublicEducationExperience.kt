@@ -118,6 +118,19 @@ fun PublicEducationExperience(
                 EducationPage.HOME -> {
                     Text("了解睡眠", style = MaterialTheme.typography.headlineMedium)
                     Text("想看一点就看一点。这里介绍睡眠知识和 CBT-I 概念，不会诊断或替你制定治疗安排。")
+                    contextualSuggestion?.let { suggestion ->
+                        Text("可能和你最近有关", style = MaterialTheme.typography.titleLarge)
+                        Card(Modifier.fillMaxWidth().testTag("education_contextual_suggestion")) {
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(suggestion.question, style = MaterialTheme.typography.titleMedium)
+                                Text("来自本机日记的中性估计，只用于找到相关教育内容。")
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    TextButton(onClick = onContextWhy) { Text("为什么会看到这个？") }
+                                    TextButton(onClick = { go(EducationPage.EXPERIENCE, suggestion.experienceId) }) { Text("了解一下") }
+                                }
+                            }
+                        }
+                    }
                     val position = snapshot?.positions?.firstOrNull { it.contentVersionId == VERSION }
                     if (position != null) Action("继续上次", {
                         val experience = EducationExperienceDefinitions.all.firstOrNull { it.sceneId == position.sceneContentId }

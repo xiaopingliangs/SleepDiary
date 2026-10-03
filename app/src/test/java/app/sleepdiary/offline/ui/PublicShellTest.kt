@@ -106,6 +106,11 @@ class PublicShellTest {
         compose.onNodeWithText("知道了").performClick()
         compose.onNodeWithText("了解一下").performClick()
         compose.waitUntil(5000) { compose.onAllNodesWithText("一晚睡差，第二天真的一定完了吗？").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithText("← 返回").performClick()
+        compose.onNodeWithTag("education_contextual_suggestion").assertExists()
+        compose.onNodeWithText("可能和你最近有关").assertExists()
+        compose.onNodeWithText("了解一下").performClick()
+        compose.waitUntil(5000) { compose.onAllNodesWithText("一晚睡差，第二天真的一定完了吗？").fetchSemanticsNodes().isNotEmpty() }
         assertEquals(listOf(source), store.rows)
         assertEquals(0, store.safetySaveCalls)
 
