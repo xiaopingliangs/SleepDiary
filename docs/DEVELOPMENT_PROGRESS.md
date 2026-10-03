@@ -1,6 +1,14 @@
 # 开发进度与中断恢复入口
 
-更新时间：2026-09-30。本文件记录实际进度，不替代冻结规格。
+更新时间：2026-10-03。本文件记录实际进度，不替代冻结规格。
+
+## 2026-10-03 Part A 日记午夜日期与 TIB 完整性热修复
+
+根因：新建日记的床上时间选择器默认锚定在 sleepDate 前一日 22:00；未填写字段选到 00:00 时，旧逻辑只替换时分并保留前一日日期。于是 00:00→07:00 可被保存成 31 小时。旧校验只检查各时间先后，没有校验事件日期范围或整段 TIB 上限。修复后未回答 BED/TRY 的午夜选择跨到 sleepDate；已回答字段仍保留明确日期。结构校验要求四个时间都处于 sleepDate 当日或前一日，且 BED→OUT 不超过 24 小时。
+
+历史错误行不自动改写；最近 7/14 天与 Weekly 计算会跳过结构不一致的行。用户手动修正后，既有 revision 流程把原 summary 标为非 current，新增 revision 并保留 supersedes 链。TIB 内部仍以分钟保存，两个统计展示改为小时/分钟文字。
+
+定向测试：DiaryValidatorTest、WeeklyTest、RecentAverageCalculatorTest、ReliabilityTest、DiaryFormTest、AverageDurationTextTest 共 71 项全部通过。本轮整体全量测试及 assembleDebug 尚未运行，计划在 Part B 完成后运行。Part A 独立提交；教育 P1.5 未提交改动继续留在工作树，未与 Part A 一同提交；独立 `meditation/` 未改、未暂存。
 
 ## 2026-09-30 Public Edition P1 Education Content Foundation
 

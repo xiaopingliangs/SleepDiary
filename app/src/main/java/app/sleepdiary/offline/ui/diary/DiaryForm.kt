@@ -45,8 +45,12 @@ data class DiaryForm(
     fun positionAt(field:DiaryField,time:LocalTime):LocalDateTime {
         val existing=this.time(field)
         if(existing!=null) return existing.with(time)
-        // The dialog owns a stable full date. A clock change must not invent another day.
-        return pickerPosition(field).with(time)
+        val candidate=pickerPosition(field)
+        // For an unanswered bedtime / attempt field, the 00:00 clock value
+        // crosses the default evening anchor into the sleepDate calendar day.
+        // Keeping the prior date made 00:00→07:00 appear to last 31 hours.
+        val date=if(time==LocalTime.MIDNIGHT && candidate.toLocalDate().isBefore(referenceDate)) referenceDate else candidate.toLocalDate()
+        return LocalDateTime.of(date,time)
     }
 
     fun answerTime(field: DiaryField, value: LocalDateTime): DiaryForm = when(field) {

@@ -49,4 +49,12 @@ class RecentAverageCalculatorTest {
     @Test fun onlySevenOrFourteenDaysAreAccepted() {
         assertTrue(runCatching { RecentAverageCalculator.calculate(today, 30, emptyList()) }.isFailure)
     }
+
+    @Test fun structurallyInvalidLegacyChronologyIsExcluded() {
+        val valid=diary("2026-09-21")
+        val malformed=diary("2026-09-22").copy(bedEnteredAtLocal="2026-09-21T00:00:00")
+        val result=RecentAverageCalculator.calculate(today,7,listOf(valid,malformed))
+        assertEquals(1,result.validEntryCount)
+        assertEquals(listOf(valid.id),result.sourceEntryIds)
+    }
 }

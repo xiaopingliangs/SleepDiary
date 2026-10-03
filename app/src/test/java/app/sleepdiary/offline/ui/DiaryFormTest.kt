@@ -61,4 +61,9 @@ class DiaryFormTest {
         val f=blank().answerTime(DiaryField.BED,LocalDateTime.parse("2026-09-09T08:00"))
         assertEquals(LocalDateTime.parse("2026-09-09T23:00"),f.positionAt(DiaryField.BED,LocalTime.of(23,0)))
     }
+    @Test fun unansweredMidnightClockCrossesEveningAnchorToSleepDate() {
+        assertEquals(LocalDateTime.parse("2026-09-09T00:00"),blank().positionAt(DiaryField.BED,LocalTime.MIDNIGHT))
+        assertEquals(LocalDateTime.parse("2026-09-09T00:00"),blank().positionAt(DiaryField.TRY,LocalTime.MIDNIGHT))
+        assertNull(blank().bed);assertNull(blank().attempt)
+    }
 }

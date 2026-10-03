@@ -47,6 +47,26 @@ class DiaryValidatorTest {
         assertFalse(DiaryValidator.validate(diary().copy(sleepDate="2026-02-30")).canSave)
     }
     @Test fun sleepDateMustBeOutOfBedDate() { assertFalse(DiaryValidator.validate(diary().copy(sleepDate="2026-09-08")).canSave) }
+    @Test fun chronologyAcrossMidnightAcceptsQuarterToMidnightAndExactMidnight() {
+        val d="2026-09-09"
+        val at2345=diary(d).copy(bedEnteredAtLocal="2026-09-08T23:45:00",trySleepAtLocal="${d}T00:00:00",
+            finalAwakeningAtLocal="${d}T06:00:00",outOfBedAtLocal="${d}T07:00:00")
+        val at0000=diary(d).copy(bedEnteredAtLocal="${d}T00:00:00",trySleepAtLocal="${d}T00:15:00",
+            finalAwakeningAtLocal="${d}T06:00:00",outOfBedAtLocal="${d}T07:00:00")
+        assertTrue(DiaryValidator.validate(at2345).canSave)
+        assertTrue(DiaryValidator.validate(at0000).canSave)
+    }
+    @Test fun priorDateMidnightCannotTurnASevenHourNightIntoThirtyOneHours() {
+        val malformed=diary("2026-09-09").copy(bedEnteredAtLocal="2026-09-08T00:00:00")
+        val validation=DiaryValidator.validate(malformed)
+        assertFalse(validation.canSave)
+        assertTrue("timeSpan" in validation.errors)
+    }
+    @Test fun allEventsMustBelongToSleepDateOrImmediatelyPreviousDate() {
+        val malformed=diary("2026-09-09").copy(trySleepAtLocal="2026-09-07T23:30:00")
+        assertFalse(DiaryValidator.validate(malformed).canSave)
+        assertTrue("timeDateRange" in DiaryValidator.validate(malformed).errors)
+    }
     @Test fun versionUuidAndZoneAreValidated() {
         listOf(diary().copy(id="1"),diary().copy(timeZoneIdAtEntry="invalid"),diary().copy(diarySchemaVersion="unknown"))
             .forEach { assertFalse(DiaryValidator.validate(it).canSave) }

@@ -41,6 +41,11 @@ object DiaryValidator {
         relation(final,out,"finalAwakeningAtLocal","outOfBedAtLocal","最后一次醒来","真正离开睡觉位置")
         if (bed != null && attempt != null && final != null && out != null) {
             checkField(bed <= attempt && attempt <= final && final <= out, "timeOrder")
+            if(date!=null) {
+                val earliest=date.minusDays(1)
+                checkField(listOf(bed,attempt,final,out).all { it.toLocalDate() in earliest..date },"timeDateRange")
+                checkField(!Duration.between(bed,out).isNegative && Duration.between(bed,out)<=Duration.ofHours(24),"timeSpan")
+            }
         }
         val warning = errors.isEmpty() && attempt != null && final != null &&
             entry.sleepOnsetLatencyMin.toLong() + entry.wakeAfterSleepOnsetMin > LocalTimeMath.minutesBetween(attempt, final)

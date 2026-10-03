@@ -61,7 +61,7 @@ const val FIRST_SAVE_EXPLANATION="为了让记录尽量简单，也减少对单�
     HomePage.FORM->DiaryScreen(state,model::answerTime,model::answerNumber,model::comment,model::save,model::dismissWarning,{nav.navigate("settings")})
     HomePage.SUCCESS->{BackHandler{model.exitAfterSuccess(onExit)};SimplePage(if(state.firstSuccess)"记录已保存"else"数据已保存成功"){if(state.firstSuccess)Text(FIRST_SAVE_EXPLANATION);state.message?.let{Text(it)};Action("退出",{model.exitAfterSuccess(onExit)},!state.busy&&!busy);Action("分享并退出",::share,!state.busy&&!busy)}}
     HomePage.WEEKLY->{BackHandler{model.exitAfterSuccess(onExit)};SimplePage("过去 7 天"){
-     state.weekly?.let{v->Text("第 ${v.periodIndex} 周 · ${v.periodStartDate} — ${v.periodEndDate}");Text("有效记录 ${v.validEntryCount} / 7");val labels=listOf("平均估计入睡耗时（分钟）","平均夜醒次数","平均夜间清醒总时长（分钟）","平均最后醒来到离床时长（分钟）","平均在睡觉位置总时长 TIB（分钟，不等于睡眠时长）","平均主观睡眠质量（1很差 — 5很好）");val means=listOf(v.avgSolMin,v.avgAwakeningCount,v.avgWasoMin,v.avgTerminalWakefulnessMin,v.avgTibMin,v.avgSleepQuality);labels.zip(means).forEach{(label,value)->Text(label+"："+(value?.let{String.format(Locale.ROOT,"%.1f",it)}?:"无记录"))}}
+     state.weekly?.let{v->Text("第 ${v.periodIndex} 周 · ${v.periodStartDate} — ${v.periodEndDate}");Text("有效记录 ${v.validEntryCount} / 7");val labels=listOf("平均估计入睡耗时（分钟）","平均夜醒次数","平均夜间清醒总时长（分钟）","平均最后醒来到离床时长（分钟）","平均在睡觉位置总时长 TIB（不等于睡眠时长）","平均主观睡眠质量（1很差 — 5很好）");val means=listOf(v.avgSolMin,v.avgAwakeningCount,v.avgWasoMin,v.avgTerminalWakefulnessMin,v.avgTibMin,v.avgSleepQuality);labels.zip(means).forEachIndexed{index,(label,value)->val shown=value?.let{if(index==4) AverageDurationText.fromMinutes(it) else String.format(Locale.ROOT,"%.1f",it)}?:"无记录";Text(label+"："+shown)}}
      Text("这些数据来自每天的主观估计，用于观察一段时间的整体模式，不用于评价某一个夜晚。");state.message?.let{Text(it)};Action("退出",{model.exitAfterSuccess(onExit)},!state.busy)
     }} }}}}
    composable("settings"){SimplePage("设置"){
@@ -129,9 +129,9 @@ const val FIRST_SAVE_EXPLANATION="为了让记录尽量简单，也减少对单�
    }
    averages?.let { value ->
     Text("有记录的天数：${value.validEntryCount} / $selectedDays")
-    val labels=listOf("平均估计入睡耗时（分钟）","平均夜醒次数","平均夜间清醒总时长（分钟）","平均最后醒来到离床时长（分钟）","平均在睡觉位置总时长 TIB（分钟，不等于睡眠时长）","平均主观睡眠质量（1很差 — 5很好）")
+    val labels=listOf("平均估计入睡耗时（分钟）","平均夜醒次数","平均夜间清醒总时长（分钟）","平均最后醒来到离床时长（分钟）","平均在睡觉位置总时长 TIB（不等于睡眠时长）","平均主观睡眠质量（1很差 — 5很好）")
     val means=listOf(value.avgSolMin,value.avgAwakeningCount,value.avgWasoMin,value.avgTerminalWakefulnessMin,value.avgTibMin,value.avgSleepQuality)
-    labels.zip(means).forEach{(label,mean)->Text(label+"："+(mean?.let{String.format(Locale.ROOT,"%.1f",it)}?:"无记录"))}
+    labels.zip(means).forEachIndexed{index,(label,mean)->val shown=mean?.let{if(index==4) AverageDurationText.fromMinutes(it) else String.format(Locale.ROOT,"%.1f",it)}?:"无记录";Text(label+"："+shown)}
    }
    Text("按今天向前计算；没有记录的日期不会按 0 计算。这只是已有主观记录的实时平均，不是睡眠评分或治疗指标。",style=MaterialTheme.typography.bodySmall)
   }

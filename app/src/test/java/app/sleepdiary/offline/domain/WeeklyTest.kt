@@ -47,4 +47,21 @@ class WeeklyTest {
         val v=WeeklySummaryCalculator.calculate(PeriodCalculator.at(start,1),listOf(e))
         assertEquals(390.0,v.avgTibMin!!,0.0);assertEquals(30.0,v.avgTerminalWakefulnessMin!!,0.0)
     }
+    @Test fun quarterToMidnightExactMidnightAndAttemptAtMidnightHaveCorrectTib() {
+        val day="2026-12-29"
+        val quarter=diary(day).copy(bedEnteredAtLocal="2026-12-28T23:45:00",trySleepAtLocal="${day}T00:00:00",
+            finalAwakeningAtLocal="${day}T06:00:00",outOfBedAtLocal="${day}T07:00:00")
+        val exact=diary(day).copy(bedEnteredAtLocal="${day}T00:00:00",trySleepAtLocal="${day}T00:15:00",
+            finalAwakeningAtLocal="${day}T06:00:00",outOfBedAtLocal="${day}T07:00:00")
+        val tryAtMidnight=quarter.copy(id="00000000-0000-0000-0000-000000000009",trySleepAtLocal="${day}T00:00:00")
+        assertEquals(435.0,WeeklySummaryCalculator.calculate(PeriodCalculator.at(start,1),listOf(quarter)).avgTibMin!!,0.0)
+        assertEquals(420.0,WeeklySummaryCalculator.calculate(PeriodCalculator.at(start,1),listOf(exact)).avgTibMin!!,0.0)
+        assertEquals(435.0,WeeklySummaryCalculator.calculate(PeriodCalculator.at(start,1),listOf(tryAtMidnight)).avgTibMin!!,0.0)
+    }
+    @Test fun malformedLegacyChronologyDoesNotContributeToWeeklySummary() {
+        val valid=diary(start.toString())
+        val malformed=diary(start.plusDays(1).toString()).copy(bedEnteredAtLocal=start.toString()+"T00:00:00")
+        val v=WeeklySummaryCalculator.calculate(PeriodCalculator.at(start,1),listOf(valid,malformed))
+        assertEquals(1,v.validEntryCount);assertEquals(listOf(valid.id),v.sourceEntryIds);assertEquals(480.0,v.avgTibMin!!,0.0)
+    }
 }

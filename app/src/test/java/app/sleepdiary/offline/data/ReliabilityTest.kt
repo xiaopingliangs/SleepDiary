@@ -139,6 +139,27 @@ class ReliabilityTest {
         val rows=db.stateAndSummaryDao().summaries()
         assertEquals(2,rows.size);assertTrue(rows.all { it.periodIndex==1 });assertEquals(0,rows.last().validEntryCount)
     }
+    @Test fun correctingLegacyMidnightChronologySupersedesContaminatedWeeklySummary() = runBlocking {
+        val date="2026-09-09"
+        val malformed=diary(date).copy(bedEnteredAtLocal="2026-09-08T00:00:00",trySleepAtLocal="2026-09-08T00:30:00")
+        assertFalse(app.sleepdiary.offline.domain.validation.DiaryValidator.validate(malformed).canSave)
+        db.diaryDao().insert(malformed) // Preserve the imported legacy raw record exactly until the user edits it.
+        db.stateAndSummaryDao().putState(AppState(trackingStartDate=date))
+        val summaries=WeeklySummaryRepository(db,clockOn("2026-09-16"))
+        val old=summaries.generate(1)
+        assertEquals(0,old.validEntryCount);assertNull(old.avgTibMin)
+
+        val corrected=malformed.copy(bedEnteredAtLocal="${date}T00:00:00",trySleepAtLocal="${date}T00:30:00")
+        assertTrue(repo("2026-09-16").save(corrected) is SaveResult.Success)
+        val revisions=db.stateAndSummaryDao().summaries()
+        assertEquals(2,revisions.size)
+        assertFalse(revisions.single { it.id==old.id }.isCurrent)
+        val current=revisions.single { it.isCurrent }
+        assertEquals(2,current.revision);assertEquals(old.id,current.supersedesSummaryId)
+        assertEquals(1,current.validEntryCount);assertEquals(420.0,current.avgTibMin!!,0.0)
+        assertTrue(current.sourceEntryIdsJson.contains(malformed.id))
+        assertEquals(malformed.id,db.diaryDao().byId(malformed.id)?.id)
+    }
     @Test fun revisionFailureRollsBackEntryStateAndBothRevisions() = runBlocking {
         val e=saved(diary());val old=WeeklySummaryRepository(db,clockOn("2026-09-15")).generate(1)
         val real=db.diaryDao();var reads=0

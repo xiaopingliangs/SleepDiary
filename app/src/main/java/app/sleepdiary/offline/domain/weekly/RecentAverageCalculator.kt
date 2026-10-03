@@ -12,10 +12,10 @@ object RecentAverageCalculator {
         val start = today.minusDays(days.toLong() - 1)
         val selected = entries
             .filter { LocalDate.parse(it.sleepDate) in start..today }
+            .filter { DiaryValidator.validate(it).canSave }
             .sortedWith(compareBy({ it.sleepDate }, { it.id }))
         require(selected.size <= days && selected.map { it.sleepDate }.distinct().size == selected.size)
         require(selected.map { it.id }.distinct().size == selected.size)
-        require(selected.all { DiaryValidator.validate(it).canSave }) { "Invalid source entry" }
 
         fun mean(value: (SleepDiaryEntry) -> Double): Double? =
             if (selected.isEmpty()) null else selected.map(value).average()

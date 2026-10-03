@@ -16,10 +16,10 @@ data class WeeklySummaryValues(
 object WeeklySummaryCalculator {
     fun calculate(period: DiaryPeriod, entries: List<SleepDiaryEntry>): WeeklySummaryValues {
         val selected = entries.filter { LocalDate.parse(it.sleepDate) in period.start..period.end }
+            .filter { DiaryValidator.validate(it).canSave }
             .sortedWith(compareBy({ it.sleepDate }, { it.id }))
         require(selected.size <= 7 && selected.map { it.sleepDate }.distinct().size == selected.size)
         require(selected.map { it.id }.distinct().size == selected.size)
-        require(selected.all { DiaryValidator.validate(it).canSave }) { "Invalid source entry" }
         fun mean(value: (SleepDiaryEntry) -> Double): Double? =
             if (selected.isEmpty()) null else selected.map(value).average()
         fun minutes(start: String, end: String) =
