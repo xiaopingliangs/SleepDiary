@@ -1,10 +1,10 @@
 {
-  "status": "PASS_P2A_DOCUMENTATION_ONLY_P2B_NOT_STARTED",
+  "status": "PASS_PUBLIC_EDITION_P2B_IMPLEMENTED",
   "specVersion": "SPEC-0.2.2",
-  "scope": "P2A Education user-data, migration and backup contract freeze only",
+  "scope": "P2A frozen contract and P2B Education persistence and backup implementation",
   "currentBaseline": {
-    "roomTechnicalVersion": 6,
-    "backupFormatVersion": "BACKUP_3.0",
+    "roomTechnicalVersion": 7,
+    "backupFormatVersion": "BACKUP_3.1",
     "cbtiProtocolVersion": "NONE"
   },
   "frozenTargets": {
@@ -28,19 +28,23 @@
     "historicalBackupContractsOverwritten": false,
     "cbtiProtocolVersion": "NONE",
     "treatmentEnabled": false,
-    "p2bImplementationStarted": false
+    "p2bImplementationStarted": true,
+    "p2bImplementationComplete": true
   },
   "lastPreviouslyVerifiedBuild": {
-    "stage": "P1.5",
-    "unitTests": {"tests": 414, "failures": 0, "errors": 0, "skipped": 0},
+    "stage": "P2B",
+    "unitTests": {"tests": 428, "failures": 0, "errors": 0, "skipped": 0},
     "testDebugUnitTest": "PASS",
     "assembleDebug": "PASS",
-    "appliesToP2AChanges": false
+    "appliesToP2BImplementation": true
   },
   "executionThisCheckpoint": {
-    "unitTests": "NOT_RUN_DOCUMENTATION_STATIC_CHECK_ONLY",
-    "assembleDebug": "NOT_RUN",
-    "apkGenerated": false
+    "unitTests": "PASS",
+    "assembleDebug": "PASS",
+    "apkGenerated": true,
+    "roomSchema7Exported": true,
+    "apkPath": "app/build/outputs/apk/debug/app-debug.apk",
+    "apkSha256": "a556527a271dca2de124e264adefe97d5e75ae535716b1180fd5d260109c3c4c"
   },
-  "next": "P2B: Room 6 to 7 Education persistence and BACKUP_3.1 implementation"
+  "next": "P3: Public Edition UI and navigation, after separate authorization; release content-rights gate remains open"
 }

@@ -1,0 +1,1114 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 7,
+    "identityHash": "19be325491cfd10aa0a9a23bbcc85430",
+    "entities": [
+      {
+        "tableName": "sleep_diary_entry",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `sleepDate` TEXT NOT NULL, `bedEnteredAtLocal` TEXT NOT NULL, `trySleepAtLocal` TEXT NOT NULL, `sleepOnsetLatencyMin` INTEGER NOT NULL, `awakeningCount` INTEGER NOT NULL, `wakeAfterSleepOnsetMin` INTEGER NOT NULL, `finalAwakeningAtLocal` TEXT NOT NULL, `outOfBedAtLocal` TEXT NOT NULL, `sleepQuality` INTEGER NOT NULL, `comment` TEXT, `timeZoneIdAtEntry` TEXT NOT NULL, `createdAtUtc` TEXT NOT NULL, `updatedAtUtc` TEXT NOT NULL, `diarySchemaVersion` TEXT NOT NULL, `consistencyWarning` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sleepDate",
+            "columnName": "sleepDate",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bedEnteredAtLocal",
+            "columnName": "bedEnteredAtLocal",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "trySleepAtLocal",
+            "columnName": "trySleepAtLocal",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sleepOnsetLatencyMin",
+            "columnName": "sleepOnsetLatencyMin",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "awakeningCount",
+            "columnName": "awakeningCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "wakeAfterSleepOnsetMin",
+            "columnName": "wakeAfterSleepOnsetMin",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "finalAwakeningAtLocal",
+            "columnName": "finalAwakeningAtLocal",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "outOfBedAtLocal",
+            "columnName": "outOfBedAtLocal",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sleepQuality",
+            "columnName": "sleepQuality",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "comment",
+            "columnName": "comment",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "timeZoneIdAtEntry",
+            "columnName": "timeZoneIdAtEntry",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtUtc",
+            "columnName": "createdAtUtc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtUtc",
+            "columnName": "updatedAtUtc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "diarySchemaVersion",
+            "columnName": "diarySchemaVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "consistencyWarning",
+            "columnName": "consistencyWarning",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_sleep_diary_entry_sleepDate",
+            "unique": true,
+            "columnNames": [
+              "sleepDate"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_sleep_diary_entry_sleepDate` ON `${TABLE_NAME}` (`sleepDate`)"
+          }
+        ]
+      },
+      {
+        "tableName": "safety_assessment",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `answeredAtUtc` TEXT NOT NULL, `safetySchemaVersion` TEXT NOT NULL, `derivedGate` TEXT NOT NULL, `safetyRuleVersion` TEXT NOT NULL, `status` TEXT NOT NULL, `isCurrent` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "answeredAtUtc",
+            "columnName": "answeredAtUtc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "safetySchemaVersion",
+            "columnName": "safetySchemaVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "derivedGate",
+            "columnName": "derivedGate",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "safetyRuleVersion",
+            "columnName": "safetyRuleVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isCurrent",
+            "columnName": "isCurrent",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "safety_answer",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`assessmentId` TEXT NOT NULL, `questionId` TEXT NOT NULL, `answerCode` TEXT NOT NULL, `safetySchemaVersion` TEXT NOT NULL, `detailJson` TEXT, PRIMARY KEY(`assessmentId`, `questionId`), FOREIGN KEY(`assessmentId`) REFERENCES `safety_assessment`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "assessmentId",
+            "columnName": "assessmentId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "questionId",
+            "columnName": "questionId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "answerCode",
+            "columnName": "answerCode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "safetySchemaVersion",
+            "columnName": "safetySchemaVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "detailJson",
+            "columnName": "detailJson",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "assessmentId",
+            "questionId"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "safety_assessment",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "assessmentId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "weekly_summary_snapshot",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `periodIndex` INTEGER NOT NULL, `periodStartDate` TEXT NOT NULL, `periodEndDate` TEXT NOT NULL, `validEntryCount` INTEGER NOT NULL, `avgSolMin` REAL, `avgAwakeningCount` REAL, `avgWasoMin` REAL, `avgTerminalWakefulnessMin` REAL, `avgTibMin` REAL, `avgSleepQuality` REAL, `sourceEntryIdsJson` TEXT NOT NULL, `diarySchemaVersion` TEXT NOT NULL, `weeklySummaryRuleVersion` TEXT NOT NULL, `generatedAtUtc` TEXT NOT NULL, `revision` INTEGER NOT NULL, `isCurrent` INTEGER NOT NULL, `supersedesSummaryId` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`supersedesSummaryId`) REFERENCES `weekly_summary_snapshot`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "periodIndex",
+            "columnName": "periodIndex",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "periodStartDate",
+            "columnName": "periodStartDate",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "periodEndDate",
+            "columnName": "periodEndDate",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "validEntryCount",
+            "columnName": "validEntryCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "avgSolMin",
+            "columnName": "avgSolMin",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "avgAwakeningCount",
+            "columnName": "avgAwakeningCount",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "avgWasoMin",
+            "columnName": "avgWasoMin",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "avgTerminalWakefulnessMin",
+            "columnName": "avgTerminalWakefulnessMin",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "avgTibMin",
+            "columnName": "avgTibMin",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "avgSleepQuality",
+            "columnName": "avgSleepQuality",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "sourceEntryIdsJson",
+            "columnName": "sourceEntryIdsJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "diarySchemaVersion",
+            "columnName": "diarySchemaVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "weeklySummaryRuleVersion",
+            "columnName": "weeklySummaryRuleVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "generatedAtUtc",
+            "columnName": "generatedAtUtc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "revision",
+            "columnName": "revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isCurrent",
+            "columnName": "isCurrent",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "supersedesSummaryId",
+            "columnName": "supersedesSummaryId",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_weekly_summary_snapshot_supersedesSummaryId",
+            "unique": false,
+            "columnNames": [
+              "supersedesSummaryId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_weekly_summary_snapshot_supersedesSummaryId` ON `${TABLE_NAME}` (`supersedesSummaryId`)"
+          },
+          {
+            "name": "index_weekly_summary_snapshot_periodIndex_revision",
+            "unique": true,
+            "columnNames": [
+              "periodIndex",
+              "revision"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_weekly_summary_snapshot_periodIndex_revision` ON `${TABLE_NAME}` (`periodIndex`, `revision`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "weekly_summary_snapshot",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "supersedesSummaryId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "app_state",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`singletonId` INTEGER NOT NULL, `backupFormatVersion` TEXT NOT NULL, `trackingStartDate` TEXT, `hasSeenMinimalInteractionExplanation` INTEGER NOT NULL, `hasSeenSharePrivacyNotice` INTEGER NOT NULL, `lastDisplayedWeeklyPeriodIndex` INTEGER NOT NULL, `currentSafetyAssessmentId` TEXT, `hasCompletedOnboarding` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`singletonId`), FOREIGN KEY(`currentSafetyAssessmentId`) REFERENCES `safety_assessment`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "singletonId",
+            "columnName": "singletonId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "backupFormatVersion",
+            "columnName": "backupFormatVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "trackingStartDate",
+            "columnName": "trackingStartDate",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "hasSeenMinimalInteractionExplanation",
+            "columnName": "hasSeenMinimalInteractionExplanation",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hasSeenSharePrivacyNotice",
+            "columnName": "hasSeenSharePrivacyNotice",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastDisplayedWeeklyPeriodIndex",
+            "columnName": "lastDisplayedWeeklyPeriodIndex",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentSafetyAssessmentId",
+            "columnName": "currentSafetyAssessmentId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "hasCompletedOnboarding",
+            "columnName": "hasCompletedOnboarding",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "singletonId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_app_state_currentSafetyAssessmentId",
+            "unique": false,
+            "columnNames": [
+              "currentSafetyAssessmentId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_app_state_currentSafetyAssessmentId` ON `${TABLE_NAME}` (`currentSafetyAssessmentId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "safety_assessment",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "currentSafetyAssessmentId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "workspace_record",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `kind` TEXT NOT NULL, `title` TEXT NOT NULL, `body` TEXT NOT NULL, `createdAtUtc` TEXT NOT NULL, `updatedAtUtc` TEXT NOT NULL, `revision` INTEGER NOT NULL, `workspaceSchemaVersion` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "body",
+            "columnName": "body",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtUtc",
+            "columnName": "createdAtUtc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtUtc",
+            "columnName": "updatedAtUtc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "revision",
+            "columnName": "revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workspaceSchemaVersion",
+            "columnName": "workspaceSchemaVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "input_snapshot",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `capturedAtUtc` TEXT NOT NULL, `fromDate` TEXT NOT NULL, `throughDate` TEXT NOT NULL, `captureVersion` TEXT NOT NULL, `payloadBase64` TEXT NOT NULL, `contentHash` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "capturedAtUtc",
+            "columnName": "capturedAtUtc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fromDate",
+            "columnName": "fromDate",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "throughDate",
+            "columnName": "throughDate",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "captureVersion",
+            "columnName": "captureVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payloadBase64",
+            "columnName": "payloadBase64",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentHash",
+            "columnName": "contentHash",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "local_execution_state",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`singletonId` INTEGER NOT NULL, `restoreGeneration` TEXT NOT NULL, `activationStatus` TEXT NOT NULL, `localSchemaVersion` TEXT NOT NULL, PRIMARY KEY(`singletonId`))",
+        "fields": [
+          {
+            "fieldPath": "singletonId",
+            "columnName": "singletonId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "restoreGeneration",
+            "columnName": "restoreGeneration",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activationStatus",
+            "columnName": "activationStatus",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "localSchemaVersion",
+            "columnName": "localSchemaVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "singletonId"
+          ]
+        }
+      },
+      {
+        "tableName": "treatment_episode",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `mode` TEXT NOT NULL, `state` TEXT NOT NULL, `pausedFromState` TEXT, `adultScopeConfirmed` INTEGER NOT NULL, `protocolVersion` TEXT NOT NULL, `metricsVersion` TEXT NOT NULL, `treatmentSafetyRuleVersion` TEXT NOT NULL, `exceptionRuleVersion` TEXT NOT NULL, `currentPlanId` TEXT, `startedAtUtc` TEXT NOT NULL, `createdAtUtc` TEXT NOT NULL, `updatedAtUtc` TEXT NOT NULL, `completedAtUtc` TEXT, `revision` INTEGER NOT NULL, `treatmentDataSchemaVersion` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mode",
+            "columnName": "mode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pausedFromState",
+            "columnName": "pausedFromState",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "adultScopeConfirmed",
+            "columnName": "adultScopeConfirmed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "protocolVersion",
+            "columnName": "protocolVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "metricsVersion",
+            "columnName": "metricsVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "treatmentSafetyRuleVersion",
+            "columnName": "treatmentSafetyRuleVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "exceptionRuleVersion",
+            "columnName": "exceptionRuleVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentPlanId",
+            "columnName": "currentPlanId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "startedAtUtc",
+            "columnName": "startedAtUtc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtUtc",
+            "columnName": "createdAtUtc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtUtc",
+            "columnName": "updatedAtUtc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "completedAtUtc",
+            "columnName": "completedAtUtc",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "revision",
+            "columnName": "revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "treatmentDataSchemaVersion",
+            "columnName": "treatmentDataSchemaVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "treatment_audit_event",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `episodeId` TEXT NOT NULL, `commandType` TEXT NOT NULL, `requestFingerprint` TEXT NOT NULL, `fromState` TEXT, `toState` TEXT NOT NULL, `fromRevision` INTEGER NOT NULL, `toRevision` INTEGER NOT NULL, `occurredAtUtc` TEXT NOT NULL, `restoreGenerationAtCommand` TEXT NOT NULL, `treatmentDataSchemaVersion` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`episodeId`) REFERENCES `treatment_episode`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "episodeId",
+            "columnName": "episodeId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "commandType",
+            "columnName": "commandType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "requestFingerprint",
+            "columnName": "requestFingerprint",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fromState",
+            "columnName": "fromState",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "toState",
+            "columnName": "toState",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fromRevision",
+            "columnName": "fromRevision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "toRevision",
+            "columnName": "toRevision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "occurredAtUtc",
+            "columnName": "occurredAtUtc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "restoreGenerationAtCommand",
+            "columnName": "restoreGenerationAtCommand",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "treatmentDataSchemaVersion",
+            "columnName": "treatmentDataSchemaVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_treatment_audit_event_episodeId",
+            "unique": false,
+            "columnNames": [
+              "episodeId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_treatment_audit_event_episodeId` ON `${TABLE_NAME}` (`episodeId`)"
+          },
+          {
+            "name": "index_treatment_audit_event_episodeId_toRevision",
+            "unique": true,
+            "columnNames": [
+              "episodeId",
+              "toRevision"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_treatment_audit_event_episodeId_toRevision` ON `${TABLE_NAME}` (`episodeId`, `toRevision`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "treatment_episode",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "episodeId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "education_progress",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`contentVersionId` TEXT NOT NULL, `contentId` TEXT NOT NULL, `state` TEXT NOT NULL, `updatedAtUtc` TEXT NOT NULL, `completedAtUtc` TEXT, `educationDataSchemaVersion` TEXT NOT NULL, PRIMARY KEY(`contentVersionId`, `contentId`))",
+        "fields": [
+          {
+            "fieldPath": "contentVersionId",
+            "columnName": "contentVersionId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentId",
+            "columnName": "contentId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtUtc",
+            "columnName": "updatedAtUtc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "completedAtUtc",
+            "columnName": "completedAtUtc",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "educationDataSchemaVersion",
+            "columnName": "educationDataSchemaVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "contentVersionId",
+            "contentId"
+          ]
+        }
+      },
+      {
+        "tableName": "education_committed_choice",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`contentVersionId` TEXT NOT NULL, `promptContentId` TEXT NOT NULL, `choiceContentId` TEXT NOT NULL, `optionId` TEXT NOT NULL, `committedAtUtc` TEXT NOT NULL, `updatedAtUtc` TEXT NOT NULL, `educationDataSchemaVersion` TEXT NOT NULL, PRIMARY KEY(`contentVersionId`, `promptContentId`))",
+        "fields": [
+          {
+            "fieldPath": "contentVersionId",
+            "columnName": "contentVersionId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "promptContentId",
+            "columnName": "promptContentId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "choiceContentId",
+            "columnName": "choiceContentId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "optionId",
+            "columnName": "optionId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "committedAtUtc",
+            "columnName": "committedAtUtc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtUtc",
+            "columnName": "updatedAtUtc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "educationDataSchemaVersion",
+            "columnName": "educationDataSchemaVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "contentVersionId",
+            "promptContentId"
+          ]
+        }
+      },
+      {
+        "tableName": "education_review_state",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`contentVersionId` TEXT NOT NULL, `contentId` TEXT NOT NULL, `reviewState` TEXT NOT NULL, `createdAtUtc` TEXT NOT NULL, `updatedAtUtc` TEXT NOT NULL, `reviewedAtUtc` TEXT, `educationDataSchemaVersion` TEXT NOT NULL, PRIMARY KEY(`contentVersionId`, `contentId`))",
+        "fields": [
+          {
+            "fieldPath": "contentVersionId",
+            "columnName": "contentVersionId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentId",
+            "columnName": "contentId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reviewState",
+            "columnName": "reviewState",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtUtc",
+            "columnName": "createdAtUtc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtUtc",
+            "columnName": "updatedAtUtc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reviewedAtUtc",
+            "columnName": "reviewedAtUtc",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "educationDataSchemaVersion",
+            "columnName": "educationDataSchemaVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "contentVersionId",
+            "contentId"
+          ]
+        }
+      },
+      {
+        "tableName": "education_record",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`workspaceRecordId` TEXT NOT NULL, `contentVersionId` TEXT NOT NULL, `contentId` TEXT NOT NULL, `promptId` TEXT, `recordKind` TEXT NOT NULL, `createdAtUtc` TEXT NOT NULL, `educationDataSchemaVersion` TEXT NOT NULL, PRIMARY KEY(`workspaceRecordId`), FOREIGN KEY(`workspaceRecordId`) REFERENCES `workspace_record`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "workspaceRecordId",
+            "columnName": "workspaceRecordId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentVersionId",
+            "columnName": "contentVersionId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentId",
+            "columnName": "contentId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "promptId",
+            "columnName": "promptId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "recordKind",
+            "columnName": "recordKind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtUtc",
+            "columnName": "createdAtUtc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "educationDataSchemaVersion",
+            "columnName": "educationDataSchemaVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "workspaceRecordId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_education_record_contentVersionId_contentId",
+            "unique": false,
+            "columnNames": [
+              "contentVersionId",
+              "contentId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_education_record_contentVersionId_contentId` ON `${TABLE_NAME}` (`contentVersionId`, `contentId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "workspace_record",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "workspaceRecordId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "education_position",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`contentVersionId` TEXT NOT NULL, `courseId` TEXT NOT NULL, `sceneContentId` TEXT NOT NULL, `updatedAtUtc` TEXT NOT NULL, `educationDataSchemaVersion` TEXT NOT NULL, PRIMARY KEY(`contentVersionId`, `courseId`))",
+        "fields": [
+          {
+            "fieldPath": "contentVersionId",
+            "columnName": "contentVersionId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "courseId",
+            "columnName": "courseId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sceneContentId",
+            "columnName": "sceneContentId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtUtc",
+            "columnName": "updatedAtUtc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "educationDataSchemaVersion",
+            "columnName": "educationDataSchemaVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "contentVersionId",
+            "courseId"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '19be325491cfd10aa0a9a23bbcc85430')"
+    ]
+  }
+}

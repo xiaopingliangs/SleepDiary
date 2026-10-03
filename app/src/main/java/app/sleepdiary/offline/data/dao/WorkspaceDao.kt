@@ -8,5 +8,6 @@ import app.sleepdiary.offline.data.entity.WorkspaceRecord
     @Query("SELECT * FROM workspace_record WHERE id = :id") suspend fun byId(id: String): WorkspaceRecord?
     @Insert(onConflict = OnConflictStrategy.ABORT) suspend fun insert(record: WorkspaceRecord)
     @Update(onConflict = OnConflictStrategy.ABORT) suspend fun update(record: WorkspaceRecord): Int
+    @Query("DELETE FROM workspace_record WHERE id = :id") suspend fun deleteById(id: String): Int
     @Query("DELETE FROM workspace_record") suspend fun deleteAllForRestore()
 }

@@ -177,4 +177,17 @@ P2A means contract frozen; it does not mean Room/backup implementation has passe
 | PUB-E2A-010 | Room 6→7 adds exactly five Education tables and preserves existing user state | migration contract | FROZEN |
 | PUB-E2A-011 | Pre-Education backups restore Education state empty without inference | compatibility contract | FROZEN |
 
-The frozen fields, keys, transition/deletion behavior, content-version evolution, migration and test contract are in `EDUCATION_USER_DATA_CONTRACT.md`. P2B implementation acceptance remains PLANNED until automated tests/build run.
+The frozen fields, keys, transition/deletion behavior, content-version evolution, migration and test contract are in `EDUCATION_USER_DATA_CONTRACT.md`.
+
+## P2B implementation acceptance
+
+| ID | Requirement | Acceptance evidence | P2B status |
+|---|---|---|---|
+| PUB-D-002–010 | Education schema versioning, Room 6→7, five tables, retained prior state, explicit repository operations, schema export | `MigrationTest`, `EducationPersistenceTest`, exported Room schema 7 | PASS |
+| PUB-B-002–006 | BACKUP_3.1 export, legacy import, empty Education state for old formats, atomic restore and reference validation | `EducationPersistenceTest`, `BackupTest`, Room transaction rollback tests | PASS |
+| PUB-B-007 | Restore commit followed by database readback | restore repository and reliability tests | PASS |
+| PUB-B-008 | Restore does not activate Treatment | backup compatibility and isolation tests; CBT-I Protocol remains NONE | PASS |
+| PUB-B-009 | Restore preview reports Education counts and legacy-format behavior | implementation updated; UI-level acceptance remains for P3 | PARTIAL |
+| PUB-B-010 | Education export follows EDUCATION_EXPORT_1.0 schema and excludes other domains/course body | `EducationPersistenceTest` schema, determinism and privacy checks | PASS |
+
+P2B unit tests: 428 passed, zero failures/errors/skips. `assembleDebug` passed. This does not include connected-device validation or the P3 user-facing Education/navigation experience.

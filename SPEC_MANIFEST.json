@@ -46,8 +46,8 @@
     },
     {
       "path": "SELF_CHECK.json",
-      "sha256": "8121bb5447cbcdb684c1beaab82d98135e46c5a6442b9c828af3b1e3975c42f1",
-      "bytes": 1750
+      "sha256": "0426e088ea28727e9c7b9439e42b3046638c2988f0569378797049a12379b233",
+      "bytes": 1973
     },
     {
       "path": "TEST_PLAN.md",
@@ -126,8 +126,8 @@
     },
     {
       "path": "version.properties",
-      "sha256": "2cdf618b42fd141f62c6bb90a7d787e6ac73aa547548463ce2c08e5852e25842",
-      "bytes": 309
+      "sha256": "2f09c0bcbf33d4042c291827898bc6e3c5f8e01c47c5c3ddf3d7e4806c0de82c",
+      "bytes": 399
     },
     {
       "path": "docs/FULL_APP_IMPLEMENTATION_BRIEF.md",
@@ -206,13 +206,33 @@
     },
     {
       "path": "PUBLIC_REQUIREMENTS_MATRIX.md",
-      "sha256": "c2bc299b71068a5c7d2b8d63790408b6f667b54daa8f59c9f21f55f402eb2196",
-      "bytes": 13142
+      "sha256": "fe08b687d1bd1f7e5fd5503bb994627671d6287101ce62592db9a6ad09f7ee71",
+      "bytes": 14377
     },
     {
       "path": "V4_PUBLIC_CONTENT_MATRIX.md",
       "sha256": "2695568dcc8900fd5ca7000aa93e71d1aa77a4291c3157d9991b7e0ff996001e",
       "bytes": 129590
+    },
+    {
+      "path": "schemas/backup-v3.1.schema.json",
+      "sha256": "909762d7f1fe45b39821981b6adcad9825235b378869629468d1c4400e45ef43",
+      "bytes": 39028
+    },
+    {
+      "path": "samples/backup-v3.1.example.json",
+      "sha256": "48c5afff65295d46d98072a76d26819848d628dcd59a86fe2f8cf17bbef269e2",
+      "bytes": 3560
+    },
+    {
+      "path": "schemas/education-export-v1.schema.json",
+      "sha256": "bb481ad53d6348bb7a277c4cd3cc136356ae93472561025c4762037a33b92108",
+      "bytes": 4513
+    },
+    {
+      "path": "app/schemas/app.sleepdiary.offline.data.db.SleepDiaryDatabase/7.json",
+      "sha256": "a4b837a2cf1603d1f00eee372b74b071ec5d57462cbe425724e6b5909d7a4b7f",
+      "bytes": 36613
     }
   ]
 }

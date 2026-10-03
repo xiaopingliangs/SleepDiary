@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sleepdiary.local/schemas/education-export-v1.schema.json",
+  "title": "SleepDiary EDUCATION_EXPORT_1.0",
+  "type": "object",
+  "required": [
+    "exportFormatVersion",
+    "educationDataSchemaVersion",
+    "educationContentVersions",
+    "progress",
+    "committedChoices",
+    "reviewStates",
+    "records"
+  ],
+  "properties": {
+    "exportFormatVersion": { "const": "EDUCATION_EXPORT_1.0" },
+    "educationDataSchemaVersion": { "const": "EDUCATION_DATA_1.0" },
+    "educationContentVersions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["contentVersionId", "manifestHashSha256"],
+        "properties": {
+          "contentVersionId": { "type": "string", "minLength": 1 },
+          "manifestHashSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "progress": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["contentVersionId", "contentId", "state", "updatedAtUtc", "completedAtUtc", "educationDataSchemaVersion"],
+        "properties": {
+          "contentVersionId": { "type": "string", "minLength": 1 },
+          "contentId": { "type": "string", "minLength": 1 },
+          "state": { "enum": ["IN_PROGRESS", "COMPLETED"] },
+          "updatedAtUtc": { "type": "string", "format": "date-time" },
+          "completedAtUtc": { "type": ["string", "null"], "format": "date-time" },
+          "educationDataSchemaVersion": { "const": "EDUCATION_DATA_1.0" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "committedChoices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["contentVersionId", "promptContentId", "choiceContentId", "optionId", "committedAtUtc", "updatedAtUtc", "educationDataSchemaVersion"],
+        "properties": {
+          "contentVersionId": { "type": "string", "minLength": 1 },
+          "promptContentId": { "type": "string", "minLength": 1 },
+          "choiceContentId": { "type": "string", "minLength": 1 },
+          "optionId": { "type": "string", "minLength": 1 },
+          "committedAtUtc": { "type": "string", "format": "date-time" },
+          "updatedAtUtc": { "type": "string", "format": "date-time" },
+          "educationDataSchemaVersion": { "const": "EDUCATION_DATA_1.0" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "reviewStates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["contentVersionId", "contentId", "reviewState", "createdAtUtc", "updatedAtUtc", "reviewedAtUtc", "educationDataSchemaVersion"],
+        "properties": {
+          "contentVersionId": { "type": "string", "minLength": 1 },
+          "contentId": { "type": "string", "minLength": 1 },
+          "reviewState": { "enum": ["SAVED_FOR_REVIEW", "REVIEWED"] },
+          "createdAtUtc": { "type": "string", "format": "date-time" },
+          "updatedAtUtc": { "type": "string", "format": "date-time" },
+          "reviewedAtUtc": { "type": ["string", "null"], "format": "date-time" },
+          "educationDataSchemaVersion": { "const": "EDUCATION_DATA_1.0" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["workspaceRecordId", "contentVersionId", "contentId", "promptId", "recordKind", "createdAtUtc", "educationDataSchemaVersion", "title", "body", "workspaceRevision", "workspaceUpdatedAtUtc"],
+        "properties": {
+          "workspaceRecordId": { "type": "string", "format": "uuid" },
+          "contentVersionId": { "type": "string", "minLength": 1 },
+          "contentId": { "type": "string", "minLength": 1 },
+          "promptId": { "type": ["string", "null"] },
+          "recordKind": { "enum": ["NOTE", "REFLECTION", "QUESTION_FOR_CLINICIAN", "PERSONAL_REMINDER"] },
+          "createdAtUtc": { "type": "string", "format": "date-time" },
+          "educationDataSchemaVersion": { "const": "EDUCATION_DATA_1.0" },
+          "title": { "type": "string", "maxLength": 200 },
+          "body": { "type": "string", "minLength": 1, "maxLength": 20000 },
+          "workspaceRevision": { "type": "integer", "minimum": 1 },
+          "workspaceUpdatedAtUtc": { "type": "string", "format": "date-time" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

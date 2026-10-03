@@ -29,7 +29,9 @@ android {
             "BACKUP_FORMAT" to "backupFormatVersion",
             "CBTI_PROTOCOL" to "cbtiProtocolVersion",
             "WORKSPACE_SCHEMA" to "workspaceSchemaVersion",
-            "TREATMENT_DATA_SCHEMA" to "treatmentDataSchemaVersion"
+            "TREATMENT_DATA_SCHEMA" to "treatmentDataSchemaVersion",
+            "EDUCATION_DATA_SCHEMA" to "educationDataSchemaVersion",
+            "EDUCATION_EXPORT" to "educationExportVersion"
         ).forEach { (field, key) ->
             buildConfigField("String", field, "\"" + domainVersions.getProperty(key) + "\"")
         }
@@ -40,6 +42,7 @@ android {
     }
     buildFeatures { compose = true; buildConfig = true }
     sourceSets.getByName("main").assets.srcDir(rootProject.file("schemas"))
+    sourceSets.getByName("main").assets.srcDir("src/main/resources")
     testOptions { unitTests.isIncludeAndroidResources = true }
 }
 kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }

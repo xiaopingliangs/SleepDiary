@@ -12,8 +12,8 @@ class DatabaseConverters {
  @TypeConverter fun status(value: AssessmentStatus): String = value.name
 }
 @Database(
- entities = [SleepDiaryEntry::class, SafetyAssessment::class, SafetyAnswer::class, WeeklySummarySnapshot::class, AppState::class, WorkspaceRecord::class, InputSnapshot::class, LocalExecutionState::class, TreatmentEpisode::class, TreatmentAuditEvent::class],
- version = 6, exportSchema = true
+ entities = [SleepDiaryEntry::class, SafetyAssessment::class, SafetyAnswer::class, WeeklySummarySnapshot::class, AppState::class, WorkspaceRecord::class, InputSnapshot::class, LocalExecutionState::class, TreatmentEpisode::class, TreatmentAuditEvent::class, EducationProgress::class, EducationCommittedChoice::class, EducationReviewState::class, EducationRecord::class, EducationPosition::class],
+ version = 7, exportSchema = true
 )
 @TypeConverters(DatabaseConverters::class)
 abstract class SleepDiaryDatabase : RoomDatabase() {
@@ -24,6 +24,7 @@ abstract class SleepDiaryDatabase : RoomDatabase() {
  abstract fun inputSnapshotDao(): InputSnapshotDao
  abstract fun localExecutionDao(): LocalExecutionDao
  abstract fun treatmentDao(): TreatmentDao
+ abstract fun educationDao(): EducationDao
  companion object {
   val MIGRATION_1_2 = object : androidx.room.migration.Migration(1, 2) {
    override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
@@ -49,6 +50,17 @@ abstract class SleepDiaryDatabase : RoomDatabase() {
     db.execSQL("CREATE TABLE IF NOT EXISTS treatment_audit_event (id TEXT NOT NULL, episodeId TEXT NOT NULL, commandType TEXT NOT NULL, requestFingerprint TEXT NOT NULL, fromState TEXT, toState TEXT NOT NULL, fromRevision INTEGER NOT NULL, toRevision INTEGER NOT NULL, occurredAtUtc TEXT NOT NULL, restoreGenerationAtCommand TEXT NOT NULL, treatmentDataSchemaVersion TEXT NOT NULL, PRIMARY KEY(id), FOREIGN KEY(episodeId) REFERENCES treatment_episode(id) ON UPDATE NO ACTION ON DELETE NO ACTION)")
     db.execSQL("CREATE INDEX IF NOT EXISTS index_treatment_audit_event_episodeId ON treatment_audit_event (episodeId)")
     db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_treatment_audit_event_episodeId_toRevision ON treatment_audit_event (episodeId, toRevision)")
+    db.execSQL("UPDATE app_state SET backupFormatVersion = '" + Versions.LEGACY_BACKUP_3_0 + "'")
+   }
+  }
+  val MIGRATION_6_7 = object : androidx.room.migration.Migration(6, 7) {
+   override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+    db.execSQL("CREATE TABLE IF NOT EXISTS education_progress (contentVersionId TEXT NOT NULL, contentId TEXT NOT NULL, state TEXT NOT NULL, updatedAtUtc TEXT NOT NULL, completedAtUtc TEXT, educationDataSchemaVersion TEXT NOT NULL, PRIMARY KEY(contentVersionId, contentId))")
+    db.execSQL("CREATE TABLE IF NOT EXISTS education_committed_choice (contentVersionId TEXT NOT NULL, promptContentId TEXT NOT NULL, choiceContentId TEXT NOT NULL, optionId TEXT NOT NULL, committedAtUtc TEXT NOT NULL, updatedAtUtc TEXT NOT NULL, educationDataSchemaVersion TEXT NOT NULL, PRIMARY KEY(contentVersionId, promptContentId))")
+    db.execSQL("CREATE TABLE IF NOT EXISTS education_review_state (contentVersionId TEXT NOT NULL, contentId TEXT NOT NULL, reviewState TEXT NOT NULL, createdAtUtc TEXT NOT NULL, updatedAtUtc TEXT NOT NULL, reviewedAtUtc TEXT, educationDataSchemaVersion TEXT NOT NULL, PRIMARY KEY(contentVersionId, contentId))")
+    db.execSQL("CREATE TABLE IF NOT EXISTS education_record (workspaceRecordId TEXT NOT NULL, contentVersionId TEXT NOT NULL, contentId TEXT NOT NULL, promptId TEXT, recordKind TEXT NOT NULL, createdAtUtc TEXT NOT NULL, educationDataSchemaVersion TEXT NOT NULL, PRIMARY KEY(workspaceRecordId), FOREIGN KEY(workspaceRecordId) REFERENCES workspace_record(id) ON UPDATE NO ACTION ON DELETE CASCADE)")
+    db.execSQL("CREATE INDEX IF NOT EXISTS index_education_record_contentVersionId_contentId ON education_record (contentVersionId, contentId)")
+    db.execSQL("CREATE TABLE IF NOT EXISTS education_position (contentVersionId TEXT NOT NULL, courseId TEXT NOT NULL, sceneContentId TEXT NOT NULL, updatedAtUtc TEXT NOT NULL, educationDataSchemaVersion TEXT NOT NULL, PRIMARY KEY(contentVersionId, courseId))")
     db.execSQL("UPDATE app_state SET backupFormatVersion = '" + Versions.BACKUP_FORMAT + "'")
    }
   }
@@ -59,6 +71,6 @@ abstract class SleepDiaryDatabase : RoomDatabase() {
    }
   }
   fun open(context: Context): SleepDiaryDatabase =
-   Room.databaseBuilder(context.applicationContext, SleepDiaryDatabase::class.java, "sleepdiary.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6).build()
+   Room.databaseBuilder(context.applicationContext, SleepDiaryDatabase::class.java, "sleepdiary.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7).build()
  }
 }

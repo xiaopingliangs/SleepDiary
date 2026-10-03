@@ -8,6 +8,9 @@ object Versions {
     const val LEGACY_BACKUP_1_1 = "BACKUP_1.1"
     const val LEGACY_BACKUP_2_0 = "BACKUP_2.0"
     const val LEGACY_BACKUP_2_1 = "BACKUP_2.1"
+    const val LEGACY_BACKUP_3_0 = "BACKUP_3.0"
+    const val EDUCATION_DATA_SCHEMA = BuildConfig.EDUCATION_DATA_SCHEMA
+    const val EDUCATION_EXPORT = BuildConfig.EDUCATION_EXPORT
     const val WORKSPACE_SCHEMA = BuildConfig.WORKSPACE_SCHEMA
     const val TREATMENT_DATA_SCHEMA = BuildConfig.TREATMENT_DATA_SCHEMA
     const val APP = BuildConfig.VERSION_NAME

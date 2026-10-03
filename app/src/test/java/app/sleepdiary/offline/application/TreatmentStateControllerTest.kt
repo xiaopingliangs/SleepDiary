@@ -93,7 +93,7 @@ class TreatmentStateControllerTest {
     }
     @Test fun backupThreeRoundTripAndLegacyReplacementAreAtomic()=runBlocking {
         start();val repo=BackupRepository(db,context);val before=repo.snapshot();val text=repo.export()
-        assertEquals("BACKUP_3.0",JSONObject(text).getString("exportFormatVersion"));assertEquals(1,repo.preview(text).treatmentEpisodes.size)
+        assertEquals("BACKUP_3.1",JSONObject(text).getString("exportFormatVersion"));assertEquals(1,repo.preview(text).treatmentEpisodes.size)
         val c=TreatmentStateController(db,clock);val episode=before.treatmentEpisodes.single()
         c.transition(id(),episode.id,1,TreatmentTransition.REQUEST_BASELINE_REVIEW)
         repo.restore(text);assertEquals(before,repo.snapshot())
