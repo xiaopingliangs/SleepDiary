@@ -291,7 +291,7 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
     }
     if (exportKind != null) AlertDialog(onDismissRequest = { exportKind = null }, title = { Text("导出明文文件") },
         text = { Text("睡眠日记和完整备份均为明文文件。完整备份还包含安全问询及个人记录。请只保存到你信任的位置。") },
-        confirmButton = { TextButton(onClick = { val kind = exportKind; exportKind = null; val stamp = java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")); if (kind == "json") operation { val prepared = withContext(Dispatchers.IO) { checkNotNull(services).backup.export() }; pendingBackupPath = withContext(Dispatchers.IO) { app.sleepdiary.offline.data.backup.PreparedBackupStore.create(context.cacheDir, prepared) }; exportBackup.launch("SleepDiary_backup_$stamp.json") } else exportCsv.launch("SleepDiary_entries_$stamp.csv") }) { Text("选择保存位置") } },
+        confirmButton = { TextButton(onClick = { val kind = exportKind; exportKind = null; val stamp = java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")); if (kind == "json") operation { val prepared = withContext(Dispatchers.IO) { checkNotNull(services).backup.export() }; pendingBackupPath = withContext(Dispatchers.IO) { app.sleepdiary.offline.data.backup.PreparedBackupStore.create(context.cacheDir, prepared) }; withContext(Dispatchers.Main.immediate) { exportBackup.launch("SleepDiary_backup_$stamp.json") } } else exportCsv.launch("SleepDiary_entries_$stamp.csv") }) { Text("选择保存位置") } },
         dismissButton = { TextButton(onClick = { exportKind = null }) { Text("取消") } })
     if (educationExportKind != null) AlertDialog(onDismissRequest = { educationExportKind = null }, title = { Text("导出学习数据") },
         text = { Text("只导出你保存的学习数据和关联笔记，不包含课程正文。文件是明文，请保存到可信位置。") },

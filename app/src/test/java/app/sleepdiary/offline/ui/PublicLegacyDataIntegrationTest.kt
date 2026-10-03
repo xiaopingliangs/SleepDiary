@@ -75,7 +75,7 @@ class PublicLegacyDataIntegrationTest {
         lateinit var model: DiaryViewModel
         compose.runOnUiThread { model = DiaryViewModel(RoomDiaryUiStore(db, clock), SavedStateHandle(), clock) }
         compose.setContent { SleepDiaryTheme { SleepDiaryApp(model, {}, services) } }
-        compose.waitUntil(5000) { model.state.value.page != HomePage.LOADING }
+        compose.waitUntil(5000) { compose.runOnIdle { model.state.value.page != HomePage.LOADING } }
 
         assertEquals(HomePage.TODAY, model.state.value.page)
         assertEquals(safetyId, model.state.value.safety?.assessment?.id)

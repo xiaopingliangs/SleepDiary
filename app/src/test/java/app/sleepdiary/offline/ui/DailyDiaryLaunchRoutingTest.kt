@@ -182,7 +182,7 @@ class DailyDiaryLaunchRoutingTest {
         compose.onNodeWithTag("public_tab_education").performClick()
         current.onAppForeground() // same callback used on return from SAF, browser, or app switching
         compose.waitForIdle()
-        compose.onNodeWithText("知识地图").assertExists()
+        compose.onNodeWithText("了解睡眠").assertExists()
         assertEquals(date, marker.last)
         assertTrue(store.rows.isEmpty())
     }

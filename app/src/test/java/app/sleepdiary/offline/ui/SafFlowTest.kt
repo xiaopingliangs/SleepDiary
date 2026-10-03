@@ -4,6 +4,7 @@ import app.sleepdiary.offline.application.AppServices
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.activity.result.*
@@ -37,13 +38,14 @@ class SafFlowTest {
  private lateinit var registry:ActivityResultRegistry
  private var request=0
  private lateinit var launched:Intent
+ private lateinit var launchedOnThread:Thread
  private val uri=Uri.parse("content://test.documents/document/backup")
  private val note="中文 English 123,\"备注\"\r\n第二行"
  @Before fun start() {
   db=Room.inMemoryDatabaseBuilder(compose.activity,SleepDiaryDatabase::class.java).build()
   services=AppServices(compose.activity,db)
   runBlocking{db.diaryDao().insert(diary().copy(comment=note));db.stateAndSummaryDao().putState(AppState(hasCompletedOnboarding=true,trackingStartDate="2026-09-09"))}
-  registry=object:ActivityResultRegistry(){override fun <I,O> onLaunch(requestCode:Int,contract:ActivityResultContract<I,O>,input:I,options:ActivityOptionsCompat?){request=requestCode;launched=contract.createIntent(compose.activity,input)}}
+  registry=object:ActivityResultRegistry(){override fun <I,O> onLaunch(requestCode:Int,contract:ActivityResultContract<I,O>,input:I,options:ActivityOptionsCompat?){request=requestCode;launchedOnThread=Thread.currentThread();launched=contract.createIntent(compose.activity,input)}}
   val owner=object:ActivityResultRegistryOwner{override val activityResultRegistry=registry}
   lateinit var model:DiaryViewModel
   compose.runOnUiThread{model=DiaryViewModel(RoomDiaryUiStore(db),clock=clockOn("2026-09-09"))}
@@ -59,15 +61,15 @@ class SafFlowTest {
  @After fun close(){db.close()}
  private fun deliver(ok:Boolean=true){compose.runOnUiThread{registry.dispatchResult(request,if(ok)Activity.RESULT_OK else Activity.RESULT_CANCELED,if(ok)Intent().setData(uri)else null)}}
  private fun waitText(text:String){try{compose.waitUntil(10000){compose.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()}}catch(e:Throwable){throw AssertionError("Missing '$text'\n"+compose.onAllNodes(isRoot()).printToString(),e)}}
- private fun export(label:String){compose.onNodeWithText(label).performScrollTo().performClick();compose.onNodeWithText("选择保存位置").performClick();assertEquals(Intent.ACTION_CREATE_DOCUMENT,launched.action);assertTrue(launched.getStringExtra(Intent.EXTRA_TITLE)!!.startsWith("SleepDiary_"))}
+ private fun export(label:String){compose.onNodeWithText(label).performScrollTo().performClick();compose.onNodeWithText("选择保存位置").performClick();compose.waitUntil(10000){compose.runOnIdle{::launched.isInitialized || compose.onAllNodesWithText("操作未完成，数据未确认成功。请重试。").fetchSemanticsNodes().isNotEmpty()}};val busy=compose.onAllNodesWithText("正在处理，请稍候…").fetchSemanticsNodes().isNotEmpty();val failed=compose.onAllNodesWithText("操作未完成，数据未确认成功。请重试。").fetchSemanticsNodes().isNotEmpty();assertTrue("Export operation did not launch SAF (busy=$busy, failed=$failed)",::launched.isInitialized);assertSame(Looper.getMainLooper().thread,launchedOnThread);assertEquals(Intent.ACTION_CREATE_DOCUMENT,launched.action);assertTrue(launched.getStringExtra(Intent.EXTRA_TITLE)!!.startsWith("SleepDiary_"))}
  @Test fun jsonCreateDocumentWritesValidatedBackupWithComment() {
   val output=ByteArrayOutputStream();shadowOf(compose.activity.contentResolver).registerOutputStream(uri,output)
-  export("导出完整备份 JSON");assertEquals("application/json",launched.type);assertTrue(launched.getStringExtra(Intent.EXTRA_TITLE)!!.endsWith(".json"));deliver();waitText("完整备份已导出")
+  export("完整备份");assertEquals("application/json",launched.type);assertTrue(launched.getStringExtra(Intent.EXTRA_TITLE)!!.endsWith(".json"));deliver();waitText("完整备份已导出")
   val text=output.toString("UTF-8");assertTrue(text.contains("BACKUP_3.1"));assertEquals(note,services.backup.preview(text).entries.single().comment)
  }
  @Test fun csvCreateDocumentWritesEscapedComment() {
   val output=ByteArrayOutputStream();shadowOf(compose.activity.contentResolver).registerOutputStream(uri,output)
-  export("导出睡眠日记 CSV");assertEquals("text/csv",launched.type);deliver();waitText("CSV 已导出")
+  export("睡眠记录表");assertEquals("text/csv",launched.type);deliver();waitText("CSV 已导出")
   assertArrayEquals(runBlocking{services.backup.csv()},output.toByteArray());assertTrue(output.toString("UTF-8").contains("\"\"备注\"\""))
  }
  @Test fun cancellingSystemPickerPreservesDatabase() {
@@ -101,6 +103,6 @@ class SafFlowTest {
  }
  @Test fun failedWriteNeverReportsExportSuccess() {
   shadowOf(compose.activity.contentResolver).registerOutputStream(uri,object:OutputStream(){override fun write(b:Int){throw IOException("provider failure")}})
-  export("导出完整备份 JSON");deliver();waitText("操作未完成，数据未确认成功。请重试。");compose.onAllNodesWithText("完整备份已导出").assertCountEquals(0)
+  export("完整备份");deliver();waitText("操作未完成，数据未确认成功。请重试。");compose.onAllNodesWithText("完整备份已导出").assertCountEquals(0)
  }
 }
