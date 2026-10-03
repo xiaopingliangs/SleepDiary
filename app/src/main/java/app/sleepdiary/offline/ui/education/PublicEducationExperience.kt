@@ -4,12 +4,14 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
@@ -21,6 +23,7 @@ import app.sleepdiary.offline.data.repository.EducationRepository
 import app.sleepdiary.offline.data.repository.EducationUserDataSnapshot
 import app.sleepdiary.offline.data.repository.WorkspaceRepository
 import app.sleepdiary.offline.domain.model.Versions
+import app.sleepdiary.offline.share.EducationSummaryImageShare
 import app.sleepdiary.offline.ui.Action
 import kotlinx.coroutines.launch
 import org.json.JSONArray
@@ -29,16 +32,22 @@ import java.time.Instant
 import java.util.UUID
 
 private const val VERSION = "PUBLIC_EDUCATION_CONTENT_1.0-CANDIDATE"
-private enum class EducationPage { MAP, CHAPTER, SCENE, REVIEW, NOTES, NOTE_EDITOR }
+private enum class EducationPage { MAP, CHAPTER, SCENE, REVIEW, NOTES, NOTE_EDITOR, SUMMARY_IMAGE }
 
 @Composable
-fun PublicEducationExperience(repository: EducationRepository?, workspace: WorkspaceRepository?, onBackToToday: () -> Unit = {}) {
+fun PublicEducationExperience(
+    repository: EducationRepository?,
+    workspace: WorkspaceRepository?,
+    onBackToToday: () -> Unit = {},
+    onShareSummary: ((List<String>) -> Unit)? = null
+) {
     val context = LocalContext.current
     val catalog = remember { runCatching { PublicEducationCatalog.fromAssets(context.assets) }.getOrNull() }
     val scope = rememberCoroutineScope()
     var page by rememberSaveable { mutableStateOf(EducationPage.MAP.name) }
     var selectedId by rememberSaveable { mutableStateOf("") }
     var selectedNoteId by rememberSaveable { mutableStateOf("") }
+    var selectedSummaryIds by rememberSaveable { mutableStateOf(emptyList<String>()) }
     var snapshot by remember { mutableStateOf<EducationUserDataSnapshot?>(null) }
     var notes by remember { mutableStateOf(emptyList<WorkspaceRecord>()) }
     var revision by remember { mutableIntStateOf(0) }
@@ -63,6 +72,7 @@ fun PublicEducationExperience(repository: EducationRepository?, workspace: Works
             EducationPage.SCENE -> go(EducationPage.CHAPTER, catalog?.node(selectedId)?.parentId ?: "")
             EducationPage.REVIEW, EducationPage.NOTES -> go(EducationPage.MAP)
             EducationPage.NOTE_EDITOR -> go(EducationPage.NOTES)
+            EducationPage.SUMMARY_IMAGE -> go(EducationPage.MAP)
         }
     }
     BackHandler(enabled = true, onBack = ::back)
@@ -94,7 +104,11 @@ fun PublicEducationExperience(repository: EducationRepository?, workspace: Works
                     Text("知识地图", style = MaterialTheme.typography.headlineMedium)
                     Text(course.title, style = MaterialTheme.typography.titleLarge)
                     Text("课程按原有章节和场景组织。打开内容只保存阅读位置，不表示已完成、掌握或适合治疗。")
+                    if (snapshot != null && snapshot!!.progress.isEmpty()) Text("还没有完成的学习内容。可以从下方知识地图或章节开始。")
                     catalog.nodes.values.filter { it.kind == "MAP_ENTRY" }.forEach { MapEntry(it, catalog, ::openOfficialSource) }
+                    catalog.nodes.values.firstOrNull { it.kind == "EXPORT_ELEMENT" && it.payload.optString("id") == "export/summary-image" }?.let { exportNode ->
+                        Action(exportNode.title, { selectedSummaryIds = emptyList(); go(EducationPage.SUMMARY_IMAGE) })
+                    }
                     catalog.nodes.values.filter { it.kind == "MAP_GROUP" }.sortedBy { it.payload.optInt("order", Int.MAX_VALUE) }.forEach { group ->
                         Card(Modifier.fillMaxWidth()) {
                             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -225,6 +239,37 @@ fun PublicEducationExperience(repository: EducationRepository?, workspace: Works
                         repository?.saveAuthoredRecord(record!!.copy(title = title, body = body, updatedAtUtc = now, revision = record.revision + 1), link)
                         refresh(); go(EducationPage.NOTES)
                     }.onFailure { error = it.message } } })
+                }
+                EducationPage.SUMMARY_IMAGE -> {
+                    val chapters = catalog.nodes.values.filter { it.kind == "CHAPTER" }.sortedBy { it.payload.optInt("order", Int.MAX_VALUE) }
+                    Text("学习总结图片", style = MaterialTheme.typography.headlineSmall)
+                    Text("请选择要分享的学习主题。图片只显示你勾选的主题名称，不包含课程正文、个人笔记、日记、安全问询或治疗数据。")
+                    chapters.forEach { chapter ->
+                        val checked = chapter.id in selectedSummaryIds
+                        Row(
+                            Modifier.fillMaxWidth().heightIn(min = 56.dp)
+                                .toggleable(checked, role = Role.Checkbox) { value ->
+                                    selectedSummaryIds = if (value) selectedSummaryIds + chapter.id else selectedSummaryIds - chapter.id
+                                }
+                                .testTag("education_summary_topic_${chapter.id}"),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Checkbox(checked, onCheckedChange = null)
+                            Text(chapter.title, modifier = Modifier.weight(1f).padding(top = 16.dp))
+                        }
+                    }
+                    Action(
+                        "生成并分享图片",
+                        {
+                            val selectedTitles = chapters.filter { it.id in selectedSummaryIds }.map { it.title }
+                            runCatching {
+                                if (onShareSummary != null) onShareSummary(selectedTitles)
+                                else context.startActivity(EducationSummaryImageShare(context).prepare(selectedTitles))
+                            }.onFailure { error = it.message ?: "图片生成失败" }
+                        },
+                        enabled = selectedSummaryIds.isNotEmpty(),
+                        modifier = Modifier.testTag("education_summary_share")
+                    )
                 }
             }
         }

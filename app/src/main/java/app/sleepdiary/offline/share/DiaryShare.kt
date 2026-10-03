@@ -10,12 +10,12 @@ import java.io.File
 
 class DiaryShare(private val context:Context,private val db:SleepDiaryDatabase) {
  companion object {
-  fun chooser(uri:android.net.Uri):Intent {
+  fun chooser(uri:android.net.Uri, title:String="分享睡眠记录"):Intent {
    require(uri.scheme=="content")
    val send=Intent(Intent.ACTION_SEND).setType("image/png").putExtra(Intent.EXTRA_STREAM,uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-   send.clipData=ClipData.newRawUri("睡眠记录",uri)
+   send.clipData=ClipData.newRawUri(title,uri)
    // The source task is removed immediately after hand-off; the chooser must own another task.
-   return Intent.createChooser(send,"分享睡眠记录").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+   return Intent.createChooser(send,title).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
   }
   fun handOff(intent:Intent,start:(Intent)->Unit,finish:()->Unit) {start(intent);finish()}
   fun lines(entry:SleepDiaryEntry)=listOf("主观睡眠记录",entry.sleepDate)+DiaryField.entries.map{it.label+"："+fieldValue(DiaryForm.from(entry),it)}+"主观估计数据 · SleepDiary V0.1"

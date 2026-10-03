@@ -122,7 +122,11 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
                     PublicSleepScreen(state.entries, state.form.referenceDate.toString(), weeklySummaries, { nav.navigate("history") }, { exportKind = "csv" })
                 }
                 composable("education") {
-                    PublicEducationExperience(services?.education, services?.workspace) { navigateTop(PublicDestination.TODAY) }
+                    PublicEducationExperience(
+                        services?.education,
+                        services?.workspace,
+                        onBackToToday = { navigateTop(PublicDestination.TODAY) }
+                    )
                 }
                 composable("me") {
                     PublicMeHome(

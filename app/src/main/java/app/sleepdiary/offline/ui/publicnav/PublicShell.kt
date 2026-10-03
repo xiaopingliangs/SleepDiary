@@ -97,6 +97,7 @@ fun PublicSleepScreen(
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("睡眠", style = MaterialTheme.typography.headlineMedium)
         Text("查看原始日记和一段时间内的中性统计。数据来自你的主观估计。")
+        if (entries.isEmpty()) Text("还没有睡眠日记记录。完成一条记录后，历史会显示在这里。")
         Action("日记历史", onHistory)
         Action("导出睡眠日记 CSV", onCsvExport)
         HorizontalDivider()
@@ -115,7 +116,7 @@ fun PublicSleepScreen(
         }
         HorizontalDivider()
         Text("周总结", style = MaterialTheme.typography.titleLarge)
-        if (summaries.isEmpty()) Text("还没有已生成的周总结。")
+        if (summaries.isEmpty()) Text("还没有可查看的周总结；有记录后会在这里显示。")
         summaries.forEach { summary -> WeeklySummaryCard(summary) }
     }
 }

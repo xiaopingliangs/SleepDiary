@@ -25,12 +25,13 @@ class EducationExperienceTest {
     private lateinit var db: SleepDiaryDatabase
     private lateinit var services: AppServices
     private lateinit var catalog: PublicEducationCatalog
+    private val sharedSummaryTitles = mutableListOf<String>()
 
     @Before fun start() {
         db = Room.inMemoryDatabaseBuilder(compose.activity, SleepDiaryDatabase::class.java).build()
         services = AppServices(compose.activity, db)
         catalog = PublicEducationCatalog.fromAssets(compose.activity.assets)
-        compose.setContent { SleepDiaryTheme { PublicEducationExperience(services.education, services.workspace) } }
+        compose.setContent { SleepDiaryTheme { PublicEducationExperience(services.education, services.workspace, onShareSummary = { sharedSummaryTitles += it }) } }
         compose.waitUntil(5000) { compose.onAllNodesWithText("知识地图").fetchSemanticsNodes().isNotEmpty() }
     }
 
@@ -155,5 +156,14 @@ class EducationExperienceTest {
         compose.onNodeWithText("继续上次学习").performScrollTo().performClick()
         compose.waitUntil(5000) { compose.onAllNodesWithText(scene.title).fetchSemanticsNodes().isNotEmpty() }
         assertEquals(scene.id, runBlocking { services.education.snapshot().positions.single().sceneContentId })
+    }
+
+    @Test fun summaryImageFlowSharesOnlyExplicitlySelectedTopicTitles() {
+        compose.onNodeWithText("学习总结图片").performScrollTo().performClick()
+        compose.onNodeWithTag("education_summary_share").assertIsNotEnabled()
+        val first = catalog.nodes.values.filter { it.kind == "CHAPTER" }.minBy { it.payload.optInt("order", Int.MAX_VALUE) }
+        compose.onNodeWithTag("education_summary_topic_${first.id}").performScrollTo().performClick()
+        compose.onNodeWithTag("education_summary_share").performScrollTo().performClick()
+        assertEquals(listOf(first.title), sharedSummaryTitles)
     }
 }
