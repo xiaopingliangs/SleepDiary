@@ -31,13 +31,13 @@
     },
     {
       "path": "IMPORT_EXPORT_SPEC.md",
-      "sha256": "af6979e49d402b255093d7b3ada8e32b349f2562e09dc2be2840c74c6a4c9285",
-      "bytes": 10296
+      "sha256": "7c85404a0102aa0d0baa550e1418d1767f387b9a763e1a9cc466ee36e76aa5c0",
+      "bytes": 11067
     },
     {
       "path": "PRODUCT_SPEC.md",
-      "sha256": "4c15aedafb66a6c02fbaab903d33614cdb2ff9dd1c628c31a4da63080fd895bb",
-      "bytes": 8369
+      "sha256": "c684876c29181f3a1d4a412e12d13999891a0b0600e82a324dee74bdab2311e9",
+      "bytes": 8550
     },
     {
       "path": "README.md",
@@ -51,13 +51,13 @@
     },
     {
       "path": "TEST_PLAN.md",
-      "sha256": "1499b85476dd927699410778e29bb50717243a9977da77ca41c66d4f150460ed",
-      "bytes": 17131
+      "sha256": "00cba2ad365947c0b62eb418193d7fdaa414d6b16016957ad644b53369af19a7",
+      "bytes": 20390
     },
     {
       "path": "UX_SPEC.md",
-      "sha256": "61a1f3c1fb91e9beff8e49060c3b790eb72911a9f91010d8ea6da6cf774089e6",
-      "bytes": 31956
+      "sha256": "2ef776fdfcbf02ac9edd9d1f0b79070465d6ed85b5e5dbe04562234111556947",
+      "bytes": 32474
     },
     {
       "path": "VERSIONING_AND_TRACEABILITY.md",
@@ -201,8 +201,8 @@
     },
     {
       "path": "PUBLIC_PRODUCT_SPEC.md",
-      "sha256": "6b5f60f102814413a9b21d7bc40e2ba4a938be915d1b46b880ba5ffe67dd4b92",
-      "bytes": 7542
+      "sha256": "0b0907073d2cc523de8e3c63f3b388aa7f878eb14e427b40feb79194ba1cb957",
+      "bytes": 10719
     },
     {
       "path": "PUBLIC_REQUIREMENTS_MATRIX.md",

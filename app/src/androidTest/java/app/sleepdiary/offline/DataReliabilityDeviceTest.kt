@@ -62,8 +62,8 @@ class DataReliabilityDeviceTest {
    val bad=JSONObject(document);bad.getJSONArray("diaryEntries").getJSONObject(0).put("comment",42);assertTrue(runCatching{repo.restore(bad.toString())}.isFailure);assertEquals(before,repo.snapshot())
   }
  }
- @Test fun editedAndClearedCommentPersistsAndIsExcludedFromShare()=runBlocking {
-  val saved=save(1).entry;val lines=DiaryShare.lines(saved);assertFalse(lines.joinToString().contains(note));assertFalse(lines.joinToString().contains("Safety"))
+ @Test fun editedAndClearedCommentPersistsAndIsIncludedInShare()=runBlocking {
+  val saved=save(1).entry;val lines=DiaryShare.lines(saved);assertTrue(lines.joinToString().contains(note));assertFalse(lines.joinToString().contains("Safety"))
   for(value in listOf("改过的备注 123",null,"")){val result=DiaryRepository(db,clock(2)).save(saved.copy(comment=value)) as SaveResult.Success;assertEquals(value,db.diaryDao().byId(saved.id)!!.comment);assertEquals(saved.createdAtUtc,result.entry.createdAtUtc)}
  }
  @Test fun csvEscapesFreeText()=runBlocking {

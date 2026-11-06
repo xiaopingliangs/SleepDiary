@@ -48,8 +48,6 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
     var restoreSummary by remember { mutableStateOf("") }
     var editReturnRoute by rememberSaveable { mutableStateOf("today") }
     var weeklySummaries by remember { mutableStateOf(emptyList<WeeklySummarySnapshot>()) }
-    var shareEntryId by rememberSaveable { mutableStateOf<String?>(null) }
-    var includeSpecialSituation by rememberSaveable { mutableStateOf(false) }
     val contextualEducationPreference = remember(context) { ContextualEducationPreference(context) }
     var recordMatchingEnabled by remember { mutableStateOf(contextualEducationPreference.isEnabled()) }
     var educationLaunchId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -114,7 +112,7 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
         }
     }
 
-    LaunchedEffect(services) {
+    LaunchedEffect(services, state.entries) {
         app.sleepdiary.offline.data.backup.PreparedBackupStore.cleanupExpired(context.cacheDir)
         weeklySummaries = runCatching { services?.weeklySummaries?.currentSummaries().orEmpty() }.getOrDefault(emptyList())
     }
@@ -125,16 +123,32 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
             restoreState = true
         }
     }
-    fun shareAndExit(includeComment:Boolean) {
-        val entry = state.entries.firstOrNull { it.id == shareEntryId } ?: return
+    fun shareAndExit(entry: app.sleepdiary.offline.data.entity.SleepDiaryEntry) {
+        if (state.busy) return
         operation {
-            val intent = withContext(Dispatchers.IO) { checkNotNull(services).share.prepare(entry,includeComment) }
-            shareEntryId = null
-            model.exitAfterSuccess { DiaryShare.handOff(intent, { context.startActivity(it) }, onExit) }
+            val intent = withContext(Dispatchers.IO) { checkNotNull(services).share.prepare(entry) }
+            if (state.page == HomePage.SUCCESS) {
+                model.exitAfterSuccess { DiaryShare.handOff(intent, { context.startActivity(it) }, onExit) }
+            } else DiaryShare.handOff(intent, { context.startActivity(it) }, onExit)
+        }
+    }
+    fun shareRecent(days: Int) {
+        if (state.busy) return
+        val today = model.currentDate()
+        operation {
+            val intent = withContext(Dispatchers.IO) { checkNotNull(services).share.prepareRecent(today, days) }
+            DiaryShare.handOff(intent, { context.startActivity(it) }, onExit)
         }
     }
 
     val currentRoute = nav.currentBackStackEntryAsState().value?.destination?.route.orEmpty()
+    LaunchedEffect(currentRoute) {
+        if (currentRoute == "sleep") {
+            try { model.refreshRecentRecords() }
+            catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { message = "读取最近记录失败，请重试。" }
+        }
+    }
     val topRoutes = PublicDestination.entries.map { it.route }.toSet()
     val overlay = state.page in setOf(HomePage.LOADING, HomePage.FORM, HomePage.SUCCESS, HomePage.WEEKLY)
 
@@ -146,13 +160,13 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
                     PublicTodayScreen(state, model::beginNewDiary, contextualSuggestion, { showContextualEducationWhy = true }, { suggestion ->
                         educationLaunchId = suggestion.experienceId
                         navigateTop(PublicDestination.EDUCATION)
-                    }) { entry ->
+                    }, onShare = ::shareAndExit, shareEnabled = !busy && !state.busy) { entry ->
                         editReturnRoute = "today"
                         nav.navigate("diaryDetail/${entry.id}")
                     }
                 }
                 composable("sleep") {
-                    PublicSleepScreen(state.entries, state.form.referenceDate.toString(), weeklySummaries, { nav.navigate("history") })
+                    PublicSleepScreen(state.entries, state.referenceDate.toString(), weeklySummaries, { nav.navigate("history") }, ::shareRecent, !busy && !state.busy)
                 }
                 composable("education") {
                     PublicEducationExperience(
@@ -240,7 +254,7 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
                         if (state.firstSuccess) Text(FIRST_SAVE_EXPLANATION)
                         state.message?.let { Text(it) }
                         Action("返回", { model.returnToToday { nav.navigate(editReturnRoute) { launchSingleTop = true } } }, !state.busy && !busy)
-                        Action("分享并退出", { shareEntryId = state.form.id; includeSpecialSituation = false }, !state.busy && !busy)
+                        Action("分享并退出", { state.entries.firstOrNull { it.id == state.form.id }?.let(::shareAndExit) }, !state.busy && !busy)
                     }
                 }
                 HomePage.WEEKLY -> {
@@ -268,26 +282,6 @@ fun SleepDiaryApp(model: DiaryViewModel, onExit: () -> Unit, services: AppServic
     if (busy) AlertDialog(onDismissRequest = {}, text = { Text("正在处理，请稍候…") }, confirmButton = {})
     contextualSuggestion?.takeIf { showContextualEducationWhy }?.let { suggestion ->
         ContextualEducationExplanation(suggestion) { showContextualEducationWhy = false }
-    }
-    shareEntryId?.let { id ->
-        val entry = state.entries.firstOrNull { it.id == id }
-        if (entry != null) AlertDialog(
-            onDismissRequest = { if (!busy) shareEntryId = null },
-            title = { Text("分享睡眠记录") },
-            text = {
-                Column(Modifier.heightIn(max = 520.dp).verticalScroll(androidx.compose.foundation.rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("请先预览分享内容。特殊情况备注默认不包含。")
-                    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                        Checkbox(checked = includeSpecialSituation, onCheckedChange = { includeSpecialSituation = it }, enabled = entry.comment?.isNotBlank() == true, modifier = Modifier.testTag("share_include_comment"))
-                        Text("包含特殊情况")
-                    }
-                    val lines = DiaryShare.lines(entry, includeSpecialSituation)
-                    lines.forEach { Text(it) }
-                }
-            },
-            confirmButton = { TextButton(enabled = !busy && !state.busy, onClick = { shareAndExit(includeSpecialSituation) }) { Text("继续分享并退出") } },
-            dismissButton = { TextButton(enabled = !busy, onClick = { shareEntryId = null }) { Text("取消") } }
-        )
     }
     if (exportKind != null) AlertDialog(onDismissRequest = { exportKind = null }, title = { Text("导出明文文件") },
         text = { Text("睡眠日记和完整备份均为明文文件。完整备份还包含安全问询及个人记录。请只保存到你信任的位置。") },

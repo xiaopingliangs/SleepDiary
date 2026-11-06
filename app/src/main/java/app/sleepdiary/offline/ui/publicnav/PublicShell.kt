@@ -66,6 +66,8 @@ fun PublicTodayScreen(
     suggestion: ContextualEducationSuggestion? = null,
     onContextWhy: () -> Unit = {},
     onLearnSuggestion: (ContextualEducationSuggestion) -> Unit = {},
+    onShare: (SleepDiaryEntry) -> Unit = {},
+    shareEnabled: Boolean = true,
     onView: (SleepDiaryEntry) -> Unit
 ) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -76,6 +78,7 @@ fun PublicTodayScreen(
         } else {
             Text("昨晚的睡眠记录已保存")
             Action("查看记录", { state.today?.let(onView) })
+            Action("分享记录", { state.today?.let(onShare) }, shareEnabled)
         }
         suggestion?.let { value ->
             Card(Modifier.fillMaxWidth().testTag("today_contextual_education")) {
@@ -97,7 +100,9 @@ fun PublicSleepScreen(
     entries: List<SleepDiaryEntry>,
     referenceDate: String,
     summaries: List<WeeklySummarySnapshot>,
-    onHistory: () -> Unit
+    onHistory: () -> Unit,
+    onShare: (Int) -> Unit = {},
+    shareEnabled: Boolean = true
 ) {
     var days by rememberSaveable { mutableIntStateOf(7) }
     val averages = remember(referenceDate, days, entries) { RecentAverageCalculator.calculate(LocalDate.parse(referenceDate), days, entries) }
@@ -113,6 +118,8 @@ fun PublicSleepScreen(
             FilterChip(selected = days == 14, onClick = { days = 14 }, label = { Text("最近 14 天") }, modifier = Modifier.heightIn(min = 48.dp))
         }
         Text("有记录的天数：${averages.validEntryCount} / $days")
+        Text("${LocalDate.parse(referenceDate).minusDays(days.toLong() - 1)} — $referenceDate")
+        Action("分享最近 $days 天", { onShare(days) }, shareEnabled)
         val averageLabels = listOf("平均估计入睡耗时（分钟）", "平均夜醒次数", "平均夜间清醒总时长（分钟）", "平均最后醒来到离床时长（分钟）", "平均在睡觉位置总时长 TIB", "平均主观睡眠质量（1 很差 — 5 很好）")
         val averageValues = listOf(averages.avgSolMin, averages.avgAwakeningCount, averages.avgWasoMin, averages.avgTerminalWakefulnessMin, averages.avgTibMin, averages.avgSleepQuality)
         averageLabels.zip(averageValues).forEachIndexed { index, (label, value) ->

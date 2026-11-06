@@ -22,7 +22,8 @@ data class DiaryUiState(
     val today:SleepDiaryEntry?=null, val firstSuccess:Boolean=false,
     val safety:app.sleepdiary.offline.data.dao.AssessmentWithAnswers?=null,
     val safetyFromSettings:Boolean=false,
-    val weekly:app.sleepdiary.offline.data.entity.WeeklySummarySnapshot?=null
+    val weekly:app.sleepdiary.offline.data.entity.WeeklySummarySnapshot?=null,
+    val referenceDate:LocalDate=form.referenceDate
 )
 
 class DiaryViewModel(
@@ -34,6 +35,14 @@ class DiaryViewModel(
 ):ViewModel() {
     private fun localZone() = zoneProvider()
     private fun localDate() = LocalDate.ofInstant(clock.instant(), localZone())
+    fun currentDate(): LocalDate = localDate()
+    /** Refresh rolling statistics from storage independently of the editable form date. */
+    suspend fun refreshRecentRecords() {
+        val entries = store.entries()
+        val date = localDate()
+        mutable.value = mutable.value.copy(entries = entries, referenceDate = date,
+            today = entries.firstOrNull { it.sleepDate == date.toString() })
+    }
     private fun claimDailyRouteIfNeeded() {
         if (mutable.value.page != HomePage.TODAY) return
         val date = localDate()
@@ -54,7 +63,7 @@ class DiaryViewModel(
                 saved.get<Boolean>("editing")==true -> HomePage.FORM
                 else -> HomePage.TODAY
             }
-            mutable.value=mutable.value.copy(page=page,entries=entries,today=today,safety=safety,message=null)
+            mutable.value=mutable.value.copy(page=page,entries=entries,today=today,safety=safety,message=null,referenceDate=localDate())
             if (page == HomePage.TODAY) claimDailyRouteIfNeeded()
         } catch(c:CancellationException){throw c} catch(_:Exception){mutable.value=mutable.value.copy(message="读取记录失败，请重试")}
     } }
@@ -69,6 +78,7 @@ class DiaryViewModel(
                 mutable.value = mutable.value.copy(
                     entries = entries,
                     today = today,
+                    referenceDate = date,
                     form = mutable.value.form.copy(referenceDate = date, zoneId = localZone().id)
                 )
                 claimDailyRouteIfNeeded()
@@ -143,9 +153,8 @@ class DiaryViewModel(
         mutable.value = mutable.value.copy(busy = true)
         viewModelScope.launch {
             try {
-                mutable.value.weekly?.let { store.acknowledgeWeekly(it.periodIndex) }
                 if (mutable.value.firstSuccess) store.acknowledgeExplanation()
-                mutable.value = mutable.value.copy(page = HomePage.TODAY, busy = false)
+                mutable.value = mutable.value.copy(page = HomePage.TODAY, busy = false, referenceDate = localDate(), today = mutable.value.entries.firstOrNull { it.sleepDate == localDate().toString() })
                 onReturned()
             } catch (c: CancellationException) { throw c }
             catch (_: Exception) { mutable.value = mutable.value.copy(busy = false, message = "状态更新失败，请重试") }
@@ -173,7 +182,7 @@ class DiaryViewModel(
                     is SaveResult.Success -> {
                         val entries=(mutable.value.entries.filterNot { it.id==result.entry.id }+result.entry).sortedBy { it.sleepDate }
                         saved["editing"]=false;saved["form"]=DiaryForm.from(result.entry)
-                        mutable.value=mutable.value.copy(form=DiaryForm.from(result.entry),page=if(result.pendingSummary==null)HomePage.SUCCESS else HomePage.WEEKLY,weekly=result.pendingSummary,busy=false,firstSuccess=first,entries=entries,today=result.entry)
+                        mutable.value=mutable.value.copy(form=DiaryForm.from(result.entry),page=HomePage.SUCCESS,weekly=null,busy=false,firstSuccess=first,entries=entries,today=entries.firstOrNull { it.sleepDate == localDate().toString() },referenceDate=localDate())
                     }
                     is SaveResult.ValidationWarning -> mutable.value=mutable.value.copy(busy=false,warning=true)
                     is SaveResult.Failure -> mutable.value=mutable.value.copy(busy=false,message=if(result.reason==SaveFailure.BEFORE_TRACKING_START)
@@ -186,7 +195,7 @@ class DiaryViewModel(
         if(mutable.value.page !in listOf(HomePage.SUCCESS,HomePage.WEEKLY) || mutable.value.busy) return
         mutable.value=mutable.value.copy(busy=true)
         viewModelScope.launch {
-            try { mutable.value.weekly?.let {store.acknowledgeWeekly(it.periodIndex)}; if(mutable.value.firstSuccess) store.acknowledgeExplanation();mutable.value=mutable.value.copy(busy=false);exit() }
+            try { if(mutable.value.firstSuccess) store.acknowledgeExplanation();mutable.value=mutable.value.copy(busy=false);exit() }
             catch(c:CancellationException){throw c} catch(_:Exception){mutable.value=mutable.value.copy(busy=false,message="保存失败，请重试")}
         }
     }

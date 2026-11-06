@@ -1,5 +1,7 @@
 # SleepDiary 0.2.2 — 开发规格总览
 
+**新接手的 AI 请先读 [HANDOFF.md](HANDOFF.md)**：项目意义、当前架构、未提交的最新进度、已解决与待解决问题、验证证据及本机操作入口。下文包含历史 V0.1 说明，不能单独当作最新版功能清单。
+
 规格版本：`SPEC-0.2.2`\
 目标应用版本：`0.2.2`\
 工作名称：**睡眠日记 / SleepDiary**  
@@ -141,3 +143,15 @@ V0.1 必须把上述能力保持为不存在，而不是“隐藏但已实现”
 ## 0.2.2 本机恢复校验增量
 
 Room 5 新增本机恢复代次与待复核状态。成功恢复备份时和业务数据一起原子更新；失败一起回滚。技术代次不进入备份、不能从文件获得治疗权限，BACKUP_2.1 结构保持。协议仍为 NONE。详细合同见 docs/LOCAL_EXECUTION_INCREMENT.md。
+
+## License / 许可
+
+SleepDiary is **source-available** under the [PolyForm Noncommercial License 1.0.0](LICENSE).
+
+- 个人和非商业用途可以使用、复制、修改、增加功能、再分发；
+- 再分发时必须保留同样的协议和版权声明；
+- **不允许商用。** 商用需要版权持有人单独书面授权；
+- 因为限制商用，这属于 source-available，不是 OSI 定义的开源许可证；
+- 本项目不是医疗器械，不提供失眠诊断、CBT-I 治疗、药物或个体化医疗建议。
+
+Copyright (c) 2026 肖平亮 Sean. See [LICENSE](LICENSE) for the full terms.

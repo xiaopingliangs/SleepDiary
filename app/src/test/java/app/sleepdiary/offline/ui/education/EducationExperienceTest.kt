@@ -228,4 +228,28 @@ class EducationExperienceTest {
         compose.onNodeWithTag("education_summary_share").performScrollTo().performClick()
         assertEquals(listOf(first.title), sharedSummaryTitles)
     }
+
+    @Test fun chapterTwoSimulationPreviewsThenCommitsWithoutPersistingSimulatorState() = runBlocking<Unit> {
+        openScene("SCENE-CH02-SIM")
+        compose.onNodeWithText("开始时的状态").assertExists()
+        val beforePreview = services.education.snapshot()
+        compose.onNodeWithTag("sim_choice_accept").performScrollTo().performClick()
+        compose.onNodeWithTag("sim_feedback").assertExists()
+        compose.onNodeWithText("通常最有帮助的做法").assertExists()
+        val afterPreview = services.education.snapshot()
+        assertEquals(beforePreview.progress, afterPreview.progress)
+        assertEquals(beforePreview.committedChoices, afterPreview.committedChoices)
+        assertEquals(beforePreview.records, afterPreview.records)
+        compose.onNodeWithTag("sim_next").performScrollTo().performClick()
+        compose.waitUntil(5000) { compose.onAllNodesWithText("走完之后的状态").fetchSemanticsNodes().isNotEmpty() }
+        assertTrue(compose.onAllNodesWithText("允许自己暂时清醒", substring = true).fetchSemanticsNodes().isNotEmpty())
+        val afterCommit = services.education.snapshot()
+        assertTrue(afterCommit.progress.isEmpty())
+        assertTrue(afterCommit.committedChoices.isEmpty())
+        assertTrue(afterCommit.records.isEmpty())
+        assertEquals("NONE", Versions.CBTI_PROTOCOL)
+        assertTrue(db.treatmentDao().episodes().isEmpty())
+        assertTrue(db.diaryDao().all().isEmpty())
+        assertTrue(db.safetyDao().all().isEmpty())
+    }
 }

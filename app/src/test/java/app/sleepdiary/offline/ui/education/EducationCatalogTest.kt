@@ -39,4 +39,15 @@ class EducationCatalogTest {
         assertEquals(0, references.count { it !in chapterIds && it !in sceneIds })
         assertTrue("diary" in sceneIds) // The diary branch links to its published scene, not an invented chapter.
     }
+
+    @Test fun chapterTwoSimulationKeepsManifestOrderAndChoiceSemantics() {
+        val catalog = PublicEducationCatalog.parse(manifest())
+        val spec = buildSimulationSpec(catalog.node("SCENE-CH02-SIM"), catalog)
+        assertEquals(listOf("pressure", "clock", "arousal"), spec.meters.map { it.id })
+        assertEquals(listOf(3, 3, 2), spec.meters.map { it.initial })
+        assertEquals(1, spec.stages.size)
+        assertEquals("mind", spec.stages.single().id)
+        assertEquals(listOf("must", "clock_watch", "accept"), spec.stages.single().choices.map { it.key })
+        assertEquals(listOf("must", "clock_watch", "accept"), spec.outcomes.map { it.id })
+    }
 }

@@ -252,16 +252,22 @@ fun PublicEducationExperience(
                         }.onFailure { error = it.message }
                     }
                     Text(scene.title, style = MaterialTheme.typography.headlineSmall)
-                    renderPayload(scene.payload, scene.kind)
-                    val children = catalog.children(scene.id)
-                    children.filter { it.kind != "CHOICE" }.forEach { child ->
-                        when (child.kind) {
-                            "NOTE_PROMPT", "REFLECTION" -> EducationNotePrompt(child, scene, repository, workspace, assocByRecord, notes, ::refresh) { error = it }
-                            else -> EducationContentBlock(child, catalog, onSource = ::openOfficialSource)
+                    val isChapterTwoSimulation = scene.id == "SCENE-CH02-SIM" && scene.payload.optString("type") == "sim"
+                    if (isChapterTwoSimulation) {
+                        val spec = remember(scene.id) { buildSimulationSpec(scene, catalog) }
+                        SimulationBlock(spec)
+                    } else {
+                        renderPayload(scene.payload, scene.kind)
+                        val children = catalog.children(scene.id)
+                        children.filter { it.kind != "CHOICE" }.forEach { child ->
+                            when (child.kind) {
+                                "NOTE_PROMPT", "REFLECTION" -> EducationNotePrompt(child, scene, repository, workspace, assocByRecord, notes, ::refresh) { error = it }
+                                else -> EducationContentBlock(child, catalog, onSource = ::openOfficialSource)
+                            }
                         }
+                        val choices = children.filter { it.kind == "CHOICE" }
+                        if (choices.isNotEmpty()) EducationChoiceBlock(scene, choices, savedChoiceByPrompt, reviewById, catalog, repository, ::refresh) { error = it }
                     }
-                    val choices = children.filter { it.kind == "CHOICE" }
-                    if (choices.isNotEmpty()) EducationChoiceBlock(scene, choices, savedChoiceByPrompt, reviewById, catalog, repository, ::refresh) { error = it }
                     val review = reviewById[scene.id]
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(onClick = {

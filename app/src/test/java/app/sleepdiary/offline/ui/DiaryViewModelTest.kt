@@ -60,10 +60,42 @@ class DiaryViewModelTest {
     @Test fun subsequentSuccessOmitsFirstExplanation()=runTest(dispatcher) {val s=Store().also {it.app=AppState(hasSeenMinimalInteractionExplanation=true,hasCompletedOnboarding=true)};val m=vm(s);advanceUntilIdle();fill(m);m.save();advanceUntilIdle();assertFalse(m.state.value.firstSuccess)}
     @Test fun startupReadFailureDoesNotPretendDatabaseIsEmpty()=runTest(dispatcher) {val s=Store().also {it.throwRead=true};val m=vm(s);advanceUntilIdle();assertEquals(HomePage.LOADING,m.state.value.page);assertEquals("读取记录失败，请重试",m.state.value.message);s.throwRead=false;m.start();advanceUntilIdle();assertEquals(HomePage.TODAY,m.state.value.page)}
 
-    @Test fun pendingWeeklySummaryIsShownAndAcknowledgedOnlyOnExit()=runTest(dispatcher) {
+    @Test fun pendingWeeklySummaryNeverInterruptsSaveOrMarksItselfDisplayed()=runTest(dispatcher) {
         val s=Store();s.pending=WeeklySummarySnapshot("summary",1,"2026-09-03","2026-09-09",1,20.0,2.0,30.0,60.0,480.0,3.0,"[]",generatedAtUtc="2026-09-09T00:00:00Z",revision=1,isCurrent=true,supersedesSummaryId=null)
-        val m=vm(s);advanceUntilIdle();fill(m);m.save();advanceUntilIdle();assertEquals(HomePage.WEEKLY,m.state.value.page);assertEquals(s.pending,m.state.value.weekly);assertNull(s.displayed)
-        m.exitAfterSuccess{};advanceUntilIdle();assertEquals(1,s.displayed)
+        val m=vm(s);advanceUntilIdle();fill(m);m.save();advanceUntilIdle();assertEquals(HomePage.SUCCESS,m.state.value.page);assertNull(m.state.value.weekly);assertNull(s.displayed)
+        m.exitAfterSuccess{};advanceUntilIdle();assertNull(s.displayed)
+    }
+    @Test fun editingAndSavingOldDiaryDoesNotMoveStatisticsDateOrTodaysEntry()=runTest(dispatcher) {
+        val today=diary();val old=diary("2026-09-01")
+        val s=Store().apply { rows=listOf(old,today) };val m=vm(s);advanceUntilIdle()
+        m.edit(old);m.comment("更正旧日记");m.save();advanceUntilIdle()
+        assertEquals(java.time.LocalDate.parse("2026-09-09"),m.state.value.referenceDate)
+        assertEquals(today,m.state.value.today)
+        m.returnToToday();advanceUntilIdle()
+        assertEquals(today,m.state.value.today)
+        assertEquals(java.time.LocalDate.parse("2026-09-09"),m.state.value.referenceDate)
+    }
+    @Test fun recentRefreshUsesCurrentLocalDayAndLatestStoredRowsEvenWithOldForm()=runTest(dispatcher) {
+        var now=java.time.Instant.parse("2026-09-09T15:59:00Z")
+        val zone=java.time.ZoneId.of("Asia/Shanghai")
+        val clock=object:java.time.Clock() {
+            override fun instant()=now
+            override fun getZone()=zone
+            override fun withZone(value:java.time.ZoneId):java.time.Clock=java.time.Clock.fixed(now,value)
+        }
+        val s=Store().apply { rows=listOf(diary("2026-09-09")) }
+        val m=DiaryViewModel(s,SavedStateHandle(),clock);advanceUntilIdle()
+        m.edit(diary("2026-09-01"))
+        now=java.time.Instant.parse("2026-09-09T16:01:00Z")
+        s.rows=listOf(diary("2026-09-10").copy(sleepOnsetLatencyMin=40))
+        m.refreshRecentRecords()
+        assertEquals(java.time.LocalDate.parse("2026-09-10"),m.state.value.referenceDate)
+        assertEquals(s.rows,m.state.value.entries)
+        assertEquals(s.rows.single(),m.state.value.today)
+        assertEquals(java.time.LocalDate.parse("2026-09-01"),m.state.value.form.referenceDate)
+        val recreated=DiaryViewModel(s,SavedStateHandle(mapOf("form" to m.state.value.form,"editing" to true)),clock)
+        advanceUntilIdle()
+        assertEquals(java.time.LocalDate.parse("2026-09-10"),recreated.state.value.referenceDate)
     }
     @Test fun restoreDiscardsStaleUnsavedForm()=runTest(dispatcher) {val s=Store();val m=vm(s);advanceUntilIdle();m.answerNumber(DiaryField.SOL,90);val id=m.state.value.form.id;m.afterRestore();advanceUntilIdle();assertNull(m.state.value.form.sol);assertNotEquals(id,m.state.value.form.id)}
 

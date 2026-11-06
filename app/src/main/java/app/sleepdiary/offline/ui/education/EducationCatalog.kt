@@ -49,6 +49,9 @@ data class PublicEducationCatalog(
         compareBy<PublicEducationNode> { it.payload.optInt("order", Int.MAX_VALUE) }.thenBy { it.id }
     )
 
+    /** Preserves manifest order for interactive payloads that have no explicit `order` field. */
+    fun childrenInManifestOrder(id: String): List<PublicEducationNode> = nodes.values.filter { it.parentId == id }
+
     companion object {
         val supportedKinds = setOf(
             "COURSE", "MAP_ENTRY", "MAP_GROUP", "MAP_BRANCH", "CHAPTER", "SCENE", "CONTENT_BLOCK", "CHOICE",

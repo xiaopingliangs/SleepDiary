@@ -1,6 +1,8 @@
 package app.sleepdiary.offline.ui
 
 import androidx.activity.ComponentActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.lifecycle.SavedStateHandle
@@ -45,6 +47,27 @@ class PublicShellTest {
         assertEquals(listOf("today","sleep","education","me"),PublicDestination.entries.map{it.route})
         assertEquals(listOf("今日","历史","了解","我的"),PublicDestination.entries.map{it.label})
         assertFalse(PublicDestination.entries.any{it.route.contains("treatment",ignoreCase=true)})
+    }
+
+    @Test fun todaySharesSavedEntryAndHistorySharesSelectedWindow() {
+        val entry=diary("2026-09-09")
+        var shared:SleepDiaryEntry?=null
+        var daysShared:Int?=null
+        var history by androidx.compose.runtime.mutableStateOf(false)
+        compose.setContent { SleepDiaryTheme {
+            if (!history) app.sleepdiary.offline.ui.publicnav.PublicTodayScreen(
+                app.sleepdiary.offline.ui.diary.DiaryUiState(app.sleepdiary.offline.ui.diary.DiaryForm.from(entry),today=entry),
+                onCreate={},onShare={ shared=it },onView={ history=true }
+            ) else app.sleepdiary.offline.ui.publicnav.PublicSleepScreen(listOf(entry),"2026-09-09",emptyList(),{},onShare={ daysShared=it })
+        } }
+        compose.onNodeWithText("分享记录").performClick()
+        compose.runOnIdle { assertEquals(entry,shared) }
+        compose.onNodeWithText("查看记录").performClick()
+        compose.onNodeWithText("分享最近 7 天").performScrollTo().performClick()
+        compose.runOnIdle { assertEquals(7,daysShared) }
+        compose.onNodeWithText("最近 14 天").performScrollTo().performClick()
+        compose.onNodeWithText("分享最近 14 天").performScrollTo().performClick()
+        compose.runOnIdle { assertEquals(14,daysShared) }
     }
 
     @Test fun rootTabsPreserveDistinctDestinationsAndEducationShellHasReturnPath(){

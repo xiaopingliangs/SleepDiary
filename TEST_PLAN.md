@@ -136,7 +136,9 @@ S03=YES / UNSURE（分别测试）。
 ### T-SHARE-001 分享来源
 保存 → 分享。
 
-要求：PNG 内容来自回读后的持久化记录；不含备注；不含安全问询；不含评分/建议。
+要求（2026-10-27 用户批准）：今日和保存成功页直接分享，PNG 来自回读后的持久化记录，包含特殊情况 comment，空白显示“无记录”；无额外确认；不含安全问询、独立个人记录或评分/建议。
+
+最近 7/14 天分享回归：验证含当日的日期边界、窗口外/未来记录排除、缺失不计零、六项平均值、旧无效记录不污染统计；非空特殊情况按日期原文列出、空值略过。进入历史和分享时读取最新原始数据，编辑旧记录、跨日及重建不移动统计窗口到表单日期。到期周总结不抢占保存成功页。验证 PNG 多行备注不裁切、content URI 临时读授权及失败不退出；真机接收验收单列。
 
 ### T-SHARE-002 URI
 要求：使用 content://；临时读权限；不使用 file://。
@@ -222,7 +224,7 @@ gradlew.bat connectedDebugAndroidTest
 ## 13. Public UX 2.0 — 旧数据与导出安全
 
 - `BACKUP_3.1` 对字段格式、数值范围、UUID、引用和格式版本保持校验；严格保留可解析的旧日记时间/日期字符串，即使当前 DiaryValidator 已拒绝其 chronology。导出/恢复不得规范化这些原值。
-- Public UX 2.0：今日不重复提供通用导航；保存日记从只读详情进入更正且需确认；历史不显示导出，导出只在“我的”；相对分钟 23:55 + 10 分钟必须回写 trySleepAtLocal 为次日 00:05；较长延迟不是医学阈值；分享前明确预览，comment 默认不含，只有明确开启才含。
+- Public UX 2.0（含 2026-10-27 批准增量）：今日不重复提供通用导航，已保存记录可直接分享；保存日记从只读详情进入更正且需确认；文件导出仍在“我的”，历史新增最近 7/14 天 PNG 分享；相对分钟 23:55 + 10 分钟必须回写 trySleepAtLocal 为次日 00:05；较长延迟不是医学阈值；日记分享直接包含已保存 comment，空白显示“无记录”，无需额外确认。
 - Public UX 2.0 Education：了解首页只列四个初始 Experience 和可选知识地图；Experience ID/source refs 必须解析到已校验 V4 registry；界面不显示分类 metadata；Preview 不改 progress/choice/record，确认才提交 choice；完成才写 progress；反思编辑不保存，明确保存后才生成 Workspace/Education 一对一关联；Diary/Safety/Treatment 内容不因阅读而改变。
 - 用含旧 chronology 的数据库做 `BACKUP_3.1` export → preview → restore round-trip；恢复行仍被当前 7/14 日和周统计排除，直至用户明确更正。
 - stale current `WeeklySummarySnapshot` 被当前有效记录重新计算时，旧 revision 保留为 `isCurrent=false`，新 revision+1 指向旧 ID，统计只纳入当前有效行。
