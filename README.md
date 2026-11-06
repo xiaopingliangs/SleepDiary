@@ -1,5 +1,9 @@
 # SleepDiary 0.2.2 — 开发规格总览
 
+## 下载 / Releases
+
+最新安装包在 [GitHub Releases](https://github.com/xiaopingliangs/SleepDiary/releases/latest)。当前为 `0.2.2` debug 签名测试包；不是生产包或医疗器械。
+
 **新接手的 AI 请先读 [HANDOFF.md](HANDOFF.md)**：项目意义、当前架构、未提交的最新进度、已解决与待解决问题、验证证据及本机操作入口。下文包含历史 V0.1 说明，不能单独当作最新版功能清单。
 
 规格版本：`SPEC-0.2.2`\
